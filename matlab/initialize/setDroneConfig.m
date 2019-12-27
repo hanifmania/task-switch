@@ -3,13 +3,13 @@
 
 
 % Drone number list for experiment. Ex. [1, 3, 6]
-drone_list = [1];
+drone_list = [1 2];
 AgentNum = size(drone_list,2);
 
 % Drone r for collision avoidance
 % CBF force them to keep 2*r distance
 if bebop
-    R = 0.3;
+    R = 0.6;
 elseif crazyflie
     R = 0.2;
 end
@@ -23,8 +23,8 @@ z_thresh = 0.7;
 
 % set initial position
 if ~real
-    x = mean(xlimit) + (xlimit(2)-xlimit(1)).*(gallery('uniformdata',[1 AgentNum], 0)-0.5);
-    y = mean(ylimit) + (ylimit(2)-ylimit(1)).*(gallery('uniformdata',[1 AgentNum], 1)-0.5);
+    x = mean(xlimit) + (xlimit(2)-xlimit(1)).*(gallery('uniformdata',[1 AgentNum], 0)-0.6);
+    y = mean(ylimit) + (ylimit(2)-ylimit(1)).*(gallery('uniformdata',[1 AgentNum], 1)-0.6);
     z = ones(1,AgentNum);
 
 %     x = [-1.2, -1.2, -1.2];

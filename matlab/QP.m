@@ -1,100 +1,152 @@
-function [u_opt] = QP(x, y, u_nom, E, pos_charge)
+function [u_opt] = QP(xi,yi,u_nom,fieldInfo,persistInfo,Perception,perceptionInfo)
+global dhdt 
 
-global OBJECT_NUM
-global CBF_h_obs 
-global theta_obj norm_obj xwidth_obj ywidth_obj f_obj pos_obj
-global theta_fie norm_fie xwidth_fie ywidth_fie f_fie pos_fie
-global radius_charge Emin Kc k_charge CBF_fixed 
+dhdt = 1;
+matlab = 1;
 
 
-pos_robot = [x,y];
 
-persistent n
-if isempty(n)
-    n = 0;
-end
-n = n+1;
 
-% Charging CBF
 
-if CBF_fixed
-    h_charge = E - Emin - (Kc/k_charge) * (norm(pos_robot-pos_charge') - radius_charge);
-else
-    h_charge = E - Emin - (Kc/k_charge) * log(norm(pos_robot-pos_charge')/radius_charge);
-end
 
-if CBF_fixed
-    A_charge = (Kc/k_charge) * ( (pos_robot-pos_charge')/norm(pos_robot-pos_charge') );
-else
-    A_charge = (Kc/k_charge) * ( (pos_robot-pos_charge')/norm(pos_robot-pos_charge')^2 );
-end
-b_charge = h_charge - Kc;
-
-CBFscale = 10;
-A_charge = A_charge./CBFscale;
-b_charge = b_charge./CBFscale;
-
-%%%field
-dh_f = zeros(1,2);
-hx_f = zeros(1,1);
 coef = zeros(1,2);
-%%% \partial x,yの計算にあたり，共通の係数だけ先に計算
-coef(1) = -norm_fie*(((pos_robot(1)-pos_fie(1))*cos(theta_fie)...
-    +(pos_robot(2)-pos_fie(2))*sin(theta_fie))/xwidth_fie).^(norm_fie-1);
-coef(2) = -norm_fie*((-(pos_robot(1)-pos_fie(1))*sin(theta_fie)...
-    +(pos_robot(2)-pos_fie(2))*cos(theta_fie))/ywidth_fie).^(norm_fie-1);
 
-dh_f(:) = -[coef(1)*cos(theta_fie)/xwidth_fie+coef(2)*sin(theta_fie)/ywidth_fie,...
-    coef(1)*sin(theta_fie)/xwidth_fie+coef(2)*cos(theta_fie)/ywidth_fie];
-hx_f = f_fie(pos_robot(1),pos_robot(2));
+%% for field constraint
 
+%%% \partial x,y?ｿｽﾌ計?ｿｽZ?ｿｽﾉゑｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽC?ｿｽ?ｿｽ?ｿｽﾊの係?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽﾉ計?ｿｽZ
+pos = fieldInfo.pos;
+theta = fieldInfo.theta;
+pnorm = fieldInfo.norm;
+width = fieldInfo.width;
+hx = fieldInfo.hx;
 
+coef(1) = -pnorm*(((xi-pos(1))*cos(theta)...
+    +(yi-pos(2))*sin(theta))/width(1)).^(pnorm-1);    
+coef(2) = -pnorm*((-(xi-pos(1))*sin(theta)...
+    +(yi-pos(2))*cos(theta))/width(2)).^(pnorm-1);
 
+dh_field = [coef(1)*cos(theta)/width(1)+coef(2)*sin(theta)/width(2);...
+    coef(1)*sin(theta)/width(1)+coef(2)*cos(theta)/width(2)];
+hx_field = (hx(xi,yi))
 
-dh_o = zeros(OBJECT_NUM,2);
-hx_o = zeros(OBJECT_NUM,1);
-coef = zeros(1,2);
-for i = 1:OBJECT_NUM
-    %%% \partial x,yの計算にあたり，共通の係数だけ先に計算
-    coef(1) = -norm_obj(i)*(((pos_robot(1)-pos_obj(1,i))*cos(theta_obj(i))...
-        +(pos_robot(2)-pos_obj(2,i))*sin(theta_obj(i)))/xwidth_obj(i)).^(norm_obj(i)-1);
-    coef(2) = -norm_obj(i)*((-(pos_robot(1)-pos_obj(1,i))*sin(theta_obj(i))...
-        +(pos_robot(2)-pos_obj(2,i))*cos(theta_obj(i)))/ywidth_obj(i)).^(norm_obj(i)-1);
-    
-    dh_o(i,:) = [coef(1)*cos(theta_obj(i))/xwidth_obj(i)+coef(2)*sin(theta_obj(i))/ywidth_obj(i),...
-        coef(1)*sin(theta_obj(i))/xwidth_obj(i)+coef(2)*cos(theta_obj(i))/ywidth_obj(i)];
-    hx_o(i) = -f_obj{1,i}{1,1}(pos_robot(1),pos_robot(2));
-%    temp(i,:) = [(pos_robot(1) - pos_obj(1,i)), (pos_robot(2) - pos_obj(2,i))].*2;
+% %%% \partial x,y?ｿｽﾌ計?ｿｽZ?ｿｽﾉゑｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽC?ｿｽ?ｿｽ?ｿｽﾊの係?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽﾉ計?ｿｽZ
+% pos = softInfo.pos;
+% theta = softInfo.theta;
+% pnorm = softInfo.norm;
+% width = softInfo.width;
+% hx = softInfo.hx;
+% 
+% coef(1) = -pnorm*(((xi-pos(1))*cos(theta)...
+%     +(yi-pos(2))*sin(theta))/width(1)).^(pnorm-1);
+% coef(2) = -pnorm*((-(xi-pos(1))*sin(theta)...
+%     +(yi-pos(2))*cos(theta))/width(2)).^(pnorm-1);
+% 
+% dh_soft = [coef(1)*cos(theta)/width(1)+coef(2)*sin(theta)/width(2);...
+%     coef(1)*sin(theta)/width(1)+coef(2)*cos(theta)/width(2)];
+% hx_soft = (hx(xi,yi));
+if Perception
+    pos = fieldInfo.pos;
+    theta = fieldInfo.theta;
+    pnorm = fieldInfo.norm;
+    width = fieldInfo.width;
+    hx = fieldInfo.hx;
+
+    coef(1) = -pnorm*(((xi-pos(1))*cos(theta)...
+                  +(yi-pos(2))*sin(theta))/width(1)).^(pnorm-1);    
+    coef(2) = -pnorm*((-(xi-pos(1))*sin(theta)...
+        +(yi-pos(2))*cos(theta))/width(2)).^(pnorm-1);
+
+    dh_soft = [coef(1)*cos(theta)/width(1)+coef(2)*sin(theta)/width(2);...
+        coef(1)*sin(theta)/width(1)+coef(2)*cos(theta)/width(2)];
+    hx_soft = (hx(xi,yi));
+else
+    dh_soft = persistInfo.dhx';
+    if dhdt
+        hx_soft = persistInfo.hx'+persistInfo.dht';
+    else
+        hx_soft = persistInfo.hx';
+    end
 end
+% winf = -1000;
+% wsup = 1000;
+% epsilon = 1/1000000000;
+% uinf = -1000*[1 1];
+% usup = 1000*[1 1];
+
+% A = [-dh_hard -dh_soft;
+%      0 -norm(dh_soft)*10]'
+A = [-dh_field -dh_soft;
+     0 -1]';
+B = []';
+C = []';
+D = [-hx_field -hx_soft]';
 
 
+gQ = sparse(diag([1 1 100])); % 最適化重視
+% gQ = sparse(diag([1 1 50])); % ぶつからない重視
+
+% gc = [-u_nom; -1; 0; zeros(2,1)];
+
+gc = [0 0 0];
+gq = [A];
+
+%%%%%%%% 解けないときは止まる
+% gQ = sparse(diag([1 1 0]));
+% gc = [0 0 1];
+%%%%%%%%
+% gq
+% -D
 
 
-CBF_h_obs(n,:) = hx_o;
+% Qc = sparse(diag([1 1 0]));
+% qc = [0 0 0]';
+vmax = 0.4;
 
-H = eye(2);
-f = -u_nom;
+% ub = [vmax vmax inf];
+% lb = [-vmax -vmax -inf];
+ub = [vmax; vmax; inf];
+lb = -ub;
+%% solve by matlab
+if matlab
+        options = optimoptions('quadprog', 'Display', 'off');
+        try
+            % adjusting the way of expression of matrix to gurobi
+            % -gq x < -D
+            u_opt = quadprog(2*gQ,gc,gq,-D, [], [], lb, ub, [], options);
+            if isempty(u_opt)
+                warning('u_opt EMPTY');
+                u_opt = [0;0;0];
+            end
+        catch
+            warning('QuadProg ERROR');
+            u_opt = [0;0;0];
+        end
+%% solve by gurobi
+else
 
-gamma = 10;
-A_avoid = [dh_o;dh_f];
-b_avoid = gamma * [10*hx_o.^3;10*hx_f.^3];
+    % min x^T gQ x+gc^T x
+    % s.t. gq x < rhs
 
+    model.Q = gQ;
+    % model.obj = gc;
+    model.modelsense = 'min';
 
-A = [A_charge;A_avoid];
-b = [b_charge;b_avoid];
-% no charge (for comparison)
-% A = [A_avoid];
-% b = [b_avoid];
+    % Au + B\delta + Cz + D < 0
+    model.A = sparse(gq);
+    model.rhs = -D;
+    model.sense = '<'; % '< 'means less or equal
 
-options = optimoptions('quadprog', 'Display', 'off');
+    model.vtype = 'CCC';
+    model.lb = lb;
+    model.ub = ub;
 
-%u_opt = quadprog(H,f,A,b);
-try
-    [u_opt] = quadprog(H,f,A,b, [], [], [], [], [], options);
-catch
-    warning('QuadProg ERROR');
-    u_opt = [0;0];
+    % model.quadcon.Qc = Qc;
+    % model.quadcon.q = qc;
+    % model.quadcon.rhs = vmax;
+
+    params.OutputFlag = 0;
+    result = gurobi(model,params);
+    u_opt = result.x;
 end
-
 
 end

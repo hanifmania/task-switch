@@ -33,4 +33,4 @@ c0 = 1;
 u_nom = zeros(2,AgentNum);
 u_opt = zeros(2,AgentNum);
 u_z = zeros(1,AgentNum);
-optresult = zeros(5,AgentNum);
+optresult = zeros(3,AgentNum);

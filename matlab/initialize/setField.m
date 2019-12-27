@@ -12,15 +12,21 @@ ygrid = linspace(ylimit(1),ylimit(2),mesh_acc(2));
 num_grid_x = mesh_acc(1);
 num_grid_y = mesh_acc(2);
 
-
+pointDense = (xlimit(2)-xlimit(1))*(ylimit(2)-ylimit(1))/(mesh_acc(1)*mesh_acc(2));
 
 %%% define importance weight %%%%%
 mu = [0 0];
 sigma = [0.25 0.3; 0.3 1];
 xy = [X(:) Y(:)];
+
+weightScale = 1;
+
 weight = mvnpdf(xy,mu,sigma);
 weight = reshape(weight,num_grid_y,num_grid_x);
 Z = weight;
-Z = ones(num_grid_y, num_grid_x);% uniformly important...
+Z = 0.2*weightScale*ones(num_grid_y, num_grid_x);% uniformly important...
 
 
+%%% importance change parmeters
+delta_increase = 0.01;
+delta_decrease = 1;

@@ -1,4 +1,6 @@
 function [CBF] = getPnomCBF(pos,theta,norm,width)
+% if hx>0 then (x,y) is inside of figure
+
 global xlimit ylimit % plot
 
 

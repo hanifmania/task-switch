@@ -1,11 +1,15 @@
-function voronoi_plot_dis(x,y,cent,Region,Z,targetInfo,flagInfo)
+function voronoi_plot_dis(x,y,Voronoi,Z,targetInfo)
     global xlimit ylimit % plot
-    global X Y
+    global X Y weightScale
     hold off
+    
+%% unpack
+Region = Voronoi.Region;
+
 %% weight plot
     surf(X,Y,Z,'LineStyle','none')
     contourf(X,Y,Z)
-    caxis([0 1])
+    caxis([0 weightScale])
     colormap(jet)
     hold on
 %% constraint plot
@@ -13,23 +17,24 @@ function voronoi_plot_dis(x,y,cent,Region,Z,targetInfo,flagInfo)
 
 
 %% flag plot
-    plot(flagInfo.plotX, flagInfo.plotY, 'r:', 'LineWidth', 3);    
+%     plot(flagInfo.plotX, flagInfo.plotY, 'r:', 'LineWidth', 3);    
 %% voronoi plot
     for i=1:length(x)
-        % Regionに基づき，最も近いエージェントがiとなる点群の座標を�?める
+        % gather coordinate of points whose neaest agent is i
         voronoi_x = X(Region(:,:,i));
         voronoi_y = Y(Region(:,:,i));
         
-        % 点群全体をを�?�に�?�?ために�?要となる点のindexを求め?��ソートもする神関数
-        % boundary()より圧倒的に早�?
+        % convhull: calculate the points which is necessary to include them 
+        %           by convex hull (and sort the points)
+        %           faster than boundary
         point_index = convhull(voronoi_x,voronoi_y,'simplify',true);
-        % �?界線�?�ロ�?�?
+        % voronoi boundary plot
         plot(voronoi_x(point_index),voronoi_y(point_index),'')
         hold on;
         
-        % 重�?プロ�?�?
-        plot(cent(i,1),cent(i,2), 'm.', 'MarkerSize', 10)
-        hold on ;       
+        % central plot
+%         plot(x(i)+ux(i),y(i)+uy(i), 'm.', 'MarkerSize', 10)
+%         hold on ;       
     end
 %% agent position plot
     plot(x,y, 'w.', 'MarkerSize', 15)
@@ -43,4 +48,3 @@ function voronoi_plot_dis(x,y,cent,Region,Z,targetInfo,flagInfo)
     axis equal
     drawnow
 end
-

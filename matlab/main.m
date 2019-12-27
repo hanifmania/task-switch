@@ -15,7 +15,11 @@ global xlimit ylimit % plot
 global R % neighbor ode
 global X Y mesh_acc % mesh grid
 global delta_increase delta_decrease perception_increase
-
+global weightScale T
+global b
+global pointDense
+global k % control gain
+global goalJ
 %% Mode setting
 real = 0;
 
@@ -39,8 +43,8 @@ setCtrlConfig
 %% voronoi settings
 setVoronoi
 
-%% CBF settings
-setCBF
+%% Hard constraint CBF settings
+setHardCBF
 
 
 %% simulation settings
@@ -86,6 +90,7 @@ while(~endflag)
         disp('START!!!!!!!!!')
     end
     samplingtime = toc(t_sim_start)-last_toc;
+    T = samplingtime;
     last_toc = toc(t_sim_start);
     t = t+samplingtime;
     
@@ -122,15 +127,28 @@ while(~endflag)
     joy_msg = mqttinterface.receive(sub_joy{1});
     Lbutton = joy_msg.buttons(5);
     Rbutton = joy_msg.buttons(6);
-    
+    Perception = [Lbutton Rbutton];
+
+
     endflag = joy_msg.buttons(7);
     
     Z = updateWeight(x,y,Z,Perception);
-    [u_nom(1,:),u_nom(2,:),Region,cent]=voronoi_ode_dis(x,y,Z,k,true);
+    [u_nom(1,:),u_nom(2,:),Voronoi,persistCBF]=voronoi_ode_dis(x,y,Z,true);
     
+    for i=1:AgentNum
+        targetVector = [0; 0];% direction to target(obtain from image)
+        pos = [x(i); y(i)] + targetVector;
+        theta = [0];
+        norm = [2]; 
+        width = [0.5;0.5 ];% target size
+        targetInfo(i) = getPnomCBF(pos,theta,norm,width);
+    end
+    
+
+    J = sum(getVoronoiEval(x,y,Voronoi.Region,Z))
     %%%%%%%%% Plot %%%%%%%%%%%
     if matlab_plot
-        voronoi_plot_dis(x,y,cent,Region,Z,targetInfo,flagInfo)
+        voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo)
     elseif ~real
         for i=1:AgentNum
             pose_msg.pose.position.x = x(i);
@@ -142,7 +160,7 @@ while(~endflag)
     end
     
     for i=1:AgentNum
-        optresult(:,i) = MIQP(x(i),y(i),u_nom(:,i),targetInfo,flagInfo);
+        optresult(:,i) = QP(x(i),y(i),u_nom(:,i),fieldInfo,persistCBF(i),Perception(i),targetInfo(i));
     end
 
     optresult
@@ -160,9 +178,10 @@ while(~endflag)
         end
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    u_opt(abs(u_opt)>0.3) = 0.3;% input saturation
+%     u_opt(abs(u_opt)>0.3) = 0.3;% input saturation
     
     if ~real
+        u_opt(abs(u_opt.*samplingtime)>0.4) = 0;
         x = x+(u_opt(1,:))*samplingtime;
         y = y+(u_opt(2,:))*samplingtime;
         z = z + u_z * samplingtime;
@@ -179,7 +198,7 @@ if real
     vel_msg.linear.y = 0;
     vel_msg.linear.z = 0;
     for j=1:5
-        for i=1:AGENT_NUM
+        for i=1:AgentNum
             mqttinterface.send(pub_vels{i},vel_msg)
         end
     end    
