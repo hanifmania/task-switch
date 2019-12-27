@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find obs_col_avoidance)/config/bebop2_network.rviz"/>   
+	<group ns="bebop101">
+		<node pkg="obs_col_avoidance" type="pose2tf.py" name="pose2tf_node">
+			<param name="tfname" value="bebop101"/>
+			<remap from="posestamped" to="/vrpn_client_node/bebop101/pose"/>
+		</node>
+		<node pkg="obs_col_avoidance" type="pose2marker_sphere.py" name="pose2marker_node">
+			<param name="markername" value="bebop101"/>
+			<remap from="posestamped" to="/vrpn_client_node/bebop101/pose"/>
+		</node>
+
+	</group>
+	<group ns="bebop102">
+		<node pkg="obs_col_avoidance" type="pose2tf.py" name="pose2tf_node">
+			<param name="tfname" value="bebop102"/>
+			<remap from="posestamped" to="/vrpn_client_node/bebop102/pose"/>
+		</node>
+		<node pkg="obs_col_avoidance" type="pose2marker_sphere.py" name="pose2marker_node">
+			<param name="markername" value="bebop102"/>
+			<remap from="posestamped" to="/vrpn_client_node/bebop102/pose"/>
+		</node>
+	</group>
+	<group ns="bebop103">
+		<node pkg="obs_col_avoidance" type="pose2tf.py" name="pose2tf_node">
+			<param name="tfname" value="bebop103"/>
+			<remap from="posestamped" to="/vrpn_client_node/bebop103/pose"/>
+		</node>
+		<node pkg="obs_col_avoidance" type="pose2marker_sphere.py" name="pose2marker_node">
+			<param name="markername" value="bebop103"/>
+			<remap from="posestamped" to="/vrpn_client_node/bebop103/pose"/>
+		</node>
+	</group>
+
+	<node pkg="rosbag" type="play" name="rosbag" args="$(find obs_col_avoidance)/bagdata/2019-07-04-16-57-47.bag"/>
+	<node pkg="obs_col_avoidance" type="network_visualize.py" name="network_visualize"/>
+	<node pkg="obs_col_avoidance" type="pose2marker_obs.py" name="pose2markerobs_node">
+		<param name="markername" value="obs"/>
+	</node>
+</launch>

@@ -1,0 +1,41 @@
+<launch>
+    <arg name="agent_number" default="1"/>
+    <arg name="namespace" default="agent$(arg agent_number)"/>
+    <arg name="vis_ns" value="visualize/$(arg namespace)"/>
+    <arg name="mav_name" default="bebop2"/>
+    <arg name="model" default="$(find rotors_description)/urdf/$(arg mav_name)_base.xacro" />
+    <arg name="enable_logging" default="false"/>
+    <arg name="enable_ground_truth" default="true"/>
+    <arg name="log_file" default="$(arg mav_name)"/>
+    <arg name="wait_to_record_bag" default="false"/>
+    <arg name="enable_mavlink_interface" default="false"/>
+    <param name="use_gui" value="false" />
+
+    <group ns="visualize">
+        <group ns="$(arg namespace)">
+            <param name="robot_description" command="
+            $(find xacro)/xacro.py '$(arg model)'
+            enable_logging:=$(arg enable_logging)
+            enable_ground_truth:=$(arg enable_ground_truth)
+            enable_mavlink_interface:=$(arg enable_mavlink_interface)
+            log_file:=$(arg log_file)
+            wait_to_record_bag:=$(arg wait_to_record_bag)
+            mav_name:=$(arg mav_name)
+            namespace:=$(arg vis_ns)" />
+
+            <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+                <!-- <remap from="robot_description" to="/robot_description"/> -->
+            </node>
+            <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+                <!-- <remap from="robot_description" to="/robot_description"/> -->
+            </node>
+
+            <node pkg="obs_col_avoidance" name="down_camera" type="down_range.py">
+                <param name="agenttf" value="/$(arg vis_ns)/base_link"/>
+                <param name="cameratf" value="/$(arg vis_ns)/down_camera"/>
+            </node>
+
+        </group>
+    </group>
+
+</launch>

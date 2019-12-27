@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <arg name="real" default="false"/>
+
+    <include file="$(find task_switch)/launch/mqtt_settings.launch"/>
+
+    <include file="$(find task_switch)/launch/joy.launch"/>
+
+    <!-- Run Experiment with bebop2 -->
+    <group if="$(arg real)">
+        <include file="$(find task_switch)/launch/vrpn_client.launch"/>
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find task_switch)/config/bebop2.rviz"/>   
+    </group>
+
+    <!-- Run simulation -->
+    <group unless="$(arg real)">
+        <group ns="agent1">
+            <node pkg="task_switch" name="pose2tf" type="pose2tf.py" >
+                <param name="tfname" value="/visualize/agent1"/>
+            </node>
+	    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+	    	<param name="markername" value="agent1"/>
+		<remap from="posestamped" to="/agent1/posestamped"/>
+	    </node>
+        </group>
+        <group ns="agent2">
+            <node pkg="task_switch" name="pose2tf" type="pose2tf.py" >
+                <param name="tfname" value="/visualize/agent2"/>
+            </node>
+	    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+	    	<param name="markername" value="agent2"/>
+		<remap from="posestamped" to="/agent2/posestamped"/>
+	    </node>
+        </group>
+        <group ns="agent3">
+            <node pkg="task_switch" name="pose2tf" type="pose2tf.py" >
+                <param name="tfname" value="/visualize/agent3"/>
+            </node>
+	    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+	    	<param name="markername" value="agent3"/>
+		<remap from="posestamped" to="/agent3/posestamped"/>
+	    </node>
+        </group>
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find task_switch)/config/bebop2_sim.rviz"/>   
+    </group>
+
+    <!-- Visualization Part -->
+    <group ns="visualize">
+        <node pkg="task_switch" type="plot_obs_col_avoidance.py" name="plot_node">
+            <param name="agenttf" value="/visualize/agent"/>
+        </node>
+	<node pkg="task_switch" type="w8_visualize.py" name="w8_visualize"/>
+    </group>
+</launch>

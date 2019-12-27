@@ -1,0 +1,176 @@
+mqtt:
+  client:
+    protocol: 4 # MQTTv311
+  connection:
+    host: localhost
+    port: 1883
+    keepalive: 60
+  private_path: device/001
+
+bridge:
+  # For experiment using bebop2.
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/bebop01/pose
+    topic_to: pose01
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: vision_msgs.msg:Detection2DArray
+    topic_from: /bebop01/objects
+    topic_to: objects01
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel01
+    topic_to: /bebop01/cmd_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: takeoff01
+    topic_to: /bebop01/cmd_takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land01
+    topic_to: /bebop01/cmd_land
+
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/bebop02/pose
+    topic_to: pose02
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: vision_msgs.msg:Detection2DArray
+    topic_from: /bebop02/objects
+    topic_to: objects02
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel02
+    topic_to: /bebop02/cmd_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: takeoff02
+    topic_to: /bebop02/cmd_takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land02
+    topic_to: /bebop02/cmd_land
+
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/bebop03/pose
+    topic_to: pose03
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: vision_msgs.msg:Detection2DArray
+    topic_from: /bebop03/objects
+    topic_to: objects03
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel03
+    topic_to: /bebop03/cmd_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: takeoff03
+    topic_to: /bebop03/cmd_takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land03
+    topic_to: /bebop03/cmd_land
+
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/bebop04/pose
+    topic_to: pose04
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: vision_msgs.msg:Detection2DArray
+    topic_from: /bebop04/objects
+    topic_to: objects04
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel04
+    topic_to: /bebop04/cmd_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: takeoff04
+    topic_to: /bebop04/cmd_takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land04
+    topic_to: /bebop04/cmd_land
+
+
+
+  # For crazyflie
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/crazyflie1/pose
+    topic_to: pose1
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel1
+    topic_to: /crazyflie1/velocity_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float64
+    topic_from: takeoff1
+    topic_to: /crazyflie1/takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land1
+    topic_to: /crazyflie1/land
+
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/crazyflie2/pose
+    topic_to: pose2
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel2
+    topic_to: /crazyflie2/velocity_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float64
+    topic_from: takeoff2
+    topic_to: /crazyflie2/takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land2
+    topic_to: /crazyflie2/land
+
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: /vrpn_client_node/crazyflie3/pose
+    topic_to: pose3
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:Twist
+    topic_from: vel3
+    topic_to: /crazyflie3/velocity_input
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float64
+    topic_from: takeoff3
+    topic_to: /crazyflie3/takeoff
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: land3
+    topic_to: /crazyflie3/land
+
+  # For simulation
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: pose1
+    topic_to: /agent1/posestamped
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: pose2
+    topic_to: /agent2/posestamped
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: pose3
+    topic_to: /agent3/posestamped
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: sensor_msgs.msg:Joy
+    topic_from: /joy
+    topic_to: joy
+
+  # Plot data sent from Matlab
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: task_switch.msg:PlotData
+    topic_from: plot_data
+    topic_to: /visualize/plot_data
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: geometry_msgs.msg:PoseStamped
+    topic_from: reference
+    topic_to: /reference/pose

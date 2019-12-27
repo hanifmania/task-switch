@@ -1,0 +1,185 @@
+clear all
+close all
+clear java
+
+addpath('voronoi')
+addpath('optimization')
+addpath('initialize')
+addpath('grb')
+addpath('functions')
+javaaddpath('jars/org.eclipse.paho.client.mqttv3-1.2.0.jar')
+javaaddpath('jars/Subscriber.jar')
+addpath(genpath(pwd))
+
+global xlimit ylimit % plot
+global R % neighbor ode
+global X Y mesh_acc % mesh grid
+global delta_increase delta_decrease perception_increase
+
+%% Mode setting
+real = 0;
+
+% Plot in matlab or ROS.
+matlab_plot = 1;
+crazyflie = 0;
+bebop = 1;
+
+
+%% field settings
+setField
+
+
+%% agents settings
+setDroneConfig
+
+
+%% controller settings
+setCtrlConfig
+
+%% voronoi settings
+setVoronoi
+
+%% CBF settings
+setCBF
+
+
+%% simulation settings
+T = 0.1;
+simtime = 100;
+
+%% MQTT
+setMQTT
+
+
+%%
+detectNum = 0;
+orientation = cell(1,AgentNum);
+
+disp('mqtt message waiting...')
+%%% wait until get non-empty msg
+if real
+    pose_msg = mqttinterface.receive(sub_poses{1});
+    while isempty(pose_msg)
+        pose_msg = mqttinterface.receive(sub_poses{1});
+    end
+end
+joy_msg = mqttinterface.receive(sub_joy{1});
+while isempty(joy_msg)
+    joy_msg = mqttinterface.receive(sub_joy{1});
+end
+disp('message received')
+
+
+endflag = 0;
+t = 0;
+t_sim_start = tic;
+last_toc = toc(t_sim_start);
+
+
+
+object_func = [];
+detectNum = zeros(1,AgentNum);
+
+while(~endflag)
+    if t == 0
+        input('PRESS ENTER to START')
+        disp('START!!!!!!!!!')
+    end
+    samplingtime = toc(t_sim_start)-last_toc;
+    last_toc = toc(t_sim_start);
+    t = t+samplingtime;
+    
+    %%%%%%%%%%%%%%%% Get agent positions  %%%%%%%%%%%%%
+    if real
+        for i = 1:AgentNum
+%          Receive PoseStamped message (sent from vrpn_client)
+           pose_msg = mqttinterface.receive(sub_poses{i});
+           x(i) = pose_msg.pose.position.x;
+           y(i) = pose_msg.pose.position.y;
+           z(i) = pose_msg.pose.position.z;
+           orientation{i} = pose_msg.pose.orientation;
+           detection(i) = mqttinterface.receive(sub_obj{i});
+        end
+    end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    if real
+        for i = 1:AgentNum
+            detectNum(i) = size(detection.detections,1);
+            if detectNum(i)
+                for cnt=1:detectNum(i)
+                    detections = detection.detections(cnt);
+                    findit = [detections.results.score detections.results.id]
+                end
+            end
+        end
+    end
+    
+    %%%%%%%%%%%%%%%% JoyStick read %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    joy_msg = mqttinterface.receive(sub_joy{1});
+    Lbutton = joy_msg.buttons(5);
+    Rbutton = joy_msg.buttons(6);
+    
+    endflag = joy_msg.buttons(7);
+    
+    Z = updateWeight(x,y,Z,Perception);
+    [u_nom(1,:),u_nom(2,:),Region,cent]=voronoi_ode_dis(x,y,Z,k,true);
+    
+    %%%%%%%%% Plot %%%%%%%%%%%
+    if matlab_plot
+        voronoi_plot_dis(x,y,cent,Region,Z,targetInfo,flagInfo)
+    elseif ~real
+        for i=1:AgentNum
+            pose_msg.pose.position.x = x(i);
+            pose_msg.pose.position.y = y(i);
+            pose_msg.pose.position.z = 1;
+
+            mqttinterface.send(pub_poses{i}, pose_msg);
+        end
+    end
+    
+    for i=1:AgentNum
+        optresult(:,i) = MIQP(x(i),y(i),u_nom(:,i),targetInfo,flagInfo);
+    end
+
+    optresult
+%     CBF = f_con{1,1}{1,1}(x,y)
+    u_opt = optresult(1:2,:);
+    
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if real
+        for i=1:AgentNum
+            quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
+            rotm = quat2rotm(quat);
+            body_vel = rotm' * [u_opt(:,i); 0];
+            u_opt(:,i) = body_vel(1:2);
+        end
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    u_opt(abs(u_opt)>0.3) = 0.3;% input saturation
+    
+    if ~real
+        x = x+(u_opt(1,:))*samplingtime;
+        y = y+(u_opt(2,:))*samplingtime;
+        z = z + u_z * samplingtime;
+    end
+    
+    
+
+end
+
+%% End of experiment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if real
+    vel_msg.linear.x = 0;
+    vel_msg.linear.y = 0;
+    vel_msg.linear.z = 0;
+    for j=1:5
+        for i=1:AGENT_NUM
+            mqttinterface.send(pub_vels{i},vel_msg)
+        end
+    end    
+end
+disp('END!!!!!!!!!!!!')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

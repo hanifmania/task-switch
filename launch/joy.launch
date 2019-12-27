@@ -1,0 +1,9 @@
+<launch>
+    <node name="joy" pkg="joy" type="joy_node" args="" respawn='true' output='log'>
+     <param name="autorepeat_rate" value="20" />
+    </node>
+
+
+    <!-- <node pkg="obs_col_avoidance" type="joy2vel.py" name="joy2vel_node" output="screen">
+    </node> -->
+</launch>

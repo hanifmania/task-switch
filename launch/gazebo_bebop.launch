@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+	<arg name="x" default="0.0"/>
+	<arg name="y" default="0.0"/>
+	<arg name="z" default="1.0"/>
+	<arg name="number" default="1"/>
+
+	<group ns="bebop10$(arg number)">  
+		<include file="$(find obs_col_avoidance)/launch/gazebo_bebopmodel.launch">
+			<arg name="name_space" value="bebop10$(arg number)"/>
+			<arg name="x" value="$(arg x)"/>
+			<arg name="y" value="$(arg y)"/>
+			<arg name="z" value="$(arg z)"/>
+		</include>
+		<node pkg="obs_col_avoidance" name="joy_to_twist" type="switch_input.py" args="" respawn='true' output='screen'/>
+		<node pkg="bebop_sokudoseigyo" name="bebop_sokudoseigyo" type="bebop_sokudoseigyo_node" output="screen"/>
+		<node pkg="obs_col_avoidance" name="rigidbody_ref" type="rigidbody.py" args="" respawn='true' output='screen'>
+			<param name="name_space" value="bebop10$(arg number)"/>
+			<param name="x" value="$(arg x)"/>
+			<param name="y" value="$(arg y)"/>
+			<param name="z" value="$(arg z)"/>
+			<remap from="pose" to="command/pose"/>
+		</node>
+		<node pkg="obs_col_avoidance" name="topic_remap" type="topic_remap.py" output="screen">
+			<param name="number" value="$(arg number)"/>
+		</node>
+	</group>
+</launch>

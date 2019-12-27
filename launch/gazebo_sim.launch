@@ -1,0 +1,35 @@
+<launch>
+    <include file="$(find obs_col_avoidance)/launch/mqtt_obs_col_avoidance.launch"/>
+
+    <include file="$(find obs_col_avoidance)/launch/joy.launch"/>
+
+    <include file="$(find obs_col_avoidance)/launch/gazebo_bebop.launch">
+         <arg name="number" value="1"/>
+         <arg name="x" value="0.0"/>
+         <arg name="y" value="0.0"/>
+         <arg name="z" value="1.0"/>
+    </include>
+    <include file="$(find obs_col_avoidance)/launch/gazebo_bebop.launch">
+         <arg name="number" value="2"/>
+         <arg name="x" value="0.0"/>
+         <arg name="y" value="-3.0"/>
+         <arg name="z" value="1.0"/>
+    </include>
+    <include file="$(find obs_col_avoidance)/launch/gazebo_bebop.launch">
+         <arg name="number" value="3"/>
+         <arg name="x" value="0.0"/>
+         <arg name="y" value="3.0"/>
+         <arg name="z" value="1.0"/>
+    </include>
+
+
+
+
+
+    <!-- Visualization Part -->
+    <group ns="visualize">
+        <node pkg="obs_col_avoidance" type="plot_obs_col_avoidance.py" name="plot_node">
+            <param name="agenttf" value="bebop10"/>
+        </node>
+    </group>
+</launch>
