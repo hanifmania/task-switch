@@ -78,7 +78,7 @@ def wall_publish(point_list):
 if __name__ == '__main__':
     try:
         rospy.init_node("w8_marker_pub")
-        pub = rospy.Publisher("visualization_marker", Marker, queue_size = 10)
+        pub = rospy.Publisher("field_visualization", Marker, queue_size = 10)
         rate = rospy.Rate(100)
 
         net_x = [-2.0, 2.3]

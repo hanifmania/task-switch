@@ -11,7 +11,8 @@ class BebopMarker:
         rospy.init_node("pose2marker")
         self.basename = rospy.get_param("~markername")
         # self.pubtopic = str(self.basename)+"/marker"
-        self.pubtopic = "/visualization/bebop2"
+        # self.pubtopic = "/visualization/bebop2"
+        self.pubtopic = "/visualization/" + str(self.basename)
         self.markerpub = rospy.Publisher(self.pubtopic, Marker, queue_size=10)
         self.posestampedsub = rospy.Subscriber("posestamped", PoseStamped, self.poseCallback)
 

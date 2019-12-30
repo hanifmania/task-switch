@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <launch>
     <arg name="agent_number" default="1"/>
     <arg name="namespace" default="agent$(arg agent_number)"/>
@@ -30,7 +32,7 @@
                 <!-- <remap from="robot_description" to="/robot_description"/> -->
             </node>
 
-            <node pkg="obs_col_avoidance" name="down_camera" type="down_range.py">
+            <node pkg="task_switch" name="down_camera" type="down_range.py">
                 <param name="agenttf" value="/$(arg vis_ns)/base_link"/>
                 <param name="cameratf" value="/$(arg vis_ns)/down_camera"/>
             </node>

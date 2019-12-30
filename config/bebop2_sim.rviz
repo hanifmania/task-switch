@@ -8,13 +8,14 @@ Panels:
         - /Status1
         - /TF1
         - /TF1/Frames1
-        - /TF1/Tree1
         - /Marker1
         - /Marker1/Namespaces1
         - /Marker2
         - /Marker3
         - /Pose1
-      Splitter Ratio: 0.5
+        - /Range1
+        - /Range2
+      Splitter Ratio: 0.54178673
     Tree Height: 775
   - Class: rviz/Selection
     Name: Selection
@@ -64,13 +65,19 @@ Visualization Manager:
       Frames:
         All Enabled: false
         visualize/agent1:
-          Value: true
+          Value: false
         visualize/agent2:
-          Value: true
+          Value: false
         visualize/agent3:
-          Value: true
+          Value: false
+        visualize/down_camera1:
+          Value: false
+        visualize/down_camera2:
+          Value: false
+        visualize/down_camera3:
+          Value: false
         world:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -79,37 +86,35 @@ Visualization Manager:
       Tree:
         world:
           visualize/agent1:
-            {}
+            visualize/down_camera1:
+              {}
           visualize/agent2:
-            {}
-          visualize/agent3:
-            {}
+            visualize/down_camera2:
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /visualization/bebop2
+      Marker Topic: /visualization/agent1
       Name: Marker
       Namespaces:
         agent1: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /visualization/agent2
+      Name: Marker
+      Namespaces:
         agent2: true
-        agent3: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /visualize/marker
+      Marker Topic: /visualize/field_visualization
       Name: Marker
       Namespaces:
-        obs_pos0: true
-        obs_pos1: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /visualize/visualization_marker
-      Name: Marker
-      Namespaces:
+        surface_plot: true
         w8_3dmap: true
       Queue Size: 100
       Value: true
@@ -126,6 +131,26 @@ Visualization Manager:
       Shaft Radius: 0.0500000007
       Shape: Axes
       Topic: /reference/pose
+      Unreliable: false
+      Value: true
+    - Alpha: 0.5
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 255; 255
+      Enabled: true
+      Name: Range
+      Queue Size: 100
+      Topic: /agent1/range
+      Unreliable: false
+      Value: true
+    - Alpha: 0.5
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 255; 255
+      Enabled: true
+      Name: Range
+      Queue Size: 100
+      Topic: /agent2/range
       Unreliable: false
       Value: true
   Enabled: true
@@ -153,25 +178,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.53381681
+      Distance: 4.88855886
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.495120525
-        Y: 0.175127789
-        Z: 1.4584533
+        X: 0.477391899
+        Y: 0.186908498
+        Z: 0.374231219
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.490398347
+      Pitch: 0.404795498
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.18040347
+      Yaw: 5.25042391
     Saved: ~
 Window Geometry:
   Displays:

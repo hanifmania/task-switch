@@ -36,10 +36,13 @@ mqttinterface.add_publisher(info_topic);
 IR_msg.layout.dim(1).label = "y";
 IR_msg.layout.dim(1).size = mesh_acc(2);
 IR_msg.layout.dim(1).stride = mesh_acc(2) * mesh_acc(1);
+IR_msg.layout.dim(1).min = ylimit(1);
+IR_msg.layout.dim(1).max = ylimit(2);
 IR_msg.layout.dim(2).label = "x";
 IR_msg.layout.dim(2).size = mesh_acc(1);
 IR_msg.layout.dim(2).stride = mesh_acc(1);
-
+IR_msg.layout.dim(2).min = ylimit(1);
+IR_msg.layout.dim(2).max = ylimit(2);
 
 IR_msg.data = reshape(Z',1,{});
 

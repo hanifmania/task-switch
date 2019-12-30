@@ -7,7 +7,7 @@ import rospy
 import numpy as np
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import Range
-from vision_coverage.msg import Cameraparam
+from task_switch.msg import Cameraparam
 import tf
 
 # r = 3.7 * 10 ** (-3) / 2
@@ -43,6 +43,7 @@ def createRange(phi, z, cameratf):
     downcamera_range.header.frame_id = cameratf
     downcamera_range.radiation_type = Range.INFRARED
     downcamera_range.field_of_view = 2*phi
+    downcamera_range.field_of_view = 2*0.53
     downcamera_range.min_range = 0.2
     downcamera_range.max_range = 4.0
     downcamera_range.range = z

@@ -174,3 +174,7 @@ bridge:
     msg_type: geometry_msgs.msg:PoseStamped
     topic_from: reference
     topic_to: /reference/pose
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float32MultiArray
+    topic_from: InformationReliability
+    topic_to: /visualize/information_reliability
