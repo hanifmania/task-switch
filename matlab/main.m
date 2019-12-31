@@ -21,10 +21,10 @@ global pointDense
 global k % control gain
 global goalJ
 %% Mode setting
-real = 0;
+real = 1;
 
 % Plot in matlab or ROS.
-matlab_plot = 0;
+matlab_plot = 1;
 crazyflie = 0;
 bebop = 1;
 
@@ -57,7 +57,7 @@ setMQTT
 
 
 %%
-detectNum = 0;
+
 orientation = cell(1,AgentNum);
 
 disp('mqtt message waiting...')
@@ -83,6 +83,7 @@ last_toc = toc(t_sim_start);
 
 
 object_func = [];
+
 detectNum = zeros(1,AgentNum);
 
 while(~endflag)
@@ -105,23 +106,29 @@ while(~endflag)
            y(i) = pose_msg.pose.position.y;
            z(i) = pose_msg.pose.position.z;
            orientation{i} = pose_msg.pose.orientation;
-           detection(i) = mqttinterface.receive(sub_obj{i});
         end
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%% detection %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     if real
-%         for i = 1:AgentNum
-%             detectNum(i) = size(detection.detections,1);
-%             if detectNum(i)
-%                 for cnt=1:detectNum(i)
-%                     detections = detection.detections(cnt);
-%                     findit = [detections.results.score detections.results.id]
-%                 end
-%             end
-%         end
-%     end
+    targetVector = zeros(2,AgentNum);
+    if real
+        for i = 1:AgentNum
+            detection = mqttinterface.receive(sub_obj{i});
+            detectNum(i) = size(detection.detections,1);
+            if detectNum(i)
+                for cnt=1:detectNum(i)
+                    detections = detection.detections(cnt);
+%                     if (detections.results.id==1) && (detections.results.score > 0)
+                    if (detections.results.score > 0)
+                        centerOnImage = detections.bbox.center;
+                        targetVector(:,i) = [1.0*(856-centerOnImage.y)/856; 1.8*(240-centerOnImage.x)/480];
+                        %%%% bebop camera image size = 480*856 %%%%%%%%%%%
+                    end
+                end
+            end
+        end
+    end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -145,8 +152,10 @@ while(~endflag)
     
 %%%%%%%%%% get the target information from image or joy button %%%%%%%%%%    
     for i=1:AgentNum
-        targetVector = [0; 0];% direction to target(obtain from image)
-        pos = [x(i); y(i)] + targetVector;
+        quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
+        rotm = quat2rotm(quat);
+        rotTargetVector = rotm*[targetVector(:,i);0];
+        pos = [x(i); y(i)] + rotTargetVector(1:2) - [0 0.5]; % direction to target(obtain from image)-offset to capture target
         theta = [0];
         norm = [2]; 
         width = [0.5;0.5 ];% target size
@@ -216,7 +225,7 @@ while(~endflag)
     
 %%%%%%%%%% Plot %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if matlab_plot
-        voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo)
+        voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo)
     elseif ~real
         for i=1:AgentNum
             pose_msg.pose.position.x = x(i);

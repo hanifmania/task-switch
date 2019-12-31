@@ -2,7 +2,7 @@
 
 <launch>
   <arg name="number" default="1"/>
-  <group ns="bebop0$(arg number)">
+  <group ns="bebop10$(arg number)">
 
     <node pkg="bebop_driver" name="bebop_driver" type="bebop_driver_node" output="screen" respawn="false">
       <param name="camera_info_url" value="package://bebop_driver/data/bebop2_camera_calib.yaml" />

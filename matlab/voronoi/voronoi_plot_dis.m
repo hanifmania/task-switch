@@ -1,4 +1,4 @@
-function voronoi_plot_dis(x,y,Voronoi,Z,targetInfo)
+function voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo)
     global xlimit ylimit % plot
     global X Y weightScale
     hold off
@@ -13,7 +13,13 @@ Region = Voronoi.Region;
     colormap(jet)
     hold on
 %% constraint plot
-    plot(targetInfo.plotX, targetInfo.plotY, 'r', 'LineWidth', 3);
+    plot(fieldInfo.plotX, fieldInfo.plotY, 'r', 'LineWidth', 3);
+    hold on    
+    for i=1:length(x)
+            plot(targetInfo(i).plotX, targetInfo(i).plotY, 'r', 'LineWidth', 3);
+            hold on
+    end
+    
 
 
 %% flag plot

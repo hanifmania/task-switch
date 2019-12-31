@@ -7,6 +7,8 @@ sub_joy = {};
 sub_joy{1} = joy_topic;
 mqttinterface.add_subscriber(sub_joy{1});
 
+
+%%% settings for topic name to subscribe and publish %%%%%%%%
 if real    
     if bebop
 %%%%%%% Change here to corresponding topic name without agent number.
@@ -32,16 +34,53 @@ end
 
 
 
-% If it's real experiment, publish velocity and subscribe poses
-if real
-    
+%%% registration for subscribe or publish%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%% real experiment %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% detection topic 
+%%%% ros: /bebop10x/objects -> mqtt: objects0x
+%%%% 
+%%%% /bebop10x/objects: vision_msgs/Detection2DArray
+%%%% |
+%%%% |--detections: vision_msgs/Detection2D[]
+%%%%   |
+%%%%   |---[0]: vision_msgs/Detection2D
+%%%%   |---[1]
+%%%%   |---[2]
+%%%%   |  |---bbox: vision_msgs/BoundingBox2D
+%%%%      |  |---center: geometry_msgs/Pose2D
+%%%%      |  |  |-theta
+%%%%      |  |  |-x
+%%%%      |  |  |-y
+%%%%      |  |---size_x
+%%%%      |  |---size_y
+%%%%      |---header
+%%%%      |---results
+%%%%      |  |---[0] :vision_msgs/ObjectHypothesisWithPose
+%%%%      |     |---id : int64
+%%%%      |     |---pose
+%%%%      |     |---score
+%%%%      ----source_img
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%publish velocity,takeoff,land and subscribe poses
+if real    
     pub_vels = {};
     sub_poses = {};
     pub_takeoffs = {};
     pub_lands = {};
 
-    
-%     Create str of topic names
+% Create str of topic names
     for i=1:AgentNum
         agent_num_str = num2str(drone_list(i));
         pub_vels{i} = strcat(vel_topic, agent_num_str);
@@ -49,8 +88,7 @@ if real
         pub_takeoffs{i} = strcat(takeoff_topic, agent_num_str);
         pub_lands{i} = strcat(land_topic, agent_num_str);
         sub_obj{i} = strcat(obj_topic, agent_num_str);
-
-    end
+    end    
     
 %     Add subscribers and publisher topics to MQTT
     for i=1:AgentNum
@@ -78,6 +116,7 @@ if real
     vel_msg.angular.y = 0;
     vel_msg.angular.z = 0;
    
+%%%%%%%% simulation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % If it's simulation, publish poses
 else
     pub_poses = {};
@@ -99,12 +138,18 @@ else
     pose_msg.pose.orientation.w = 1;
 end
 
+
+%%%%%%% for plot and visualize%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~matlab_plot
     pub_plot = "plot_data";
-    mqttinterface.add_publisher(pub_plot);
     %%% information map topic
     info_topic = 'InformationReliability';
+
+    
+    mqttinterface.add_publisher(pub_plot);
     mqttinterface.add_publisher(info_topic);
+    
+    
     % Set Initial message for Information Reliability.
     IR_msg.layout.dim(1).label = "y";
     IR_msg.layout.dim(1).size = mesh_acc(2);
@@ -116,15 +161,13 @@ if ~matlab_plot
 end
 
 
-%%%center reference 
+%%% energy plot
 pub_energy = {};
+
 energy_topic = 'Energy';
 for i=1:AgentNum
     agent_num_str = num2str(drone_list(i));
     pub_energy{i} = strcat(energy_topic, agent_num_str);
-end
-%     Add subscribers and publisher topics to MQTT
-for i=1:AgentNum
     mqttinterface.add_publisher(pub_energy{i});
 end
 

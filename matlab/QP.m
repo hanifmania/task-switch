@@ -27,7 +27,7 @@ coef(2) = -pnorm*((-(xi-pos(1))*sin(theta)...
 
 dh_field = [coef(1)*cos(theta)/width(1)+coef(2)*sin(theta)/width(2);...
     coef(1)*sin(theta)/width(1)+coef(2)*cos(theta)/width(2)];
-hx_field = (hx(xi,yi))
+hx_field = (hx(xi,yi));
 
 % %%% \partial x,y?ｿｽﾌ計?ｿｽZ?ｿｽﾉゑｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽC?ｿｽ?ｿｽ?ｿｽﾊの係?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽ?ｿｽﾉ計?ｿｽZ
 % pos = softInfo.pos;
