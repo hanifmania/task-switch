@@ -178,3 +178,16 @@ bridge:
     msg_type: std_msgs.msg:Float32MultiArray
     topic_from: InformationReliability
     topic_to: /visualize/information_reliability
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float32
+    topic_from: Energy1
+    topic_to: /visualize/Energy1
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float32
+    topic_from: Energy2
+    topic_to: /visualize/Energy2
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:Float32
+    topic_from: Energy3
+    topic_to: /visualize/Energy3
+

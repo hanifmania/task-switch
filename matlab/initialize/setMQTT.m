@@ -117,8 +117,16 @@ end
 
 
 %%%center reference 
-ref_plot = "reference";
-mqttinterface.add_publisher(ref_plot);
+pub_energy = {};
+energy_topic = 'Energy';
+for i=1:AgentNum
+    agent_num_str = num2str(drone_list(i));
+    pub_energy{i} = strcat(energy_topic, agent_num_str);
+end
+%     Add subscribers and publisher topics to MQTT
+for i=1:AgentNum
+    mqttinterface.add_publisher(pub_energy{i});
+end
 
 
 

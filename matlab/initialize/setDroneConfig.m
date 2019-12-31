@@ -18,7 +18,7 @@ end
 z_ref = 1.2;
 % Set height thresh hold for taking off (only for bebop2)
 z_thresh = 0.7;
-
+kz = 0.4;
 
 
 % set initial position
