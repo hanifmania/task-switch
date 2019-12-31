@@ -187,10 +187,12 @@ while(~endflag)
         z = z + u_z * samplingtime;
     end
     
-    %%% Information Reliability msg send
-    Z_ = flipud(Z); % to set upper is bigger y coordinate value.
-    IR_msg.data = reshape(Z_', [1, num_grid_x*num_grid_y]);
-    mqttinterface.send(info_topic, IR_msg);
+    if ~matlab_plot
+        %%% Information Reliability msg send
+        Z_ = flipud(Z); % to set upper is bigger y coordinate value.
+        IR_msg.data = reshape(Z_', [1, num_grid_x*num_grid_y]);
+        mqttinterface.send(info_topic, IR_msg);
+    end
 
 end
 

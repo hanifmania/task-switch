@@ -29,19 +29,6 @@ else
     pose_topic = 'pose';
 end
 
-%%% information map topic
-info_topic = 'InformationReliability';
-mqttinterface.add_publisher(info_topic);
-% Set Initial message for Information Reliability.
-IR_msg.layout.dim(1).label = "y";
-IR_msg.layout.dim(1).size = mesh_acc(2);
-IR_msg.layout.dim(1).stride = mesh_acc(2) * mesh_acc(1);
-IR_msg.layout.dim(2).label = "x";
-IR_msg.layout.dim(2).size = mesh_acc(1);
-IR_msg.layout.dim(2).stride = mesh_acc(1);
-
-
-IR_msg.data = reshape(Z',1,{});
 
 
 
@@ -115,6 +102,17 @@ end
 if ~matlab_plot
     pub_plot = "plot_data";
     mqttinterface.add_publisher(pub_plot);
+    %%% information map topic
+    info_topic = 'InformationReliability';
+    mqttinterface.add_publisher(info_topic);
+    % Set Initial message for Information Reliability.
+    IR_msg.layout.dim(1).label = "y";
+    IR_msg.layout.dim(1).size = mesh_acc(2);
+    IR_msg.layout.dim(1).stride = mesh_acc(2) * mesh_acc(1);
+    IR_msg.layout.dim(2).label = "x";
+    IR_msg.layout.dim(2).size = mesh_acc(1);
+    IR_msg.layout.dim(2).stride = mesh_acc(1);
+    IR_msg.data = reshape(Z',1,{});
 end
 
 

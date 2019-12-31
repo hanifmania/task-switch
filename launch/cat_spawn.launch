@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+	<node pkg="task_switch" type="pose2marker_cat.py" name="pose2markercat_node">
+		<param name="markername" value="cat"/>
+	</node>
+</launch>
