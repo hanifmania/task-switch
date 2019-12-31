@@ -57,7 +57,7 @@ tensorflowのpython パッケージのバージョンは1.13.1でやる．
 		``` 
 		$ roslaunch task_switch task_switch.launch
 		```
-	2. matlabでmain.mを実行。real = 0に設定。
+	2. matlabでmain.m内でreel = 0に設定したうえで実行。
 
 
 - 実験
