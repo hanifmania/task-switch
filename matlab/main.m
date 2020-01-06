@@ -237,7 +237,7 @@ while(~endflag)
 %%%%%%%%%% charging %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Within Charging Station and Energy Level is low, send land.
     for i=1:AgentNum
-        if sqrt((x(i)-charge.pos(1,i))^2 + (y(i)-charge.pos(2,i))^2) < radius_charge  &&  E(i) <= Emin + (Echarge - Emin)/3 && land_flags(i) == 0
+        if sqrt((x(i)-charge.pos(1,i))^2 + (y(i)-charge.pos(2,i))^2) <= radius_charge  &&  E(i) <= Emin + (Echarge - Emin)/3 && land_flags(i) == 0
             charge_flag(i) = 1;
             u_opt(:,i) = [0;0];
             

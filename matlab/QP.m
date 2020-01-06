@@ -92,8 +92,8 @@ C = []';
 D = [-hx_field -hx_charge -hx_soft]';
 
 
-gQ = sparse(diag([1 1 100])); % 最適化重視
-% gQ = sparse(diag([1 1 50])); % ぶつからない重視
+% gQ = sparse(diag([1 1 100])); % 最適化重視
+gQ = sparse(diag([1 1 50])); % ぶつからない重視
 
 % gc = [-u_nom; -1; 0; zeros(2,1)];
 
@@ -125,7 +125,7 @@ if matlab
             u_opt = quadprog(2*gQ,gc,gq,-D, [], [], lb, ub, [], options);
             if isempty(u_opt)
                 warning('u_opt EMPTY');
-                u_opt = [0;0;0];
+                u_opt = quadprog(2*gQ,gc,gq,-D, [], [], [], [], [], options);
             end
         catch
             warning('QuadProg ERROR');
