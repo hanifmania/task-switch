@@ -1,4 +1,4 @@
-function [u_opt] = QP(xi,yi,u_nom,fieldInfo,persistInfo,Perception,perceptionInfo)
+function [u_opt] = QP(xi,yi,u_nom,fieldInfo,chargeInfo,persistInfo,Perception,targetInfo)
 global dhdt 
 
 dhdt = 1;
@@ -44,12 +44,22 @@ hx_field = (hx(xi,yi));
 % dh_soft = [coef(1)*cos(theta)/width(1)+coef(2)*sin(theta)/width(2);...
 %     coef(1)*sin(theta)/width(1)+coef(2)*cos(theta)/width(2)];
 % hx_soft = (hx(xi,yi));
+
+%% charging CBF
+hx_charge = chargeInfo.hx-chargeInfo.Kd;
+dh_charge = chargeInfo.dhx;
+
+
+
+%% task(persistent coverage and monitoring) CBF
+
+
 if Perception
-    pos = fieldInfo.pos;
-    theta = fieldInfo.theta;
-    pnorm = fieldInfo.norm;
-    width = fieldInfo.width;
-    hx = fieldInfo.hx;
+    pos = targetInfo.pos;
+    theta = targetInfo.theta;
+    pnorm = targetInfo.norm;
+    width = targetInfo.width;
+    hx = targetInfo.hx;
 
     coef(1) = -pnorm*(((xi-pos(1))*cos(theta)...
                   +(yi-pos(2))*sin(theta))/width(1)).^(pnorm-1);    
@@ -75,11 +85,11 @@ end
 
 % A = [-dh_hard -dh_soft;
 %      0 -norm(dh_soft)*10]'
-A = [-dh_field -dh_soft;
-     0 -1]';
+A = [-dh_field -dh_charge -dh_soft;
+     0 0 -1]';
 B = []';
 C = []';
-D = [-hx_field -hx_soft]';
+D = [-hx_field -hx_charge -hx_soft]';
 
 
 gQ = sparse(diag([1 1 100])); % 最適化重視
@@ -90,7 +100,7 @@ gQ = sparse(diag([1 1 100])); % 最適化重視
 gc = [0 0 0];
 gq = [A];
 
-%%%%%%%% 解けないときは止まる
+%%%%%%%% 解けないときは止まる動作
 % gQ = sparse(diag([1 1 0]));
 % gc = [0 0 1];
 %%%%%%%%

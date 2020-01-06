@@ -1,6 +1,7 @@
-function voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo)
+function voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo,Perception)
     global xlimit ylimit % plot
     global X Y weightScale
+    global charge
     hold off
     
 %% unpack
@@ -15,12 +16,16 @@ Region = Voronoi.Region;
 %% constraint plot
     plot(fieldInfo.plotX, fieldInfo.plotY, 'r', 'LineWidth', 3);
     hold on    
-    for i=1:length(x)
-            plot(targetInfo(i).plotX, targetInfo(i).plotY, 'r', 'LineWidth', 3);
-            hold on
+    if any(Perception)
+        for i=1:length(x)
+                plot(targetInfo(i).plotX, targetInfo(i).plotY, 'r', 'LineWidth', 3);
+                hold on
+        end
     end
     
-
+%% charging station plot
+plot(charge.plotx(:,:)', charge.ploty(:,:)', 'c', 'LineWidth', 5);
+hold on
 
 %% flag plot
 %     plot(flagInfo.plotX, flagInfo.plotY, 'r:', 'LineWidth', 3);    

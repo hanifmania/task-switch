@@ -28,15 +28,18 @@ m=0.6;
 theta = linspace(0, 2*pi);
 % Set charging station position
 radius_charge = 0.15;
-station_distance = (sum(abs(xlimit)) - 2*radius_charge)/(AgentNum-1);
-pos_charge = zeros(2,AgentNum);
-for i=1:AgentNum
-    pos_charge(:,i) = [xlimit(1) + radius_charge + station_distance*(i-1); ylimit(2) - 0.6];
+if AgentNum == 1
+    charge.pos = [xlimit(1) + 2*radius_charge; ylimit(2) - 0.6];
+else
+    station_distance = (sum(abs(xlimit)) - 4*radius_charge)/(AgentNum-1);
+    for i=1:AgentNum
+        charge.pos(:,i) = [xlimit(1) + 2*radius_charge + station_distance*(i-1); ylimit(2) - 0.6];
+    end
 end
-plot_charge_x = [];
-plot_charge_y = [];
+charge.plotx = [];
+charge.ploty = [];
 for i=1:AgentNum
-    plot_charge_x = [plot_charge_x; radius_charge*sin(theta)+pos_charge(1,i)];
-    plot_charge_y = [plot_charge_y; radius_charge*cos(theta)+pos_charge(2,i)];
+    charge.plotx = [charge.plotx; radius_charge*sin(theta)+charge.pos(1,i)];
+    charge.ploty = [charge.ploty; radius_charge*cos(theta)+charge.pos(2,i)];
 end
 
