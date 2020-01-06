@@ -46,6 +46,9 @@ setCtrlConfig
 %% voronoi settings
 setVoronoi
 
+%% perception settings
+setPerception
+
 %% Hard constraint CBF settings
 setHardCBF
 
@@ -132,7 +135,7 @@ while(~endflag)
     joy_msg = mqttinterface.receive(sub_joy{1});
     Lbutton = joy_msg.buttons(5);
     Rbutton = joy_msg.buttons(6);
-    Perception = [Lbutton Rbutton];
+    Perception(1,1:2) = [Lbutton Rbutton];
 
 
     endflag = joy_msg.buttons(7);
@@ -204,7 +207,14 @@ while(~endflag)
     J = sum(getVoronoiEval(x,y,Voronoi.Region,Z))
 % Perception
     
-    
+%%%%%%%%%% for collision avoidance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    for i=1:AgentNum
+        x_others = x;%xyz
+        y_others = y;
+        x_others(i) = [];
+        y_others(i) = [];
+        collisionInfo(i) = getCollisionCBF(x(i),y(i),x_others,y_others);
+    end
     
     
 %%%%%%%%%% Plot %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,7 +239,7 @@ while(~endflag)
     
 %%%%%%%%% Optimization %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for i=1:AgentNum
-        optresult(:,i) = QP(x(i),y(i),u_nom(:,i),fieldInfo,chargeInfo(i),persistCBF(i),Perception(i),targetInfo(i));
+        optresult(:,i) = QP(x(i),y(i),u_nom(:,i),fieldInfo,chargeInfo(i),persistCBF(i),Perception(i),targetInfo(i),collisionInfo(i));
     end
 
 %     optresult
@@ -238,6 +248,8 @@ while(~endflag)
     u_z = kz*(z_ref - z);
     
     
+    
+
     
 %%%%%%%%%% charging %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Within Charging Station and Energy Level is low, send land.
@@ -288,45 +300,30 @@ while(~endflag)
         % Out of Charging Station OR within charging station with enough energy, send velocity input.
         else
             if real
-                for i=1:AgentNum
-                    quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
-                    rotm = quat2rotm(quat);
-                    body_vel = rotm' * [u_opt(:,i); 0];
-                    u_opt(:,i) = body_vel(1:2);
-                    if z(i) > z_thresh
-                            vel_msg.linear.x = u_opt(1,i);
-                            vel_msg.linear.y = u_opt(2,i);
-                            if abs(z(i) - z_ref) < 0.1
-                                vel_msg.linear.z = 0;
-                            else
-                                vel_msg.linear.z = u_z(i);
-                            end
-                            if bebop
-                                takeoffmsg.data = '';
-                                landmsg.data = '';
-                                mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
-                                mqttinterface.send(pub_lands{i}, landmsg);
-                            end
-                            mqttinterface.send(pub_vels{i}, vel_msg);
-                    end
+                quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
+                rotm = quat2rotm(quat);
+                body_vel = rotm' * [u_opt(:,i); 0];
+                u_opt(:,i) = body_vel(1:2);
+                if z(i) > z_thresh
+                        vel_msg.linear.x = u_opt(1,i);
+                        vel_msg.linear.y = u_opt(2,i);
+                        if abs(z(i) - z_ref) < 0.1
+                            vel_msg.linear.z = 0;
+                        else
+                            vel_msg.linear.z = u_z(i);
+                        end
+                        if bebop
+                            takeoffmsg.data = '';
+                            landmsg.data = '';
+                            mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
+                            mqttinterface.send(pub_lands{i}, landmsg);
+                        end
+                        mqttinterface.send(pub_vels{i}, vel_msg);
                 end
             end
         end
     end
-    
-%%%%%%%%% update position or send vel command %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     u_opt(abs(u_opt)>0.3) = 0.3;% input saturation
-    
-    if ~real
-        u_opt(abs(u_opt.*samplingtime)>0.4) = 0;
-        x = x+(u_opt(1,:))*samplingtime;
-        y = y+(u_opt(2,:))*samplingtime;
-        z = z + u_z * samplingtime;
-    end
-    
 
     
     

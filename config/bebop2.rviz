@@ -1,6 +1,6 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 78
+    Help Height: 0
     Name: Displays
     Property Tree Widget:
       Expanded:
@@ -14,7 +14,7 @@ Panels:
         - /Marker2/Namespaces1
         - /Image1
       Splitter Ratio: 0.5
-    Tree Height: 129
+    Tree Height: 207
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -72,6 +72,8 @@ Visualization Manager:
           Value: true
         visualize/agent1:
           Value: true
+        visualize/agent3:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -87,6 +89,8 @@ Visualization Manager:
             {}
           visualize/agent1:
             {}
+          visualize/agent3:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -94,7 +98,6 @@ Visualization Manager:
       Marker Topic: /visualize/field_visualization
       Name: Marker
       Namespaces:
-        surface_plot: true
         w8_3dmap: true
       Queue Size: 100
       Value: true

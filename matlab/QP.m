@@ -1,4 +1,4 @@
-function [u_opt] = QP(xi,yi,u_nom,fieldInfo,chargeInfo,persistInfo,Perception,targetInfo)
+function [u_opt] = QP(xi,yi,u_nom,fieldInfo,chargeInfo,persistInfo,Perception,targetInfo,collisionInfo)
 global dhdt 
 
 dhdt = 1;
@@ -49,7 +49,9 @@ hx_field = (hx(xi,yi));
 hx_charge = chargeInfo.hx-chargeInfo.Kd;
 dh_charge = chargeInfo.dhx;
 
-
+%% collisiton CBF
+hx_collision = collisionInfo.hx;
+dh_collision = collisionInfo.dhx;
 
 %% task(persistent coverage and monitoring) CBF
 
@@ -85,15 +87,16 @@ end
 
 % A = [-dh_hard -dh_soft;
 %      0 -norm(dh_soft)*10]'
-A = [-dh_field -dh_charge -dh_soft;
-     0 0 -1]';
+A = [-dh_field -dh_charge -dh_collision  -dh_soft;
+     0 0 zeros(1,size(dh_collision,2)) -1]';
 B = []';
 C = []';
-D = [-hx_field -hx_charge -hx_soft]';
+D = [-hx_field -hx_charge -hx_collision -hx_soft]';
 
 
 % gQ = sparse(diag([1 1 100])); % 最適化重視
 gQ = sparse(diag([1 1 50])); % ぶつからない重視
+% gQ = sparse(diag([1 1 10])); % ぶつからない重視
 
 % gc = [-u_nom; -1; 0; zeros(2,1)];
 

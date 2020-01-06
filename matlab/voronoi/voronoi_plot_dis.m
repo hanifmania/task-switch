@@ -20,11 +20,12 @@ Region = Voronoi.Region;
 %% constraint plot
     plot(fieldInfo.plotX, fieldInfo.plotY, 'r', 'LineWidth', 3);
     hold on    
-    if any(Perception)
+
         for i=1:length(x)
+            if Perception(i)
                 plot(targetInfo(i).plotX, targetInfo(i).plotY, 'r', 'LineWidth', 3);
                 hold on
-        end
+            end
     end
     
 %% charging station plot

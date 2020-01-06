@@ -8,7 +8,7 @@ else
     k_charge = 20;
 end
 % initial Energy level
-E = [4500 3500];
+E = [4500 3500 4000 4000];
 Echarge = 4500;
 Emin = 1500;
 % Eplot = zeros(AgentNum,num_step);
@@ -22,6 +22,7 @@ charge_k = 1;
 lam = 1;
 
 Kd = 50;
+% Kd = 0;
 
 
 m=0.6;
@@ -29,12 +30,13 @@ theta = linspace(0, 2*pi);
 % Set charging station position
 radius_charge = 0.15;
 if AgentNum == 1
-    charge.pos = [xlimit(1) + 2*radius_charge; ylimit(2) - 0.6];
+    charge.pos = [xlimit(1) + 2*radius_charge; ylimit(2) - 1];
     charge.pos = [mean(xlimit) ; mean(ylimit)];
 else
-    station_distance = (sum(abs(xlimit)) - 4*radius_charge)/(AgentNum-1);
+    margin = 0.4;
+    station_distance = (sum(abs(xlimit)) - 2*margin - 2*radius_charge)/(AgentNum-1);
     for i=1:AgentNum
-        charge.pos(:,i) = [xlimit(1) + 2*radius_charge + station_distance*(i-1); ylimit(2) - 0.6];
+        charge.pos(:,i) = [xlimit(1) + margin + radius_charge + station_distance*(i-1); ylimit(2) - 1];
     end
 end
 charge.plotx = [];
