@@ -3,7 +3,7 @@
 
 
 % Drone number list for experiment. Ex. [1, 3, 6]
-drone_list = [1 2];
+drone_list = [1];
 AgentNum = size(drone_list,2);
 
 % Drone r for collision avoidance

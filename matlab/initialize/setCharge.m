@@ -30,6 +30,7 @@ theta = linspace(0, 2*pi);
 radius_charge = 0.15;
 if AgentNum == 1
     charge.pos = [xlimit(1) + 2*radius_charge; ylimit(2) - 0.6];
+    charge.pos = [mean(xlimit) ; mean(ylimit)];
 else
     station_distance = (sum(abs(xlimit)) - 4*radius_charge)/(AgentNum-1);
     for i=1:AgentNum

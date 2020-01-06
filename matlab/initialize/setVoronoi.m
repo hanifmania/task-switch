@@ -5,6 +5,6 @@ Voronoi.mass = zeros(AgentNum,1);
 Monitored = false(mesh_acc(2),mesh_acc(1),AgentNum);
 
 
-goalJ = -18;
+goalJ = -16;
 
 b = -R^2-10;

@@ -110,7 +110,7 @@ gq = [A];
 
 % Qc = sparse(diag([1 1 0]));
 % qc = [0 0 0]';
-vmax = 0.4;
+vmax = 0.3;
 
 % ub = [vmax vmax inf];
 % lb = [-vmax -vmax -inf];
@@ -124,8 +124,9 @@ if matlab
             % -gq x < -D
             u_opt = quadprog(2*gQ,gc,gq,-D, [], [], lb, ub, [], options);
             if isempty(u_opt)
+                u_opt = quadprog(2*gQ,gc,gq,-D, [], [], [], [], [], options)
+                u_opt = vmax*[u_opt(1)/norm(u_opt(1:2)); u_opt(2)/norm(u_opt(1:2)); 10];
                 warning('u_opt EMPTY');
-                u_opt = quadprog(2*gQ,gc,gq,-D, [], [], [], [], [], options);
             end
         catch
             warning('QuadProg ERROR');

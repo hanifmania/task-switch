@@ -21,8 +21,9 @@ global pointDense
 global k % control gain
 global goalJ
 global charge
+global Echarge
 %% Mode setting
-real = 0;
+real = 1;
 
 % Plot in matlab or ROS.
 matlab_plot = 1;
@@ -78,8 +79,8 @@ disp('message received')
 
 endflag = 0;
 t = 0;
-t_sim_start = tic;
-last_toc = toc(t_sim_start);
+
+
 
 
 %%%% for save CBF values%%%%%%%%%%%%%%%%
@@ -92,11 +93,11 @@ savefile.targetCBFvalue = zeros(1,AgentNum);
 savefile.time = 0;
 savefile.energy = E;
 savefile.J = zeros(1,AgentNum);
-savefile.unomX = zeros(1,AgentNum);
-savefile.unomY = zeros(1,AgentNum);
+savefile.uX = zeros(1,AgentNum);
+savefile.uY = zeros(1,AgentNum);
 savefile.w = zeros(1,AgentNum);
-savefile.x = x;
-savefile.y = y;
+savefile.x = zeros(1,AgentNum);
+savefile.y = zeros(1,AgentNum);
 
 
 
@@ -106,6 +107,8 @@ while(~endflag)
     if t == 0
         input('PRESS ENTER to START')
         disp('START!!!!!!!!!')
+        t_sim_start = tic;
+        last_toc = toc(t_sim_start);
     end
     %%% real time execution
     samplingtime = toc(t_sim_start)-last_toc;
@@ -145,8 +148,9 @@ while(~endflag)
             if detectNum(i)
                 for cnt=1:detectNum(i)
                     detections = detection.detections(cnt);
-%                     if (detections.results.id==1) && (detections.results.score > 0)
-                    if (detections.results.score > 0)
+                    if ((detections.results.id==72)) && (detections.results.score > 0)
+%                     if (detections.results.score > 0)
+                        Perception(i) = 1;
                         centerOnImage = detections.bbox.center;
                         targetVector(:,i) = [1.0*(856-centerOnImage.y)/856; 1.8*(240-centerOnImage.x)/480];
                         %%%% bebop camera image size = 480*856 %%%%%%%%%%%
@@ -181,15 +185,15 @@ while(~endflag)
             quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
             rotm = quat2rotm(quat);
             rotTargetVector = rotm*[targetVector(:,i);0];
-            pos = [x(i); y(i)] + rotTargetVector(1:2) - [0;0.5]; % direction to target(obtain from image)-offset to capture target
+            pos = [x(i); y(i)] + rotTargetVector(1:2) - [0.5;0]; % direction to target(obtain from image)-offset to capture target
             theta = [0];
             norm = [2]; 
-            width = [0.5;0.5 ];% target size
+            width = [0.2;0.2 ];% target size
             targetInfo(i) = getPnomCBF(pos,theta,norm,width);
         end
     else
         for i=1:AgentNum
-            pos = [x(i); y(i)] + targetVector(:,i) - [0; 0.5]; % direction to target(obtain from image)-offset to capture target
+            pos = [x(i); y(i)] + targetVector(:,i) - [0.5; 0]; % direction to target(obtain from image)-offset to capture target
             theta = [0];
             norm = [2]; 
             width = [0.5;0.5 ];% target size
@@ -197,14 +201,15 @@ while(~endflag)
         end
     end
 %%%%%%%%%% display the eval func for coverage %%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     J = sum(getVoronoiEval(x,y,Voronoi.Region,Z))
+    J = sum(getVoronoiEval(x,y,Voronoi.Region,Z))
+% Perception
     
     
     
     
 %%%%%%%%%% Plot %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if matlab_plot
-        voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo,Perception)
+        voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo,Perception,E)
     elseif ~real
         for i=1:AgentNum
             pose_msg.pose.position.x = x(i);
@@ -218,7 +223,7 @@ while(~endflag)
         %%% Information Reliability msg send
         Z_ = flipud(Z); % to set upper is bigger y coordinate value.
         IR_msg.data = reshape(Z_', [1, num_grid_x*num_grid_y]);
-        mqttinterface.send(info_topic, IR_msg);
+        mqttinterface.send(info_top, IR_msg);
     end
 
     
@@ -244,13 +249,14 @@ while(~endflag)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if real
                 if bebop
-                    for times=1:10
-                        send(lands(i), Empty)
-                    end
+                    landmsg.data = 'land';
+                    
+                    mqttinterface.send(pub_lands{i}, landmsg);   
                 elseif crazyflie
                     mqttinterface.send(pub_lands{i}, landmsg);
                 end
             end
+
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             land_flags(i) = 1
@@ -267,7 +273,10 @@ while(~endflag)
            if real
 %                 u_fullinCS([x(i);y(i)], drone_pub, quat, k);
                 if bebop
-                    send(takeoffs(i), Empty);
+                    takeoffmsg.data = 'takeoff';
+                    landmsg.data = '';
+                    mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
+                    mqttinterface.send(pub_lands{i}, landmsg);   
                 elseif crazyflie
                     mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
                 end
@@ -278,30 +287,36 @@ while(~endflag)
             
         % Out of Charging Station OR within charging station with enough energy, send velocity input.
         else
-
+            if real
+                for i=1:AgentNum
+                    quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
+                    rotm = quat2rotm(quat);
+                    body_vel = rotm' * [u_opt(:,i); 0];
+                    u_opt(:,i) = body_vel(1:2);
+                    if z(i) > z_thresh
+                            vel_msg.linear.x = u_opt(1,i);
+                            vel_msg.linear.y = u_opt(2,i);
+                            if abs(z(i) - z_ref) < 0.1
+                                vel_msg.linear.z = 0;
+                            else
+                                vel_msg.linear.z = u_z(i);
+                            end
+                            if bebop
+                                takeoffmsg.data = '';
+                                landmsg.data = '';
+                                mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
+                                mqttinterface.send(pub_lands{i}, landmsg);
+                            end
+                            mqttinterface.send(pub_vels{i}, vel_msg);
+                    end
+                end
+            end
         end
     end
     
 %%%%%%%%% update position or send vel command %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if real
-        for i=1:AgentNum
-            quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
-            rotm = quat2rotm(quat);
-            body_vel = rotm' * [u_opt(:,i); 0];
-            u_opt(:,i) = body_vel(1:2);
-            if z(i) > z_thresh
-                    vel_msg.linear.x = u_opt(1,i);
-                    vel_msg.linear.y = u_opt(2,i);
-                    if abs(z(i) - z_ref) < 0.1
-                        vel_msg.linear.z = 0;
-                    else
-                        vel_msg.linear.z = u_z(i);
-                    end
-                    mqttinterface.send(pub_vels{i}, vel_msg);
-            end
-        end
-    end
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     u_opt(abs(u_opt)>0.3) = 0.3;% input saturation
     
@@ -330,11 +345,12 @@ while(~endflag)
     savefile.time = [savefile.time;t];
     savefile.energy = [savefile.energy;E];
     savefile.J = [savefile.J; getVoronoiEval(x,y,Voronoi.Region,Z)'];
-    savefile.unomX = [savefile.unomX; u_opt(1,:)];
-    savefile.unomY = [savefile.unomY; u_opt(2,:)];
+    savefile.uX = [savefile.uX; optresult(1,:)];
+    savefile.uY = [savefile.uY; optresult(2,:)];
     savefile.w = [savefile.w; optresult(3,:)];
     savefile.x = [savefile.x; x];
     savefile.y = [savefile.y; y];
+    t
 end
 
 %% End of experiment

@@ -1,7 +1,11 @@
-function voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo,Perception)
+function voronoi_plot_dis(x,y,Voronoi,Z,fieldInfo,targetInfo,Perception,E)
     global xlimit ylimit % plot
     global X Y weightScale
     global charge
+    global Echarge
+    
+    subplot(1,2,1)
+    
     hold off
     
 %% unpack
@@ -57,5 +61,13 @@ hold on
     xlim([xlimit(1)-0.1 xlimit(2)+0.1])
     ylim([ylimit(1)-0.1 ylimit(2)+0.1])
     axis equal
+    
+    subplot(1,2,2)
+    bar(E)
+    ylim([0 Echarge])
+%     yline(Emin,'--','Minimum','LineWidth',3);
+    title('Energy level')
+
+    
     drawnow
 end
