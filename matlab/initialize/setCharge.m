@@ -1,14 +1,9 @@
-%%% Use CBF that agent moves to charging station with fixed velocity or not
-CBF_fixed = 1;
-%%% Set the gain used in CBF. It affects moving speed to charging station.
-if CBF_fixed
-%     In this case, k_charge = max velocity.(saturate.)
-    k_charge = 0.2;
-else
-    k_charge = 20;
-end
+
+k_charge = 0.2;
+% k_charge = 10;
+
 % initial Energy level
-E = [4500 3500 4000 4000];
+E = [4500 3500];
 Echarge = 4500;
 Emin = 1500;
 % Eplot = zeros(AgentNum,num_step);

@@ -128,7 +128,7 @@ if matlab
             u_opt = quadprog(2*gQ,gc,gq,-D, [], [], lb, ub, [], options);
             if isempty(u_opt)
                 u_opt = quadprog(2*gQ,gc,gq,-D, [], [], [], [], [], options)
-                u_opt = vmax*[u_opt(1)/norm(u_opt(1:2)); u_opt(2)/norm(u_opt(1:2)); 10];
+                u_opt = 0.1*[u_opt(1)/norm(u_opt(1:2)); u_opt(2)/norm(u_opt(1:2)); 10];
                 warning('u_opt EMPTY');
             end
         catch

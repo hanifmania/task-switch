@@ -23,7 +23,7 @@ global goalJ
 global charge
 global Echarge
 %% Mode setting
-real = 1;
+real = 0;
 
 % Plot in matlab or ROS.
 matlab_plot = 1;
@@ -101,6 +101,7 @@ savefile.uY = zeros(1,AgentNum);
 savefile.w = zeros(1,AgentNum);
 savefile.x = zeros(1,AgentNum);
 savefile.y = zeros(1,AgentNum);
+savefile.collisionCBFvalue = zeros(1,AgentNum);
 
 
 
@@ -167,14 +168,13 @@ while(~endflag)
 
     
 %%%%%%%%%% update field weight%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Z = updateWeight(x,y,Z,Perception);
+    Z = updateWeight(x,y,Z,Perception,samplingtime);
 %%%%%%%%%% update energy data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for i=1:AgentNum
         E(i) = SimpleEnergyModel(E(i), Kd, charge_flag(i), samplingtime);
         Energy_msg.data = E(i);
         mqttinterface.send(pub_energy{i}, Energy_msg);
         chargeInfo(i) = getChargeCBF(x(i),y(i),E(i),Emin,Kd,k_charge,charge.pos(:,i),radius_charge);
-
     end
     
 %%%%%%%%%% calculate voronoi region %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -324,6 +324,13 @@ while(~endflag)
         end
     end
 
+%%%%%%%%%%%  position update for simulation %%%%%%%%%%%%%
+    if ~real
+        u_opt(abs(u_opt.*samplingtime)>0.4) = 0;
+        x = x+(u_opt(1,:))*samplingtime;
+        y = y+(u_opt(2,:))*samplingtime;
+        z = z + u_z * samplingtime;
+    end
 
     
     
@@ -334,6 +341,7 @@ while(~endflag)
         hxt(1,i) = targetInfo(i).hx(x(i),y(i))*Perception(i);
         hxc(1,i) = chargeInfo(i).hx;
         hxp(1,i) = persistCBF(i).hx;
+        hxc_(1,i) = min(collisionInfo.hx);
     end
     savefile.fieldCBFvalue = [savefile.fieldCBFvalue;hxf];
     savefile.chargeCBFvalue = [savefile.chargeCBFvalue;hxc];
@@ -347,7 +355,8 @@ while(~endflag)
     savefile.w = [savefile.w; optresult(3,:)];
     savefile.x = [savefile.x; x];
     savefile.y = [savefile.y; y];
-    t
+    savefile.collisionCBFvalue = [savefile.collisionCBFvalue;hxc_];
+    
 end
 
 %% End of experiment
@@ -375,7 +384,7 @@ hold on
 grid on
 plot(savefile.time,goalJ*ones(size(savefile.time)))
 
-
+%%
 %%%% charging plot
 figure
 for i=1:AgentNum
@@ -385,7 +394,7 @@ for i=1:AgentNum
 end
 plot(savefile.time,Emin*ones(size(savefile.time)))
 %%%% 
-
+%%
 
 %%%% w value plot
 figure
@@ -394,4 +403,10 @@ for i=1:AgentNum
     hold on
     grid on
 end
-
+%%
+figure
+for i=1:AgentNum
+    plot(savefile.time,savefile.collisionCBFvalue(:,i))
+    hold on
+    grid on
+end
