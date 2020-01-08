@@ -41,3 +41,5 @@ for i=1:AgentNum
     charge.ploty = [charge.ploty; radius_charge*cos(theta)+charge.pos(2,i)];
 end
 
+charge_flag = zeros(1,AgentNum);
+land_flag = zeros(1,AgentNum);

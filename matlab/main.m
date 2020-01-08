@@ -88,6 +88,11 @@ t = 0;
 
 %%%% for save CBF values%%%%%%%%%%%%%%%%
 %%%% time field , charge, persistent, target follow
+hxf = zeros(1,AgentNum);
+hxt = zeros(1,AgentNum);
+hxc = zeros(1,AgentNum);
+hxp = zeros(1,AgentNum);
+hxc_ = zeros(1,AgentNum);
 
 savefile.fieldCBFvalue = zeros(1,AgentNum);
 savefile.chargeCBFvalue = zeros(1,AgentNum);
@@ -104,7 +109,7 @@ savefile.y = zeros(1,AgentNum);
 savefile.collisionCBFvalue = zeros(1,AgentNum);
 
 
-
+optresult = zeros(3,AgentNum);
 detectNum = zeros(1,AgentNum);
 
 while(~endflag)

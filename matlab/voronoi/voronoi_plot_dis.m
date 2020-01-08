@@ -16,6 +16,7 @@ Region = Voronoi.Region;
     contourf(X,Y,Z)
     caxis([0 weightScale])
     colormap(jet)
+    colorbar
     hold on
 %% constraint plot
     plot(fieldInfo.plotX, fieldInfo.plotY, 'r', 'LineWidth', 3);
