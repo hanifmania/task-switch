@@ -1,5 +1,5 @@
 
-k_charge = 0.2;
+k_charge = 0.15;
 % k_charge = 10;
 
 % initial Energy level
@@ -23,15 +23,15 @@ Kd = 50;
 m=0.6;
 theta = linspace(0, 2*pi);
 % Set charging station position
-radius_charge = 0.15;
+radius_charge = 0.2;
 if AgentNum == 1
     charge.pos = [xlimit(1) + 2*radius_charge; ylimit(2) - 1];
     charge.pos = [mean(xlimit) ; mean(ylimit)];
 else
-    margin = 0.4;
+    margin = 0.7;
     station_distance = (sum(abs(xlimit)) - 2*margin - 2*radius_charge)/(AgentNum-1);
     for i=1:AgentNum
-        charge.pos(:,i) = [xlimit(1) + margin + radius_charge + station_distance*(i-1); ylimit(2) - 1];
+        charge.pos(:,i) = [xlimit(1) + margin + radius_charge + station_distance*(i-1); mean(ylimit)];
     end
 end
 charge.plotx = [];

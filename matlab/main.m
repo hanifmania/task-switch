@@ -23,7 +23,7 @@ global goalJ
 global charge
 global Echarge
 %% Mode setting
-real = 0;
+real = 1;
 
 % Plot in matlab or ROS.
 matlab_plot = 1;
@@ -346,7 +346,9 @@ while(~endflag)
         hxt(1,i) = targetInfo(i).hx(x(i),y(i))*Perception(i);
         hxc(1,i) = chargeInfo(i).hx;
         hxp(1,i) = persistCBF(i).hx;
-        hxc_(1,i) = min(collisionInfo.hx);
+        if AgentNum ~= 1
+            hxc_(1,i) = min(collisionInfo.hx);
+        end
     end
     savefile.fieldCBFvalue = [savefile.fieldCBFvalue;hxf];
     savefile.chargeCBFvalue = [savefile.chargeCBFvalue;hxc];
