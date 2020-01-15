@@ -356,11 +356,11 @@ if real
     vel_msg.linear.x = 0;
     vel_msg.linear.y = 0;
     vel_msg.linear.z = 0;
-    for j=1:5
-        for i=1:AgentNum
-            mqttinterface.send(pub_vels{i},vel_msg)
-        end
-    end    
+    
+    for i=1:AgentNum
+        mqttinterface.send(pub_vels{i},vel_msg)
+    end
+
 end
 disp('END!!!!!!!!!!!!')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
