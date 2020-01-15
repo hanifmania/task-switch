@@ -5,6 +5,7 @@ ylimit = [-1.2 1.4];
 
 %%% draw mesh grid on field %%%%%%%
 mesh_acc = [200 100];% mesh accuracy:[n m]でx方向n点y方向m点に�?割
+mesh_acc = [100 80];% mesh accuracy:[n m]でx方向n点y方向m点に�?割
 xgrid = linspace(xlimit(1),xlimit(2),mesh_acc(1));
 ygrid = linspace(ylimit(1),ylimit(2),mesh_acc(2));
 [X,Y] = meshgrid(xgrid,ygrid);

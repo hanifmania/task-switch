@@ -1,4 +1,4 @@
-function[Z] = updateWeight(x, y, Z, perception)
+function[Z] = updateWeight(x, y, Z, perception,samplingtime)
     global AgentNum
     global X Y mesh_acc
 
@@ -23,12 +23,12 @@ function[Z] = updateWeight(x, y, Z, perception)
 %     Monitored
 %     Z = Z-delta_decrease.*Monitored;
     sumMonitor = any(Monitored,3);
-    Z = Z-delta_decrease*Z.*sumMonitor*T;
+    Z = Z-delta_decrease*Z.*sumMonitor*samplingtime;
 %     Z(sumMonitor) = 0;
     Z(Z<0.01) = 0.01;
 %     for i=1:length(x)
 %         Z = Z + (delta_decrease+perception_increase)*(perception(i)&Monitored(:,:,i));
 %     end
-    Z = Z+delta_increase*(weightScale-Z).*~sumMonitor*T;
+    Z = Z+delta_increase*(weightScale-Z).*~sumMonitor*samplingtime;
 %     Z(Z>1) = 1;
 end

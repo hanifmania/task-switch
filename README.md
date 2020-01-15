@@ -48,7 +48,10 @@ ROS wiki に vrpn_client についてのページがあるためそちらを参�
 https://github.com/osrf/tensorflow_object_detector このリポジトリのREADMEに従えばいい．  
 tensorflowのpython パッケージのバージョンは1.13.1でやる．  
 ただし，上記のREADME通りにわざわざtensorflow用の仮想環境を作るとlaunchするときに面倒なので，もとの環境に普通に$ pip install tensorflow==1.13.1 でインストールすればいい．  
-その際，pipやsetuptoolsなどのバージョンが古いと怒られる．その時はpip install --upgrade pip setuptools を実行してからインストールすると大丈夫．
+その際，pipやsetuptoolsなどのバージョンが古いと怒られる．その時はpip install --upgrade pip setuptools を実行してからインストールすると大丈夫．  
+注意点として，aptでとってきたpipを上の手順でupgradeするとpipがぶっ壊れるので
+pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK）  
+手順は https://qiita.com/Suzukaze31/items/e6d15ddd9ffcd5e6c246 を参照
 
 # Usage
 

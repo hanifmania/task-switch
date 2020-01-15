@@ -16,8 +16,9 @@ Panels:
         - /Range1
         - /Range2
         - /Marker4
-        - /Marker4/Status1
         - /Marker4/Namespaces1
+        - /PieChart1
+        - /PieChart2
       Splitter Ratio: 0.54178673
     Tree Height: 775
   - Class: rviz/Selection
@@ -79,21 +80,13 @@ Visualization Manager:
           Value: false
         visualize/down_camera3:
           Value: false
-        world:
-          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          visualize/agent1:
-            visualize/down_camera1:
-              {}
-          visualize/agent2:
-            visualize/down_camera2:
-              {}
+        {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -101,7 +94,7 @@ Visualization Manager:
       Marker Topic: /visualization/agent1
       Name: Marker
       Namespaces:
-        agent1: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -109,7 +102,7 @@ Visualization Manager:
       Marker Topic: /visualization/agent2
       Name: Marker
       Namespaces:
-        agent2: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -117,7 +110,6 @@ Visualization Manager:
       Marker Topic: /visualize/field_visualization
       Name: Marker
       Namespaces:
-        surface_plot: true
         w8_3dmap: true
       Queue Size: 100
       Value: true
@@ -161,9 +153,47 @@ Visualization Manager:
       Marker Topic: /visualization/cat
       Name: Marker
       Namespaces:
-        cat: true
+        {}
       Queue Size: 100
       Value: true
+    - Class: jsk_rviz_plugin/PieChart
+      Enabled: true
+      Name: PieChart
+      Topic: /visualize/Energy1
+      Value: true
+      auto color change: true
+      background color: 0; 0; 0
+      backround alpha: 0
+      foreground alpha: 0.699999988
+      foreground alpha 2: 0.400000006
+      foreground color: 255; 0; 0
+      left: 128
+      max color: 0; 0; 255
+      max value: 4500
+      min value: 1000
+      show caption: true
+      size: 128
+      text size: 14
+      top: 128
+    - Class: jsk_rviz_plugin/PieChart
+      Enabled: true
+      Name: PieChart
+      Topic: /visualize/Energy3
+      Value: true
+      auto color change: true
+      background color: 0; 0; 0
+      backround alpha: 0
+      foreground alpha: 0.699999988
+      foreground alpha 2: 0.400000006
+      foreground color: 255; 0; 0
+      left: 300
+      max color: 0; 0; 255
+      max value: 4500
+      min value: 1500
+      show caption: true
+      size: 128
+      text size: 14
+      top: 128
   Enabled: true
   Global Options:
     Background Color: 125; 125; 125
@@ -189,7 +219,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.79961801
+      Distance: 9.36587524
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -204,10 +234,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.519796491
+      Pitch: 0.564796448
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.23541307
+      Yaw: 4.16041231
     Saved: ~
 Window Geometry:
   Displays:
