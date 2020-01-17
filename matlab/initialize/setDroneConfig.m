@@ -3,16 +3,20 @@
 
 
 % Drone number list for experiment. Ex. [1, 3, 6]
-drone_list = [1 3];
+drone_list = [1];
 AgentNum = size(drone_list,2);
 
-% Drone r for collision avoidance
-% CBF force them to keep 2*r distance
+% sensor R: vision sensor radius
 if bebop
-    R = 0.6;
+    R = 0.5;
 elseif crazyflie
     R = 0.2;
 end
+
+% Drone r for collision avoidance
+% CBF force them to keep 2*r distance
+r = 0.6;
+
 
 % Set desired height of drone.(only for bebop2)
 z_ref = 1.2;

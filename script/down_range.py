@@ -44,6 +44,7 @@ def createRange(phi, z, cameratf):
     downcamera_range.radiation_type = Range.INFRARED
     downcamera_range.field_of_view = 2*phi
     downcamera_range.field_of_view = 2*0.53
+    # downcamera_range.field_of_view = 2*0.6
     downcamera_range.min_range = 0.2
     downcamera_range.max_range = 4.0
     downcamera_range.range = z

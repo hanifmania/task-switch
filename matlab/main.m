@@ -27,6 +27,7 @@ real = 1;
 
 % Plot in matlab or ROS.
 matlab_plot = 0;
+rviz_info_plot = 1;
 crazyflie = 0;
 bebop = 1;
 
@@ -161,8 +162,14 @@ while(~endflag)
 %                     if (detections.results.score > 0)
                         Perception(i) = 1;
                         centerOnImage = detections.bbox.center;
-                        targetVector(:,i) = [1.0*(856-centerOnImage.y)/856; 1.8*(240-centerOnImage.x)/480];
-                        %%%% bebop camera image size = 480*856 %%%%%%%%%%%
+                        targetVector(:,i) = [1.0*(480/2-centerOnImage.y)/480; 1.8*(856/2-centerOnImage.x)/856];
+                        %%%% bebop camera image size = 856*480 %%%%%%%%%%%
+                        %%%  --> x          856
+                        %%% | ---------------
+                        %%% V |             |
+                        %%% y |             |
+                        %%%   --------------
+                        %%% 480
                     end
                 end
             end
@@ -193,7 +200,7 @@ while(~endflag)
             quat = [orientation{i}.w orientation{i}.x orientation{i}.y orientation{i}.z];
             rotm = quat2rotm(quat);
             rotTargetVector = rotm*[targetVector(:,i);0];
-            pos = [x(i); y(i)] + rotTargetVector(1:2) - [0.5;0]; % direction to target(obtain from image)-offset to capture target
+            pos = [x(i); y(i)] + rotTargetVector(1:2) - [0;0]; % direction to target(obtain from image)-offset to capture target
             theta = [0];
             norm = [2]; 
             width = [0.2;0.2 ];% target size
@@ -218,7 +225,7 @@ while(~endflag)
         y_others = y;
         x_others(i) = [];
         y_others(i) = [];
-        collisionInfo(i) = getCollisionCBF(x(i),y(i),x_others,y_others);
+        collisionInfo(i) = getCollisionCBF(x(i),y(i),x_others,y_others,r);
     end
     
     
@@ -234,7 +241,7 @@ while(~endflag)
             mqttinterface.send(pub_poses{i}, pose_msg);
         end
     end    
-    if ~matlab_plot
+    if rviz_info_plot
         %%% Information Reliability msg send
         Z_ = flipud(Z); % to set upper is bigger y coordinate value.
         IR_msg.data = reshape(Z_', [1, num_grid_x*num_grid_y]);
@@ -261,30 +268,30 @@ while(~endflag)
     for i=1:AgentNum
         if sqrt((x(i)-charge.pos(1,i))^2 + (y(i)-charge.pos(2,i))^2) <= radius_charge  &&  E(i) <= Emin + (Echarge - Emin)/3 && land_flags(i) == 0
             charge_flag(i) = 1;
-            u_opt(:,i) = [0;0];
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            if real
-                if bebop
-                    landmsg.data = 'land';
-                    
-                    mqttinterface.send(pub_lands{i}, landmsg);   
-                elseif crazyflie
-                    mqttinterface.send(pub_lands{i}, landmsg);
-                end
-            end
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
+            u_opt(:,i) = [0;0];            
             land_flags(i) = 1
          
 %            Landing in charging stationland, not enough charged. Do nothing
         elseif land_flags(i) == 1 && E(i) <= Echarge
             u_opt(:,i) = [0;0];
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if real
+                if bebop
+                    takeoffmsg.data = '';
+                    landmsg.data = 'land';
+                    mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
+                    mqttinterface.send(pub_lands{i}, landmsg);   
+                elseif crazyflie
+                    mqttinterface.send(pub_lands{i}, landmsg);
+                end
+            end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
 %         Landing in charging station, enough charged. Send takeoff.
         elseif land_flags(i) == 1 && E(i) >= Echarge
-            charge_flag(i) = 0;
+            charge_flag(i) = 0;           
+            land_flags(i) = 0;
+            
     
            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
            if real
@@ -299,9 +306,7 @@ while(~endflag)
                 end
            end
            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-           
-           land_flags(i) = 0;
-            
+
         % Out of Charging Station OR within charging station with enough energy, send velocity input.
         else
             if real
@@ -312,6 +317,7 @@ while(~endflag)
                 if z(i) > z_thresh
                         vel_msg.linear.x = u_opt(1,i);
                         vel_msg.linear.y = u_opt(2,i);
+                        vel_msg.angular.z = -quat(4);
                         if abs(z(i) - z_ref) < 0.1
                             vel_msg.linear.z = 0;
                         else
@@ -382,38 +388,38 @@ disp('END!!!!!!!!!!!!')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Plot figure
-
-%%%% J value plot
-figure
-sumJ = sum(savefile.J,2);
-plot(savefile.time,sumJ)
-hold on
-grid on
-plot(savefile.time,goalJ*ones(size(savefile.time)))
-
-%%
-%%%% charging plot
-figure
-for i=1:AgentNum
-    plot(savefile.time,savefile.energy(:,i))
-    hold on
-    grid on
-end
-plot(savefile.time,Emin*ones(size(savefile.time)))
-%%%% 
-%%
-
-%%%% w value plot
-figure
-for i=1:AgentNum
-    plot(savefile.time,savefile.w(:,i))
-    hold on
-    grid on
-end
-%%
-figure
-for i=1:AgentNum
-    plot(savefile.time,savefile.collisionCBFvalue(:,i))
-    hold on
-    grid on
-end
+% 
+% %%%% J value plot
+% figure
+% sumJ = sum(savefile.J,2);
+% plot(savefile.time,sumJ)
+% hold on
+% grid on
+% plot(savefile.time,goalJ*ones(size(savefile.time)))
+% 
+% %%
+% %%%% charging plot
+% figure
+% for i=1:AgentNum
+%     plot(savefile.time,savefile.energy(:,i))
+%     hold on
+%     grid on
+% end
+% plot(savefile.time,Emin*ones(size(savefile.time)))
+% %%%% 
+% %%
+% 
+% %%%% w value plot
+% figure
+% for i=1:AgentNum
+%     plot(savefile.time,savefile.w(:,i))
+%     hold on
+%     grid on
+% end
+% %%
+% figure
+% for i=1:AgentNum
+%     plot(savefile.time,savefile.collisionCBFvalue(:,i))
+%     hold on
+%     grid on
+% end

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <arg name="view" default="true"/>
+    <!-- camera driver -->
+    <include file="$(find flea3)/launch/single_node.launch">
+      <!-- select device -->
+      <arg name="device" value="18549320"/>
+      <arg name="calib_url" value="file://$(find vfc_experiments)/w8/params/pg_camera.yaml"/>
+      <!-- param -->
+      <arg name="rate" value="30"/>
+      <!-- options -->
+      <arg name="proc" value="true"/>
+      <arg name="view" value="false"/>
+    </include>
+
+    <node if="$(arg view)"
+      pkg="image_view" type="image_view" name="image_viewer" args="image:=/pg_18549320/image_rect_color" output="log" respawn="false">
+    </node>
+
+    <!-- static tf -->  
+    <node pkg="tf" type="static_transform_publisher" name="pg_camera_tf_publisher" args="0 0 0 -1.571 0 -1.571 pg_camera pg_18549320 100" />
+
+</launch>
