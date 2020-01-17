@@ -26,6 +26,11 @@
       <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/>
     </node>
 
+    <node pkg="task_switch" name="down_camera" type="down_range.py">
+      <param name="agenttf" value="/visualize/agent$(arg number)"/>
+      <param name="cameratf" value="/visualize/down_camera$(arg number)"/>
+    </node>
+
     <!-- just let bebop2 camera face downward -->
     <node pkg="rostopic" type="rostopic" name="camera_control" args="pub -r 10 camera_control geometry_msgs/Twist -- '[0.0, 0.0, 0.0]' '[0.0, -90, 0.0]'"/>
 
