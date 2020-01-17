@@ -1,5 +1,5 @@
 function [CBF] = getChargeCBF(xi,yi,Ei,Emin,Kd,k_charge,charge_pos,radius_charge)
-    radius_charge = radius_charge/2;
+    radius_charge = radius_charge/3;
     pos_robot = [xi;yi];
 %     CBF.hx = Ei - Emin - (Kd/k_charge) * log((norm(pos_robot-charge_pos)/radius_charge));
     CBF.hx = Ei - Emin - (Kd/k_charge) * ((norm(pos_robot-charge_pos) - radius_charge));

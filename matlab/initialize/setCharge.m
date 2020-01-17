@@ -23,7 +23,7 @@ Kd = 50;
 m=0.6;
 theta = linspace(0, 2*pi);
 % Set charging station position
-radius_charge = 0.2;
+radius_charge = 0.20;
 if AgentNum == 1
     charge.pos = [xlimit(1) + 2*radius_charge; ylimit(2) - 1];
     charge.pos = [mean(xlimit) ; mean(ylimit)];

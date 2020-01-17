@@ -26,8 +26,8 @@ global Echarge
 real = 1;
 
 % Plot in matlab or ROS.
-matlab_plot = 0;
-rviz_info_plot = 1;
+matlab_plot = 1;
+rviz_info_plot = 0;
 crazyflie = 0;
 bebop = 1;
 
@@ -112,6 +112,9 @@ savefile.collisionCBFvalue = zeros(1,AgentNum);
 
 optresult = zeros(3,AgentNum);
 detectNum = zeros(1,AgentNum);
+
+
+Kd = 0;
 
 while(~endflag)
     if t == 0
@@ -203,7 +206,7 @@ while(~endflag)
             pos = [x(i); y(i)] + rotTargetVector(1:2) - [0;0]; % direction to target(obtain from image)-offset to capture target
             theta = [0];
             norm = [2]; 
-            width = [0.2;0.2 ];% target size
+            width = [0.1;0.1 ];% target size
             targetInfo(i) = getPnomCBF(pos,theta,norm,width);
         end
     else
@@ -380,6 +383,12 @@ if real
     vel_msg.linear.z = 0;
     
     for i=1:AgentNum
+        if bebop
+            takeoffmsg.data = '';
+            landmsg.data = '';
+            mqttinterface.send(pub_takeoffs{i}, takeoffmsg);
+            mqttinterface.send(pub_lands{i}, landmsg);
+        end
         mqttinterface.send(pub_vels{i},vel_msg)
     end
 
@@ -388,38 +397,38 @@ disp('END!!!!!!!!!!!!')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Plot figure
-% 
-% %%%% J value plot
-% figure
-% sumJ = sum(savefile.J,2);
-% plot(savefile.time,sumJ)
-% hold on
-% grid on
-% plot(savefile.time,goalJ*ones(size(savefile.time)))
-% 
-% %%
-% %%%% charging plot
-% figure
-% for i=1:AgentNum
-%     plot(savefile.time,savefile.energy(:,i))
-%     hold on
-%     grid on
-% end
-% plot(savefile.time,Emin*ones(size(savefile.time)))
-% %%%% 
-% %%
-% 
-% %%%% w value plot
-% figure
-% for i=1:AgentNum
-%     plot(savefile.time,savefile.w(:,i))
-%     hold on
-%     grid on
-% end
-% %%
-% figure
-% for i=1:AgentNum
-%     plot(savefile.time,savefile.collisionCBFvalue(:,i))
-%     hold on
-%     grid on
-% end
+
+%%%% J value plot
+figure
+sumJ = sum(savefile.J,2);
+plot(savefile.time,sumJ)
+hold on
+grid on
+plot(savefile.time,goalJ*ones(size(savefile.time)))
+
+%%
+%%%% charging plot
+figure
+for i=1:AgentNum
+    plot(savefile.time,savefile.energy(:,i))
+    hold on
+    grid on
+end
+plot(savefile.time,Emin*ones(size(savefile.time)))
+%%%% 
+%%
+
+%%%% w value plot
+figure
+for i=1:AgentNum
+    plot(savefile.time,savefile.w(:,i))
+    hold on
+    grid on
+end
+%%
+figure
+for i=1:AgentNum
+    plot(savefile.time,savefile.collisionCBFvalue(:,i))
+    hold on
+    grid on
+end

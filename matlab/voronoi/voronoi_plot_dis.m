@@ -19,19 +19,19 @@ Region = Voronoi.Region;
     colorbar
     hold on
 %% constraint plot
-    plot(fieldInfo.plotX, fieldInfo.plotY, 'r', 'LineWidth', 3);
-    hold on    
-
-        for i=1:length(x)
-            if Perception(i)
-                plot(targetInfo(i).plotX, targetInfo(i).plotY, 'r', 'LineWidth', 3);
-                hold on
-            end
-    end
+%     plot(fieldInfo.plotX, fieldInfo.plotY, 'r', 'LineWidth', 3);
+%     hold on    
+% 
+%         for i=1:length(x)
+%             if Perception(i)
+%                 plot(targetInfo(i).plotX, targetInfo(i).plotY, 'r', 'LineWidth', 3);
+%                 hold on
+%             end
+%     end
     
 %% charging station plot
-plot(charge.plotx(:,:)', charge.ploty(:,:)', 'c', 'LineWidth', 5);
-hold on
+% plot(charge.plotx(:,:)', charge.ploty(:,:)', 'c', 'LineWidth', 5);
+% hold on
 
 %% flag plot
 %     plot(flagInfo.plotX, flagInfo.plotY, 'r:', 'LineWidth', 3);    

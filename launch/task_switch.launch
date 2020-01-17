@@ -66,8 +66,8 @@
         <!--     <param name="agenttf" value="/visualize/agent"/> -->
         <!-- </node> -->
     <node pkg="task_switch" type="w8_visualize.py" name="w8_visualize"/>
-    <node pkg="task_switch" name="information_plot" type="visualize_surf.py" output="screen">
-            <remap from="surf_value" to="information_reliability"/>
-        </node>
+    <!-- <node pkg="task_switch" name="information_plot" type="visualize_surf.py" output="screen"> -->
+    <!--         <remap from="surf_value" to="information_reliability"/> -->
+    <!--     </node> -->
     </group>
 </launch>
