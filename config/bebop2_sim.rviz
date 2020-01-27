@@ -72,21 +72,19 @@ Visualization Manager:
           Value: false
         visualize/agent2:
           Value: false
-        visualize/agent3:
-          Value: false
-        visualize/down_camera1:
-          Value: false
-        visualize/down_camera2:
-          Value: false
-        visualize/down_camera3:
-          Value: false
+        world:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        world:
+          visualize/agent1:
+            {}
+          visualize/agent2:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -94,7 +92,7 @@ Visualization Manager:
       Marker Topic: /visualization/agent1
       Name: Marker
       Namespaces:
-        {}
+        agent1: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -102,7 +100,7 @@ Visualization Manager:
       Marker Topic: /visualization/agent2
       Name: Marker
       Namespaces:
-        {}
+        agent2: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -110,6 +108,7 @@ Visualization Manager:
       Marker Topic: /visualize/field_visualization
       Name: Marker
       Namespaces:
+        surface_plot: true
         w8_3dmap: true
       Queue Size: 100
       Value: true
@@ -234,10 +233,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.564796448
+      Pitch: 0.609796405
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.16041231
+      Yaw: 3.32041073
     Saved: ~
 Window Geometry:
   Displays:
