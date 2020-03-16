@@ -1,6 +1,6 @@
 %% field settings
 xlimit = [-1.2 1.2];
-ylimit = [-1.7 1.5];
+ylimit = [-1.8 1.5];
 
 
 %%% draw mesh grid on field %%%%%%%
