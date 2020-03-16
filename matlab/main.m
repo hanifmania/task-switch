@@ -23,11 +23,11 @@ global goalJ
 global charge
 global Echarge
 %% Mode setting
-real = 1;
+real = 0;
 
 % Plot in matlab or ROS.
-matlab_plot = 1;
-rviz_info_plot = 0;
+matlab_plot = 0;
+rviz_info_plot = 1;
 crazyflie = 0;
 bebop = 1;
 
@@ -114,7 +114,7 @@ optresult = zeros(3,AgentNum);
 detectNum = zeros(1,AgentNum);
 
 
-Kd = 0;
+% Kd = 0;
 
 while(~endflag)
     if t == 0

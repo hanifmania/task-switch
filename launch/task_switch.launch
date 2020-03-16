@@ -61,13 +61,14 @@
     </group>
 
     <!-- Visualization Part -->
-    <group ns="visualize" if="$(arg real)">
+    <!-- <group ns="visualize" if="$(arg real)"> -->
+    <group ns="visualize">
         <!-- <node pkg="task_switch" type="plot_obs_col_avoidance.py" name="plot_node"> -->
         <!--     <param name="agenttf" value="/visualize/agent"/> -->
         <!-- </node> -->
     <node pkg="task_switch" type="w8_visualize.py" name="w8_visualize"/>
-    <!-- <node pkg="task_switch" name="information_plot" type="visualize_surf.py" output="screen"> -->
-    <!--         <remap from="surf_value" to="information_reliability"/> -->
-    <!--     </node> -->
+    <node pkg="task_switch" name="information_plot" type="visualize_surf.py" output="screen">
+            <remap from="surf_value" to="information_reliability"/>
+        </node>
     </group>
 </launch>
