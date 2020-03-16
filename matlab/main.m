@@ -23,11 +23,11 @@ global goalJ
 global charge
 global Echarge
 %% Mode setting
-real = 0;
+real = 1;
 
 % Plot in matlab or ROS.
-matlab_plot = 0;
-rviz_info_plot = 1;
+matlab_plot = 1;
+rviz_info_plot = 0;
 crazyflie = 0;
 bebop = 1;
 
