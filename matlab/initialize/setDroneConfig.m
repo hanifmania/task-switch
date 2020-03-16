@@ -3,7 +3,7 @@
 
 
 % Drone number list for experiment. Ex. [1, 3, 6]
-drone_list = [2 3];
+drone_list = [1 2];
 AgentNum = size(drone_list,2);
 
 % sensor R: vision sensor radius
