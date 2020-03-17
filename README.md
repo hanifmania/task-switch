@@ -27,8 +27,19 @@ bebop2 の urdf モデルは rotors_simulator のモデルを使っている。�
 
 
 - mqtt_bridge  
-mqtt_bridge と検索して上の方に出てくる「mqtt_bridge を作ったよ！」というタイトルの記事に書いてあるとおりに git からクローンしたりすればオーケー
-ただし、ビルド、もしくは launch しようとするといろいろ Import Error で怒られる（inject 等）ため、随時pip等で入れていけば大丈夫。
+https://qiita.com/ledmonster/items/1b46fabf0415d7c0abae  
+を参照に入れる。ただし
+ただし、ビルド、もしくは launch しようとするといろいろ Import Error で怒られる（inject 等）ため、pipで色々入れる必要がある。  
+
+
+  ```
+  sudo pip install bson==0.5.2 inject==3.3.1 paho-mqtt==1.2 msgpack-python=0.4.8
+  ```
+  つまったら
+  `
+  sudo pip install --upgrade pip setuptools
+  `
+  で解決するかも。
 
 
 - vrpn_client  
