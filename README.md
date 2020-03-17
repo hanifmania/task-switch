@@ -33,13 +33,13 @@ https://qiita.com/ledmonster/items/1b46fabf0415d7c0abae
 
 
   ```
-  sudo pip install bson==0.5.2 inject==3.3.1 paho-mqtt==1.2 msgpack-python=0.4.8
+  sudo pip install bson==0.5.2 inject==3.3.1 paho-mqtt==1.2 msgpack-python==0.4.8
   ```
-  つまったら
-  `
-  sudo pip install --upgrade pip setuptools
-  `
-  で解決するかも。
+  <!-- つまったら -->
+  <!-- ` -->
+  <!-- sudo pip install --upgrade pip setuptools -->
+  <!-- ` -->
+  <!-- で解決するかも。 -->
 
 
 - vrpn_client  
