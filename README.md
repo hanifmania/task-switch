@@ -35,6 +35,10 @@ https://qiita.com/ledmonster/items/1b46fabf0415d7c0abae
   ```
   sudo pip install bson==0.5.2 inject==3.3.1 paho-mqtt==1.2 msgpack-python==0.4.8
   ```
+  ↑だとエラーを吐く。bson だけ
+  `pip uninstall bson`
+  でアンインストールしておくととりあえずは動く？（要検証）
+
   <!-- つまったら -->
   <!-- ` -->
   <!-- sudo pip install --upgrade pip setuptools -->
@@ -46,8 +50,10 @@ https://qiita.com/ledmonster/items/1b46fabf0415d7c0abae
 ROS wiki に vrpn_client についてのページがあるためそちらを参照。
 基本的には
 	```
-	$ git clone https://github.com/ros-drivers/vrpn_client_ros.gitすればオーケーなはず。
+	$ git clone https://github.com/ros-drivers/vrpn_client_ros.git
 	```
+すればオーケーなはず。怒られたら
+`rosdep install vrpn_client_ros`を叩いておく
 
 - jsk plugins  
 東大のjskが作ったrviz用のプラグイン。
@@ -59,6 +65,7 @@ ROS wiki に vrpn_client についてのページがあるためそちらを参�
 https://github.com/osrf/tensorflow_object_detector このリポジトリのREADMEに従えばいい．  
 tensorflowのpython パッケージのバージョンは1.13.1でやる．  
 ただし，上記のREADME通りにわざわざtensorflow用の仮想環境を作るとlaunchするときに面倒なので，もとの環境に普通に$ pip install tensorflow==1.13.1 でインストールすればいい．  
+numpyだけ先に`pip install numpy==1.13.3`で入れておく。
 その際，pipやsetuptoolsなどのバージョンが古いと怒られる．その時はpip install --upgrade pip setuptools を実行してからインストールすると大丈夫．  
 注意点として，aptでとってきたpipを上の手順でupgradeするとpipがぶっ壊れるので
 pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK）  
