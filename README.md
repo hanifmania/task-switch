@@ -64,4 +64,17 @@ pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK
 
 
 - 実験
-hogehoge 
+  - 注意  
+  モーションキャプチャ上でのbebopの名前は、「bebop10*」を想定している。
+  *部分の番号は、bebop.launchの引数numberとmatlab内のagent numberと連動している。
+  もし名前を変える場合は、bebop.launch内のgroup nsの部分を変更、更にはmqtt関連の設定を見なおす必要がある。
+
+  - 手順
+  1. `` roslaunch task_switch task_switch.launch real:="true"``
+  2. 同じROSネットワーク上に接続された各PCでbebopにwifi接続
+  3. 各PC上で``bebop.launch number:="*"`` 
+  4. matlabでmain.m内でreal = 1に設定したうえで実行
+- 共通
+  - matlab内のパラメータmatlab_plot=1とすると、matlab上で情報信頼度やエージェントの位置がプロットされる。重い場合は0にしてプロットを切る。
+  - rviz_info_plot = 1でrviz上に情報信頼度をプロットする。重かったら切る。
+
