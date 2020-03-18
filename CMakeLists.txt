@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(task_switch)
-
-## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
@@ -15,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   message_generation
   sensor_msgs
+  vision_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -76,6 +75,8 @@ find_package(catkin REQUIRED COMPONENTS
    DEPENDENCIES
    std_msgs
    geometry_msgs
+   sensor_msgs
+   vision_msgs
  )
 
 ################################################
@@ -110,7 +111,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES vision_coverage
-  CATKIN_DEPENDS roscpp rospy std_msgs tf message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs sensor_msgs vision_msgs tf message_runtime
 #  DEPENDS system_lib
 )
 

@@ -71,6 +71,11 @@ numpyだけ先に`pip install numpy==1.13.3`で入れておく。
 pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK）  
 手順は https://qiita.com/Suzukaze31/items/e6d15ddd9ffcd5e6c246 を参照
 
+依存関係で怒られたら、
+```
+rosdep install task_switch
+```
+してみる。
 # Usage
 
 - シミュレーション
