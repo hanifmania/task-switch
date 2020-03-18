@@ -63,19 +63,24 @@ ROS wiki に vrpn_client についてのページがあるためそちらを参�
 
 - tensorflow_object_detector  
 https://github.com/osrf/tensorflow_object_detector このリポジトリのREADMEに従えばいい．  
-tensorflowのpython パッケージのバージョンは1.13.1でやる．  
-ただし，上記のREADME通りにわざわざtensorflow用の仮想環境を作るとlaunchするときに面倒なので，もとの環境に普通に$ pip install tensorflow==1.13.1 でインストールすればいい．  
-numpyだけ先に`pip install numpy==1.13.3`で入れておく。
-その際，pipやsetuptoolsなどのバージョンが古いと怒られる．その時はpip install --upgrade pip setuptools を実行してからインストールすると大丈夫．  
-注意点として，aptでとってきたpipを上の手順でupgradeするとpipがぶっ壊れるので
-pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK）  
-手順は https://qiita.com/Suzukaze31/items/e6d15ddd9ffcd5e6c246 を参照
 
-依存関係で怒られたら、
-```
-rosdep install task_switch
-```
-してみる。
+  ROS kineticで動かす場合はpython2である必要があるため、tensorflowを入れる際には
+  関連するパッケージも含めてバージョンに注意する必要がある。
+  20200318時点では
+  numpyだけ先に`pip install numpy==1.13.3, mock==3.0.5`で入れておくこと。
+
+  tensorflowのpython パッケージのバージョンは1.13.1でやる．  
+  ただし，上記のREADME通りにわざわざtensorflow用の仮想環境を作るとlaunchするときに面倒なので，もとの環境に普通に$ pip install tensorflow==1.13.1 でインストールすればいい．  
+  その際，pipやsetuptoolsなどのバージョンが古いと怒られる．その時はpip install --upgrade pip setuptools を実行してからインストールすると大丈夫．  
+  注意点として，aptでとってきたpipを上の手順でupgradeするとpipがぶっ壊れるので
+  pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK）  
+  手順は https://qiita.com/Suzukaze31/items/e6d15ddd9ffcd5e6c246 を参照
+
+  依存関係で怒られたら、
+  ```
+  rosdep install task_switch
+  ```
+  してみる。
 # Usage
 
 - シミュレーション
