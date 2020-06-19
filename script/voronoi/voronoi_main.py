@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 
 class Voronoi:
-    def __init__(self):
+    def __init__(self,field):
 
-        self.mesh_acc = [200,200]
-        self.xlimit = [-2.0,2.0]
-        self.ylimit = [-2.0,2.0]
+        self.mesh_acc = field.getMeshacc()
+        self.xlimit = field.getXlimit()
+        self.ylimit = field.getYlimit()
+
         self.Region = np.empty(self.mesh_acc, dtype=np.bool)
         self.xgrid = np.linspace(self.xlimit[0], self.xlimit[1], self.mesh_acc[0])
         self.ygrid = np.linspace(self.ylimit[0], self.ylimit[1], self.mesh_acc[1])
@@ -82,6 +83,9 @@ class Voronoi:
     def getCent(self):
         return self.cent
 
+    def getRegion(self):
+        return self.Region
+
     def getConv(self):
         onlymyX = self.X[self.Region == True]
         onlymyY = self.Y[self.Region == True]
@@ -91,6 +95,7 @@ class Voronoi:
         hull_points = points[hull.vertices]
         hp = np.vstack((hull_points, hull_points[0]))
         return hp
+
             
 class Plotter:
     def __init__(self,span):
@@ -106,13 +111,36 @@ class Plotter:
         plt.pause(self.span)
         plt.clf()
 
+class Field:
+    def __init__(self):
+        self.mesh_acc = [200,200]
+        self.xlimit = [-2.0,2.0]
+        self.ylimit = [-2.0,2.0]
+        self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
+
+    def updateField(self,phi):
+        self.phi = phi
+
+    def getMeshacc(self):
+        return self.mesh_acc
+
+    def getXlimit(self):
+        return self.xlimit
+
+    def getYlimit(self):
+        return self.ylimit
+
+    def getPhi(self):
+        return self.phi
+
 
 def main():
     AgentNum = 2
     pos = -2+4*np.random.rand(AgentNum,2)
+    field = Field()
     Agents = []
     for i in range(AgentNum):
-        agent = Voronoi()
+        agent = Voronoi(field)
         Agents.append(agent)
 
 
