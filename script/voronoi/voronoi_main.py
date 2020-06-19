@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 from scipy.stats import multivariate_normal
 
+
 class Voronoi:
     def __init__(self,field):
 
@@ -20,8 +21,6 @@ class Voronoi:
 
         self.Pos = [0,0]
         self.listNeighborPos = np.array([[2,2],[-2,2]])
-        
-
 
     def calcVoronoi(self):
         self.Region = (self.X-self.Pos[0])**2 + (self.Y-self.Pos[1])**2 <= self.R**2
@@ -61,9 +60,6 @@ class Voronoi:
         expandX = vectorX[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
         expandY = vectorY[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
         self.expand = (self.R**2+self.b)*[expandX.sum(), expandY.sum()]
-
-        
-
     
     def setPos(self,pos):
         self.Pos = pos
@@ -73,7 +69,6 @@ class Voronoi:
 
     def setPhi(self,phi):
         self.phi = phi
-        
     
     def getCent(self):
         return self.cent
@@ -90,6 +85,7 @@ class Voronoi:
         hull_points = points[hull.vertices]
         hp = np.vstack((hull_points, hull_points[0]))
         return hp
+
 
             
 class Plotter:
@@ -108,11 +104,12 @@ class Plotter:
         for i in range(len(pos)):
             hp = Agents[i].getConv()
             plt.plot(hp[:,0],hp[:,1])
-        
 
         plt.scatter(pos[:,0],pos[:,1])
         plt.pause(self.span)
         plt.clf()
+
+
 
 class Field:
     def __init__(self):
@@ -139,23 +136,33 @@ class Field:
         return self.phi
 
 
+def infoUpdate(Z,Agents):
+    delta_decrease = 1
+    delta_increase = 0.01
+    Region = Agents[1].getRegion()
+    for i in range(len(Agents)):
+        Region = Region + Agents[i].getRegion()
+    Z = Z-delta_decrease*Region
+    Z = np.where(Z<0.01,0.01,Z) 
+    Z = Z + delta_increase*~Region
+    Z = np.where(Z>1,1,Z) 
+    return Z
+
+
 def setGaussian(field):
     X, Y = field.getGrid()
     XY = np.dstack((X, Y))
     mu = [0.5, -0.2]
     sigma = [[2.0, 0.3],[0.3,0.5]]
-
     rv = multivariate_normal(mu, sigma)
     Z = rv.pdf(XY)
-
     return Z
 
-
 def main():
-    AgentNum = 10
+    AgentNum = 3
     pos = -2+4*np.random.rand(AgentNum,2)
     field = Field()
-    field.updatePhi(setGaussian(field))
+    # field.updatePhi(setGaussian(field))
     Agents = []
     for i in range(AgentNum):
         agent = Voronoi(field)
@@ -170,6 +177,8 @@ def main():
                 Agents[i].setNeighborPos(np.delete(pos,i,axis=0))
                 Agents[i].calcVoronoi()
                 pos[i] = pos[i] + (Agents[i].getCent()-pos[i])*0.3
+            Z = infoUpdate(field.getPhi(),Agents)
+            field.updatePhi(Z)
 
             plotter.voronoiPlot(field,Agents,pos)
 
