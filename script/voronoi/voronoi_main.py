@@ -169,12 +169,13 @@ def main():
     AgentNum = 3
     pos = -2+4*np.random.rand(AgentNum,2)
     field = Field()
-    # field.updatePhi(setGaussian(field))
     Agents = []
     for i in range(AgentNum):
         agent = Voronoi(field)
         Agents.append(agent)
 
+    # gaussian distribution field weight
+    gausZ = setGaussian(field) 
 
 
     plotter = Plotter(0.01)
@@ -186,9 +187,26 @@ def main():
                 Agents[i].setPhi(field.getPhi())
 
                 Agents[i].calcVoronoi()
+                ############################    
+                # normal coverage control  #
+                ############################    
                 # pos[i] = pos[i] + (-pos[i]+Agents[i].getCent())*0.3
+
+                ################################    
+                # persistent coverage control  #
+                ################################    
                 pos[i] = pos[i] + (-pos[i]+Agents[i].getCent()-Agents[i].getExpand()/(2*Agents[i].getMass()))*0.2
 
+
+            ##########################
+            # fixed field weight     #
+            ##########################
+            # field.updatePhi(gausZ)
+
+            #######################################################
+            # time varying weight accroding to agent position     # 
+            # for persistent coverage control                     #
+            #######################################################
             Z = infoUpdate(field.getPhi(),Agents)
             field.updatePhi(Z)
 
