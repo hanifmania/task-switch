@@ -21,10 +21,10 @@
             <node pkg="task_switch" name="pose2tf" type="pose2tf.py" >
                 <param name="tfname" value="/visualize/agent1"/>
             </node>
-	    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
-	    	<param name="markername" value="agent1"/>
-		<remap from="posestamped" to="/agent1/posestamped"/>
-	    </node>
+            <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+              <param name="markername" value="agent1"/>
+              <remap from="posestamped" to="/agent1/posestamped"/>
+            </node>
             <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
 		<!-- <param name="agenttf" value="/visualize/agent1"/> -->
 		<!-- <param name="cameratf" value="/visualize/down_camera1"/> -->
@@ -35,10 +35,10 @@
             <node pkg="task_switch" name="pose2tf" type="pose2tf.py" >
                 <param name="tfname" value="/visualize/agent2"/>
             </node>
-	    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
-	    	<param name="markername" value="agent2"/>
-		<remap from="posestamped" to="/agent2/posestamped"/>
-	    </node>
+            <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+              <param name="markername" value="agent2"/>
+              <remap from="posestamped" to="/agent2/posestamped"/>
+            </node>
             <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
 		<!-- <param name="agenttf" value="/visualize/agent2"/> -->
 		<!-- <param name="cameratf" value="/visualize/down_camera2"/> -->
@@ -48,10 +48,10 @@
             <node pkg="task_switch" name="pose2tf" type="pose2tf.py" >
                 <param name="tfname" value="/visualize/agent3"/>
             </node>
-	    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
-	    	<param name="markername" value="agent3"/>
-		<remap from="posestamped" to="/agent3/posestamped"/>
-	    </node>
+            <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+              <param name="markername" value="agent3"/>
+              <remap from="posestamped" to="/agent3/posestamped"/>
+            </node>
             <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
 		<!-- <param name="agenttf" value="/visualize/agent3"/> -->
 		<!-- <param name="cameratf" value="/visualize/down_camera3"/> -->
