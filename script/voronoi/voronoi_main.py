@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
+from scipy.stats import multivariate_normal
 
 class Voronoi:
     def __init__(self,field):
@@ -95,11 +96,19 @@ class Plotter:
     def __init__(self,span):
         self.span = span
 
-    def voronoiPlot(self,Agents,pos):
+    def voronoiPlot(self,field,Agents,pos):
+        xlimit, ylimit = field.getXYlimit()
+        xbox = [xlimit[0],xlimit[1],xlimit[1],xlimit[0],xlimit[0]]
+        ybox = [ylimit[0],ylimit[0],ylimit[1],ylimit[1],ylimit[0]]
+        plt.plot(xbox,ybox,color="k")
+        X,Y = field.getGrid()
+        Z = field.getPhi()
+        plt.contourf(X,Y,Z)
 
         for i in range(len(pos)):
             hp = Agents[i].getConv()
             plt.plot(hp[:,0],hp[:,1])
+        
 
         plt.scatter(pos[:,0],pos[:,1])
         plt.pause(self.span)
@@ -113,8 +122,11 @@ class Field:
         # dimension is inverse to X,Y
         self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
-    def updateField(self,phi):
+    def updatePhi(self,phi):
         self.phi = phi
+
+    def getXYlimit(self):
+        return self.xlimit, self.ylimit
 
     def getGrid(self):
         xgrid = np.linspace(self.xlimit[0], self.xlimit[1], self.mesh_acc[0])
@@ -127,15 +139,27 @@ class Field:
         return self.phi
 
 
+def setGaussian(field):
+    X, Y = field.getGrid()
+    XY = np.dstack((X, Y))
+    mu = [0.5, -0.2]
+    sigma = [[2.0, 0.3],[0.3,0.5]]
+
+    rv = multivariate_normal(mu, sigma)
+    Z = rv.pdf(XY)
+
+    return Z
+
+
 def main():
     AgentNum = 10
     pos = -2+4*np.random.rand(AgentNum,2)
     field = Field()
+    field.updatePhi(setGaussian(field))
     Agents = []
     for i in range(AgentNum):
         agent = Voronoi(field)
         Agents.append(agent)
-
 
 
     plotter = Plotter(0.01)
@@ -147,7 +171,7 @@ def main():
                 Agents[i].calcVoronoi()
                 pos[i] = pos[i] + (Agents[i].getCent()-pos[i])*0.3
 
-            plotter.voronoiPlot(Agents,pos)
+            plotter.voronoiPlot(field,Agents,pos)
 
         except:
             break
@@ -157,7 +181,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
-    
-
 
