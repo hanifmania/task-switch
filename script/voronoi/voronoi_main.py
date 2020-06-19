@@ -16,7 +16,7 @@ class Voronoi:
         self.Y = self.Grid[1]
 
         self.R = 1
-        self.b = self.R**2-1
+        self.b = -(self.R**2)-1
         
 
         self.Pos = [0,0]
@@ -59,7 +59,7 @@ class Voronoi:
 
         expandX = vectorX[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
         expandY = vectorY[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
-        self.expand = (self.R**2+self.b)*[expandX.sum(), expandY.sum()]
+        self.expand = (self.R**2+self.b)*np.array([expandX.sum(), expandY.sum()])
     
     def setPos(self,pos):
         self.Pos = pos
@@ -73,8 +73,14 @@ class Voronoi:
     def getCent(self):
         return self.cent
 
+    def getMass(self):
+        return self.mass
+
     def getRegion(self):
         return self.Region
+
+    def getExpand(self):
+        return self.expand
 
     def getConv(self):
         onlymyX = self.X[self.Region == True]
@@ -158,6 +164,7 @@ def setGaussian(field):
     Z = rv.pdf(XY)
     return Z
 
+
 def main():
     AgentNum = 3
     pos = -2+4*np.random.rand(AgentNum,2)
@@ -169,16 +176,22 @@ def main():
         Agents.append(agent)
 
 
+
     plotter = Plotter(0.01)
     for t in range(100):
         try:
             for i in range(AgentNum):
                 Agents[i].setPos(pos[i])
                 Agents[i].setNeighborPos(np.delete(pos,i,axis=0))
+                Agents[i].setPhi(field.getPhi())
+
                 Agents[i].calcVoronoi()
-                pos[i] = pos[i] + (Agents[i].getCent()-pos[i])*0.3
+                # pos[i] = pos[i] + (-pos[i]+Agents[i].getCent())*0.3
+                pos[i] = pos[i] + (-pos[i]+Agents[i].getCent()-Agents[i].getExpand()/(2*Agents[i].getMass()))*0.2
+
             Z = infoUpdate(field.getPhi(),Agents)
             field.updatePhi(Z)
+
 
             plotter.voronoiPlot(field,Agents,pos)
 
