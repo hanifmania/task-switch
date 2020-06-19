@@ -8,21 +8,15 @@ from scipy.spatial import ConvexHull
 class Voronoi:
     def __init__(self,field):
 
-        self.mesh_acc = field.getMeshacc()
-        self.xlimit = field.getXlimit()
-        self.ylimit = field.getYlimit()
+        self.phi = field.getPhi()
+        self.Grid = field.getGrid()
+        self.X = self.Grid[0]
+        self.Y = self.Grid[1]
 
-        self.Region = np.empty(self.mesh_acc, dtype=np.bool)
-        self.xgrid = np.linspace(self.xlimit[0], self.xlimit[1], self.mesh_acc[0])
-        self.ygrid = np.linspace(self.ylimit[0], self.ylimit[1], self.mesh_acc[1])
         self.R = 1
         self.b = self.R**2-1
-        # X and Y are mesh_acc[1] columns, mesh_acc[0] rows matrix
-        self.X, self.Y = np.meshgrid(self.xgrid, self.ygrid)
         
 
-        # dimension is inverse to X,Y
-        self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
         self.Pos = [0,0]
         self.listNeighborPos = np.array([[2,2],[-2,2]])
         
@@ -116,26 +110,25 @@ class Field:
         self.mesh_acc = [200,200]
         self.xlimit = [-2.0,2.0]
         self.ylimit = [-2.0,2.0]
+        # dimension is inverse to X,Y
         self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
     def updateField(self,phi):
         self.phi = phi
 
-    def getMeshacc(self):
-        return self.mesh_acc
-
-    def getXlimit(self):
-        return self.xlimit
-
-    def getYlimit(self):
-        return self.ylimit
+    def getGrid(self):
+        xgrid = np.linspace(self.xlimit[0], self.xlimit[1], self.mesh_acc[0])
+        ygrid = np.linspace(self.ylimit[0], self.ylimit[1], self.mesh_acc[1])
+        # X and Y are mesh_acc[1] columns, mesh_acc[0] rows matrix
+        X, Y = np.meshgrid(xgrid, ygrid)
+        return X,Y
 
     def getPhi(self):
         return self.phi
 
 
 def main():
-    AgentNum = 2
+    AgentNum = 10
     pos = -2+4*np.random.rand(AgentNum,2)
     field = Field()
     Agents = []
