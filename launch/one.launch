@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+    <node pkg="task_switch" name="rigidmotion" type="rigidmotion2.py">
+    </node>
+
+    <node pkg="task_switch" name="controller" type="coverage_controller.py" output='screen'>
+      <remap from="cmd_input" to="rigidmotion/command/cmd_vel"/>
+      <remap from="pose" to="rigidmotion/pose"/>
+    </node>
+
+    <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->
+    <!--   <param name = "bebop_number" value="$(arg number)"/> -->
+    <!-- </node> -->
+
+    <!-- <node pkg="task_switch" type="pose2tf.py" name="pose2tf_node"> -->
+    <!--   <param name="tfname" value="/visualize/agent$(arg number)"/> -->
+    <!--   <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/> -->
+    <!-- </node> -->
+
+    <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
+    <!--   <param name="agenttf" value="/visualize/agent$(arg number)"/> -->
+    <!--   <param name="cameratf" value="/visualize/down_camera$(arg number)"/> -->
+    <!-- </node> -->
+
+
+    <!-- <node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> --> 
+    <!--   <remap from='image' to='image_raw'/> -->
+    <!-- </node> -->
+  <!-- </group> -->
+
+</launch>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+    <!-- Run simulation -->
+    <group ns="bebop101">
+      <arg name="number" default="1"/>
+      <param name="~agentID" value="$(arg number)"/>
+      <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
+      <include file="$(find task_switch)/launch/one.launch"/>
+    </group>
+
+    <group ns="bebop102">
+      <arg name="number" default="2"/>
+      <param name="~agentID" value="$(arg number)"/>
+      <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
+      <include file="$(find task_switch)/launch/one.launch"/>
+    </group>
+
+</launch>
