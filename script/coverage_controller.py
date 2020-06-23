@@ -18,6 +18,7 @@ import numpy as np
 import cv2 as cv
 import os
 
+# inherit
 class Field(Field):
     def __init__(self,mesh_acc,xlimit,ylimit):
         self.mesh_acc = mesh_acc
@@ -27,6 +28,7 @@ class Field(Field):
         self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
 
+# inherit
 class VoronoiCalc(Voronoi):
     def __init__(self,field):
 
@@ -48,41 +50,53 @@ class coverageController():
         # ROS Initialize
         rospy.init_node('coverageController', anonymous=True)
 
+        # listner for tf to get other agent's position
         self.listner = tf.TransformListener()
-        # subscriber
+
+        # subscriber to get own pose
         rospy.Subscriber("pose", PoseStamped, self.poseStampedCallback, queue_size=1)
+        # subscriber to get field information density
         rospy.Subscriber("/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1)
-        # publisher
+
+        # publisher for agent control
         self.pub_twist = rospy.Publisher('cmd_input', Twist, queue_size=1)
         self.pub_takeoff = rospy.Publisher('takeoff', Empty, queue_size=1)
         self.pub_land = rospy.Publisher('land', Empty, queue_size=1)
         self.pub_reset = rospy.Publisher('reset', Empty, queue_size=1)
+
+
+        # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
 
 
         #get_ROSparam
-        self.clock = rospy.get_param("~clock",100)
         self.agentID = rospy.get_param("~agentID",1)
+        self.agentNum = rospy.get_param("/agentNum",1)
         mesh_acc = [rospy.get_param("/mesh_acc/x",100),rospy.get_param("/mesh_acc/y",150)]
         xlimit = [rospy.get_param("/x_min",-1.0),rospy.get_param("/x_max",1.0)]
         ylimit = [rospy.get_param("/y_min",-1.0),rospy.get_param("/y_max",1.0)]
 
         # param initialize
+        self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
 
+        # initialize message
         self.twist_from_controller = Twist()
+
+        # initialize field class
         self.field = Field(mesh_acc,xlimit,ylimit)
+        # initialize voronoiCalc class
         self.voronoi = VoronoiCalc(self.field)
+        # initialize neighborpos
+        self.allPositions = np.zeros((self.agentNum,3)) 
 
         
-        self.agentNum = rospy.get_param("/agentNum",1)
-
-        self.allPositions = np.zeros((self.agentNum,3)) 
 
 
         
         rospy.loginfo("starting node")
         rospy.loginfo(self.agentID)
+        # wait for tf 
         rospy.sleep(1.0)
         
     def poseStampedCallback(self, pose_msg):
@@ -91,52 +105,70 @@ class coverageController():
                 pose_msg.pose.orientation.z, pose_msg.pose.orientation.w])
 
     def Float32MultiArrayCallback(self,msg_data):
-        info_vec = np.array(msg_data.data)
-        info = np.reshape(info_vec,(msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
+        # msg_data is information density, which is vectorized.
+        info = np.array(msg_data.data).reshape((msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
         self.field.updatePhi(info)
 
     def publishRegion(self,region):
-        region_vec_ = np.reshape(region,(1,-1))
+        # make multiarraydimension
         dim_ = []
         dim_.append(MultiArrayDimension(label="y",size=region.shape[0],stride=region.shape[0]*region.shape[1]))
         dim_.append(MultiArrayDimension(label="x",size=region.shape[1],stride=region.shape[1]))
+        # make multiarraylayout
         layout_ = MultiArrayLayout(dim=dim_)
-        region_int = region_vec_.astype(np.int8)
-        region_vec = region_int.squeeze()
+
+        # vectorize region, convert cast, delete size 1 dimension.
+        region_vec = np.reshape(region,(1,-1)).astype(np.int8).squeeze()
+        
+        # make Int8multiarray. numpy to list convert
         region_for_pub = Int8MultiArray(data=region_vec.tolist(),layout=layout_)
+        # publish
         self.pub_region.publish(region_for_pub) 
 
 
-    def commandCalc(self):
-        pos = self.position[0:2]
-        # rospy.loginfo(pos)
-        self.voronoi.setPos(pos)
-        
+    def velCommandCalc(self):
+        # calculate command for agent
 
+        # extract x,y position from x,y,z position data
+        pos = self.position[0:2]
+
+        # extract x,y position from list of x,y,z position
         neighborPos2d = np.delete(self.allPositions,2,axis=1)
+        # delete THIS agent position
         neighborPosOnly = np.delete(neighborPos2d,self.agentID-1,axis=0)
+
+        # set my x,y position, and neighbor's position
+        self.voronoi.setPos(pos)
         self.voronoi.setNeighborPos(neighborPosOnly)
 
-        # rospy.loginfo(self.field.getPhi())
+        # set information density 
         self.voronoi.setPhi(self.field.getPhi())
+        # rospy.loginfo(self.field.getPhi())
+
+        # calculate voronoi region
         self.voronoi.calcVoronoi()
 
+        # calculate command for agent
         u = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*0.1
 
-        self.publishRegion(self.voronoi.getRegion())
-
+        # set command to be published
         self.twist_from_controller.linear.x = u[0]
         self.twist_from_controller.linear.y = u[1]
         
 
-
     def allPositionGet(self):
+        # get every agent's position
+
         for i in range(self.agentNum):
             if i+1 == self.agentID:
+                # don't get own position
                 pass
             else:
                 try:
+                    # agent i's tf prefix
                     agenttf = "/bebop10" + str(i+1) + "/rigidmotion"
+
+                    # get agent i's tf from world
                     (position, orientation) = self.listner.lookupTransform(
                         "/world",
                          agenttf,
@@ -152,9 +184,15 @@ class coverageController():
 
     def spin(self):
         while not rospy.is_shutdown():
+            # get neighbor position
             self.allPositionGet()
-            self.commandCalc()
+            # calculate voronoi region and input velocity
+            self.velCommandCalc()
+            
+            # publish vel command
             self.pub_twist.publish(self.twist_from_controller)
+            # publish my region
+            self.publishRegion(self.voronoi.getRegion())
             self.rate.sleep()
 
     
