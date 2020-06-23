@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
   vision_msgs
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -94,10 +95,9 @@ catkin_python_setup()
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/pcc_params.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -203,6 +203,13 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
+# c++ ROSノードの追加
+add_executable(${PROJECT_NAME}_param_server src/param_server.cpp)
 add_executable(${PROJECT_NAME}_tf2pose_baselink src/tf2pose_baselink.cpp)
+
+# c++ ROSノードのDynamic Reconfigureのmsgへの依存の追加
+add_dependencies(${PROJECT_NAME}_param_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# c++ ROSノードのライブラリの追加
+target_link_libraries(${PROJECT_NAME}_param_server ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_tf2pose_baselink ${catkin_LIBRARIES})

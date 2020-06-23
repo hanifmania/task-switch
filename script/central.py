@@ -71,10 +71,11 @@ class central():
     def infoUpdate(self,Z,region):
         # information reliability update
 
-        # delta_decrease = 1/self.clock
-        # delta_increase = 0.1/self.clock
-        delta_decrease = 0.01
-        delta_increase = 0.0001
+        delta_decrease = 1.0/self.clock
+        delta_increase = 0.01/self.clock
+        rospy.loginfo(delta_decrease)
+        # delta_decrease = 0.01
+        # delta_increase = 0.0001
 
         Z = Z-delta_decrease*region
         Z = np.where(Z<0.01,0.01,Z) 

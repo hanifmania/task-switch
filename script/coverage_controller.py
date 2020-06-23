@@ -10,6 +10,8 @@ from std_msgs.msg import Empty
 from std_msgs.msg import Int8MultiArray,MultiArrayLayout,MultiArrayDimension
 from std_msgs.msg import Float32MultiArray
 
+import dynamic_reconfigure.client
+
 from task_switch.voronoi_main import Voronoi
 from task_switch.voronoi_main import Field
 import tf
@@ -41,6 +43,7 @@ class VoronoiCalc(Voronoi):
         self.b = -(self.R**2)-1
         
 
+        # initialize self.Pos, and listNeightborPos
         self.Pos = [0,0]
         self.listNeighborPos = []
 
@@ -58,6 +61,7 @@ class coverageController():
         # subscriber to get field information density
         rospy.Subscriber("/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1)
 
+
         # publisher for agent control
         self.pub_twist = rospy.Publisher('cmd_input', Twist, queue_size=1)
         self.pub_takeoff = rospy.Publisher('takeoff', Empty, queue_size=1)
@@ -68,6 +72,8 @@ class coverageController():
         # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
 
+        #dynamic_reconfigure
+        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
 
         #get_ROSparam
         self.agentID = rospy.get_param("~agentID",1)
@@ -90,6 +96,8 @@ class coverageController():
         # initialize neighborpos
         self.allPositions = np.zeros((self.agentNum,3)) 
 
+        # controller gain
+        self.k = 0.1
         
 
 
@@ -98,6 +106,19 @@ class coverageController():
         rospy.loginfo(self.agentID)
         # wait for tf 
         rospy.sleep(1.0)
+
+    def _update_config_params(self, config):
+        self.k = config.controller_gain
+
+
+    def set_config_params(self):
+        config = self.dycon_client.get_configuration()
+        self._update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure Params SET")
+
+    def config_callback(self,config):
+        self._update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure Params Update")
         
     def poseStampedCallback(self, pose_msg):
         self.position = np.array([pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z])
@@ -149,7 +170,7 @@ class coverageController():
         self.voronoi.calcVoronoi()
 
         # calculate command for agent
-        u = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*0.1
+        u = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.k
 
         # set command to be published
         self.twist_from_controller.linear.x = u[0]
@@ -183,6 +204,7 @@ class coverageController():
     
 
     def spin(self):
+        self.set_config_params()
         while not rospy.is_shutdown():
             # get neighbor position
             self.allPositionGet()
