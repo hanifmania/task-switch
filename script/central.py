@@ -11,6 +11,8 @@ from std_msgs.msg import Empty
 from std_msgs.msg import Float32MultiArray,Int8MultiArray,MultiArrayLayout,MultiArrayDimension
 import tf
 
+import dynamic_reconfigure.client
+
 import numpy as np
 import cv2 as cv
 import os
@@ -58,28 +60,43 @@ class central():
         # information density initialize
         self.phi = 0.5*np.ones((mesh_acc[1],mesh_acc[0]))
 
-
         # node freq
         self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
         
+        #dynamic_reconfigure
+        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
+        # information decay, acquisition parmeters. any numbers are ok because it will be overwritten by dycon
+        self.delta_decrease = 1.0/self.clock
+        self.delta_increase = 0.01/self.clock
 
 
         rospy.loginfo("starting central node")
+
+    def _update_config_params(self, config):
+        self.delta_decrease = config.delta_decrease/self.clock
+        self.delta_increase = config.delta_increase/self.clock
+
+
+    def set_config_params(self):
+        config = self.dycon_client.get_configuration()
+        self._update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure Params SET")
+
+    def config_callback(self,config):
+        self._update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure Params Update")
 
 
     def infoUpdate(self,Z,region):
         # information reliability update
 
-        delta_decrease = 1.0/self.clock
-        delta_increase = 0.01/self.clock
-        rospy.loginfo(delta_decrease)
         # delta_decrease = 0.01
         # delta_increase = 0.0001
 
-        Z = Z-delta_decrease*region
+        Z = Z-self.delta_decrease*region
         Z = np.where(Z<0.01,0.01,Z) 
-        Z = Z + delta_increase*~region
+        Z = Z + self.delta_increase*~region
         Z = np.where(Z>1,1,Z) 
         return Z
 

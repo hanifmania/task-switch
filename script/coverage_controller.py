@@ -39,6 +39,7 @@ class VoronoiCalc(Voronoi):
         self.X = self.Grid[0]
         self.Y = self.Grid[1]
 
+        # agent radius and outside weight parameters. any numbers are ok because it will be overwritten by dycon
         self.R = 0.6
         self.b = -(self.R**2)-1
         
@@ -46,6 +47,11 @@ class VoronoiCalc(Voronoi):
         # initialize self.Pos, and listNeightborPos
         self.Pos = [0,0]
         self.listNeighborPos = []
+
+    def update_param(self, R, b_):
+        self.R = R
+        self.b = -(R**2)-b_
+
 
 class coverageController():
 
@@ -72,8 +78,6 @@ class coverageController():
         # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
 
-        #dynamic_reconfigure
-        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
 
         #get_ROSparam
         self.agentID = rospy.get_param("~agentID",1)
@@ -96,7 +100,10 @@ class coverageController():
         # initialize neighborpos
         self.allPositions = np.zeros((self.agentNum,3)) 
 
-        # controller gain
+        #dynamic_reconfigure
+        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
+
+        # controller gain. any number is ok because it will be overwritten by dycon
         self.k = 0.1
         
 
@@ -109,6 +116,7 @@ class coverageController():
 
     def _update_config_params(self, config):
         self.k = config.controller_gain
+        self.voronoi.update_param(config.agent_R,config.agent_b_)
 
 
     def set_config_params(self):
