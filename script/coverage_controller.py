@@ -32,21 +32,6 @@ class Field(Field):
 
 # inherit
 class VoronoiCalc(Voronoi):
-    def __init__(self,field):
-
-        self.phi = field.getPhi()
-        self.Grid = field.getGrid()
-        self.X = self.Grid[0]
-        self.Y = self.Grid[1]
-
-        # agent radius and outside weight parameters. any numbers are ok because it will be overwritten by dycon
-        self.R = 0.6
-        self.b = -(self.R**2)-1
-        
-
-        # initialize self.Pos, and listNeightborPos
-        self.Pos = [0,0]
-        self.listNeighborPos = []
 
     def update_param(self, R, b_):
         self.R = R

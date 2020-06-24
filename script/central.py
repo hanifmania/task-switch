@@ -64,8 +64,6 @@ class central():
         self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
         
-        #dynamic_reconfigure
-        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
         # information decay, acquisition parmeters. any numbers are ok because it will be overwritten by dycon
         self.delta_decrease = 1.0/self.clock
         self.delta_increase = 0.01/self.clock
