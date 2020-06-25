@@ -14,6 +14,8 @@ from task_switch.cbf_qp_solver import CBFQPSolver
 # from vfc_cbf_controller.attitude_cbf import AttitudeCBF
 
 class CBFSLACKQPSolver(CBFQPSolver):
+
+    # override
     def __qp_solver(self, P_np, q_np, G_np, h_np):
         P=matrix(P_np)
         q=matrix(q_np)
@@ -23,6 +25,7 @@ class CBFSLACKQPSolver(CBFQPSolver):
         sol=cvxopt.solvers.coneqp(P,q,G,h)
         return sol
 
+    # override
     def optimize(self, u_nom, P, Q, G, h, H):
         """
         solve the following optimization problem

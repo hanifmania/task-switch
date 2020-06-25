@@ -18,41 +18,67 @@ class CBFOptimizer(object):
         self.slack_qp_solver = CBFSLACKQPSolver()
 
         # self.set_optimize_weights([1.0, 1.0, 1.0, 50.0, 1.0, 1.0])
-        self.set_optimize_weights([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        self.input_weight_matrix = self.get_weight_matrix([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
         self.u_nominal = np.zeros((6,1))
         self.u_optimal = np.zeros((6,1))
         self.G_list = []
         self.h_list = []
+        self.NeighborPos = [] # will be AgentNum-1 x 2 matrix
     
-        self.g_adj_list = []
         
         self.activate_cbf = True
         self.activate_fov = False
         self.activate_ca = False
         self.activate_aa = False
 
-        po = np.zeros([4,3])
         # CBF instances
         self.fov_cbf = FoVCBF(po)
         self.collision_cbf = CollisionCBF()
         self.attitude_cbf = AttitudeCBF()
 
-    def set_optimize_weights(self, weight_list):
-        self.weight_matrix = np.diag([w** 2 for w in weight_list])
+    def get_weight_matrix(self, weight_list):
+        weight_matrix = np.diag([w for w in weight_list])
+        return weight_matrix
 
-    def set_qp_variable(self, u_nominal, g_target, observer_input=None):
-        self.u_nominal = u_nominal
+    def set_optimize_slack_weights(self, weight_list):
+        self.slack_weight_matrix = np.diag([w for w in weight_list])
 
-        self.P = self.weight_matrix   
-        self.q = (-1 * u_nominal.T.dot(self.weight_matrix)).T 
+    def set_qp_problem(self, u_nominal, g_target, observer_input=None):
+        """
+        define the following optimization problem
 
-        self.G_list = []
-        self.h_list = []
+        min_{u,w} (1/2) * (u-u_nom)^T*P*(u-u_nom) + (1/2)*w^T*Q*w
+        subject to G*u + h >= Hw
+
+        Args: m is the number of constraints
+            <u_nom>:nominal_input(6 x 1)
+            <P>:optimization_weight_matrix for input(6 x 6)
+            <Q>:slack_variable_weight_matrix (m x m)
+            <G>:constraint_matrix (m x 6)
+            <h>:constraint_matrix (m x 1)
+            <H>:soft constraint flag matrix (m x m)
+        Returns:
+            <u_optimal>:optimal_output(6 x 1)
+            <w>:optimal_slack(m x 1)
+        """
+
+        self.u_nom = u_nominal
+
+        self.P = self.input_weight_matrix   
+
+
+        self.G_list = np.Empty(0)
+        self.h_list = np.Empty(0)
+        self.Q = np.Empty(0)
+        self.H = np.Empty(0)
+        self.slack_weight_list = []
+        self.slack_flag_list = []
 
         if self.activate_cbf == True:
             if self.activate_fov == True:
                 if g_target is not None:
+                    G_hoge, h_hoge
                     G_fov, h_fov = self.fov_cbf.constraint_matrix(g_target, observer_input)
                     self.G_list.append(G_fov)
                     self.h_list.append(h_fov)
@@ -98,12 +124,19 @@ class CBFOptimizer(object):
             # if len(self.G_list) > 0:
             #     for G in self.G_list:
             #         G.resize(max([G.shape for G in self.G_list]), refcheck=True)
+            m = h_list.shape[0]
 
-        return self.P, self.q, self.G_list, self.h_list
+            slack_weight_list = np.ones((1,m))
+            slack_weight_list = np.ones((1,m))
+
+            self.Q = self.get_weight_matrix(slack_weight_list)
+            self.H = self.get_weight_matrix(slack_flag_list)
+
+        return self.u_nom, self.P, self.Q, self.G_list, self.h_list, self.H
 
 
     def optimize(self):
-        self.u_optimal, self.delta = self.qp_solver.optimize(self.P, self.q, self.G_list, self.h_list)
+        self.u_optimal, self.delta = self.slack_qp_solver.optimize(self.u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
         return self.u_optimal
 
 
