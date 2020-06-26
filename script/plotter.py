@@ -8,7 +8,11 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 from task_switch.voronoi_main import Voronoi
 from task_switch.voronoi_main import Field
+
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 import tf
 import time
 import numpy as np
@@ -54,6 +58,7 @@ class Field(Field):
         data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
         data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
         img = cv.cvtColor(data, cv.COLOR_RGB2BGR)
+
         plt.close()
         return img
 
@@ -80,7 +85,7 @@ class plotter():
         self.surf_value_sub = rospy.Subscriber("surf_value", Float32MultiArray, self.callbackFunctionValue)
 
         # node freq
-        self.clock = rospy.get_param("~clock",2)
+        self.clock = rospy.get_param("~clock",1)
         self.rate = rospy.Rate(self.clock)
 
     def allPositionGet(self):
@@ -89,7 +94,7 @@ class plotter():
         for i in range(self.agentNum):
             try:
                 # agent i's tf prefix
-                agenttf = "/bebop10" + str(i+1) + "/rigidmotion"
+                agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
 
                 # get agent i's tf from world
                 (position, orientation) = self.listner.lookupTransform(
@@ -107,7 +112,7 @@ class plotter():
             while not rospy.is_shutdown():
                 try:
                     # agent i's tf prefix
-                    agenttf = "/bebop10" + str(i+1) + "/rigidmotion"
+                    agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
 
                     # get agent i's tf from world
                     (_position, _orientation) = self.listner.lookupTransform(

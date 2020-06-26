@@ -8,7 +8,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty
 from std_msgs.msg import Int8MultiArray,MultiArrayLayout,MultiArrayDimension
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Bool,Float32,Float32MultiArray
 
 import dynamic_reconfigure.client
 
@@ -64,8 +64,6 @@ class coverageController():
         self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
 
-        # initialize message
-        self.twist_from_controller = Twist()
 
         # initialize field class
         self.field = Field(mesh_acc,xlimit,ylimit)
@@ -79,6 +77,8 @@ class coverageController():
         self.listner = tf.TransformListener()
         # subscriber to get own pose
         rospy.Subscriber("pose", PoseStamped, self.poseStampedCallback, queue_size=1)
+        # subscriber to get own energy
+        rospy.Subscriber("energy", Float32, self.energyCallback, queue_size=1)
         # subscriber to get field information density
         rospy.Subscriber("/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1)
         # publisher for agent control
@@ -88,12 +88,21 @@ class coverageController():
         self.pub_reset = rospy.Publisher('reset', Empty, queue_size=1)
         # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
+        # publisher for charge flag
+        self.pub_chargeState = rospy.Publisher('chargeState', Bool, queue_size=1)
 
+
+        # initialize message
+        self.twist_from_controller = Twist()
         #dynamic_reconfigure
         self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
 
         # controller gain. any number is ok because it will be overwritten by dycon
         self.k = 0.1
+
+        # init enegy
+        self.lastEnergy = 0
+        self.energy = 0
         
 
         self.optimizer = CBFOptimizerROS()
@@ -123,6 +132,9 @@ class coverageController():
         self.position = np.array([pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z])
         self.orientation = np.array([pose_msg.pose.orientation.x, pose_msg.pose.orientation.y, \
                 pose_msg.pose.orientation.z, pose_msg.pose.orientation.w])
+
+    def energyCallback(self, msg):
+        self.energy = msg.data
 
     def Float32MultiArrayCallback(self,msg_data):
         # msg_data is information density, which is vectorized.
@@ -179,7 +191,34 @@ class coverageController():
         # set command to be published
         self.twist_from_controller.linear.x = u[0]
         self.twist_from_controller.linear.y = u[1]
+
+    def publishChargeState(self,state):
+        if state:
+            self.pub_chargeState.publish(Bool(data=True))
+            print "publish true"
+        else:
+            self.pub_chargeState.publish(Bool(data=False))
+            print "publish false"
         
+        
+    def energyManagement(self):
+        currentEnergy = self.energy
+        nobattery = False
+        fullbattery = False
+
+        if (currentEnergy<=1500):
+            nobattery = True
+            fullbattery = False
+        
+        if (currentEnergy>=3000):
+            nobattery = False
+            fullbattery = True
+            
+        if nobattery:
+            self.publishChargeState(True)
+
+        if fullbattery:
+            self.publishChargeState(False)
 
     def allPositionGet(self):
         # get every agent's position
@@ -191,7 +230,7 @@ class coverageController():
             else:
                 try:
                     # agent i's tf prefix
-                    agenttf = "/bebop10" + str(i+1) + "/rigidmotion"
+                    agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
 
                     # get agent i's tf from world
                     (position, orientation) = self.listner.lookupTransform(
@@ -209,7 +248,7 @@ class coverageController():
             while not rospy.is_shutdown():
                 try:
                     # agent i's tf prefix
-                    agenttf = "/bebop10" + str(i+1) + "/rigidmotion"
+                    agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
 
                     # get agent i's tf from world
                     (_position, _orientation) = self.listner.lookupTransform(
@@ -229,6 +268,8 @@ class coverageController():
         while not rospy.is_shutdown():
             # get neighbor position
             self.allPositionGet()
+
+            self.energyManagement()
             # calculate voronoi region and input velocity
             self.velCommandCalc()
             
