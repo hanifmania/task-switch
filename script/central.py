@@ -7,15 +7,29 @@ from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseArray
 from task_switch.voronoi_main import Voronoi
+from task_switch.voronoi_main import Field
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32MultiArray,Int8MultiArray,MultiArrayLayout,MultiArrayDimension
 import tf
+
+
+import matplotlib.pyplot as plt
 
 import dynamic_reconfigure.client
 
 import numpy as np
 import cv2 as cv
 import os
+
+class Field(Field):
+    # override
+    def __init__(self,mesh_acc,xlimit,ylimit):
+        self.mesh_acc = mesh_acc
+        self.xlimit = xlimit
+        self.ylimit = ylimit
+        # dimension is inverse to X,Y
+        self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
+
 
 
 class Collector():
@@ -43,6 +57,10 @@ class central():
 
         # field mesh accuracy
         mesh_acc = [rospy.get_param("/mesh_acc/x",100),rospy.get_param("/mesh_acc/y",150)]
+        xlimit = [rospy.get_param("/x_min",-1.0),rospy.get_param("/x_max",1.0)]
+        ylimit = [rospy.get_param("/y_min",-1.0),rospy.get_param("/y_max",1.0)]
+        self.field = Field(mesh_acc,xlimit,ylimit)
+
         # Number of Agents
         self.agentNum = rospy.get_param("/agentNum",1)
 
@@ -58,22 +76,27 @@ class central():
         # publisher for information density
         self.pub_info = rospy.Publisher('/info', Float32MultiArray, queue_size=1)
         # information density initialize
-        self.phi = 0.5*np.ones((mesh_acc[1],mesh_acc[0]))
 
         # node freq
         self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
         
         # information decay, acquisition parmeters. any numbers are ok because it will be overwritten by dycon
-        self.delta_decrease = 1.0/self.clock
-        self.delta_increase = 0.01/self.clock
+        self.delta_decrease = 1.0
+        self.delta_increase = 0.01
+
+        #dynamic_reconfigure
+        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
+        
+        self.previousInfoUpdateTime = rospy.Time.now().to_sec()
+
 
 
         rospy.loginfo("starting central node")
 
     def _update_config_params(self, config):
-        self.delta_decrease = config.delta_decrease/self.clock
-        self.delta_increase = config.delta_increase/self.clock
+        self.delta_decrease = config.delta_decrease
+        self.delta_increase = config.delta_increase
 
 
     def set_config_params(self):
@@ -91,10 +114,13 @@ class central():
 
         # delta_decrease = 0.01
         # delta_increase = 0.0001
+        currentTime = rospy.Time.now().to_sec()
+        dt = currentTime - self.previousInfoUpdateTime
+        self.previousInfoUpdateTime = currentTime
 
-        Z = Z-self.delta_decrease*region
+        Z = Z-self.delta_decrease*dt*region
         Z = np.where(Z<0.01,0.01,Z) 
-        Z = Z + self.delta_increase*~region
+        Z = Z + self.delta_increase*dt*~region
         Z = np.where(Z>1,1,Z) 
         return Z
 
@@ -118,9 +144,13 @@ class central():
         self.pub_info.publish(info_for_pub) 
         
 
-    def spin(self):
-        while not rospy.is_shutdown():
 
+    def spin(self):
+        # check sampling time
+
+        self.set_config_params()
+
+        while not rospy.is_shutdown():
             # initialize region
             region = self.Collectors[0].getRegion()
 
@@ -128,11 +158,18 @@ class central():
             for collector in self.Collectors:
                 region = region + collector.getRegion()
 
+            phi = self.field.getPhi()
+
             # update information density phi according to region  
-            self.phi = self.infoUpdate(self.phi,region)
+            self.field.updatePhi(self.infoUpdate(phi,region))
 
             # publish updated information density
-            self.publishInfo(self.phi)
+            self.publishInfo(self.field.getPhi())
+
+
+
+
+
 
             self.rate.sleep()
 

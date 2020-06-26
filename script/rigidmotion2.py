@@ -119,7 +119,6 @@ class RigidBodyMotion(object):
          return 0
 
 if __name__ == '__main__':
-
     try:
         rbm = RigidBodyMotion()
         rbm.spin()

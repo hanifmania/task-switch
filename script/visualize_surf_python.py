@@ -5,27 +5,27 @@ import rospy
 from visualization_msgs.msg import Marker
 from std_msgs.msg import Float32MultiArray, ColorRGBA
 from geometry_msgs.msg import Point
+from task_switch.voronoi_main import Voronoi
+from task_switch.voronoi_main import Field
 import tf
 import time
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
-class SurfVisualize:
-    '''
-    Visualization class of surf plot in rviz(only colored 2D plot using CubeList).
-    It's used for visualization of importance density function in coverage control.
+# inherit
+class Field(Field):
 
-    Subscribe : The values of the function of x and y.(Float32MultiArray)
-        The grid point for each function value is assumed to be like this:
-        [(-1.0,-1.0), (-0.9,-1.0), ... (1.0,-1.0)
-         (-1.0,-0.9), (-0.9,-0.9), ... (1.0,-0.9)
-         .                              .
-         .                              .
-         .                              .
-         (-1.0,1.0), (-0.9,1.0), ... (1.0,1.0)]
+    # override
+    def __init__(self,mesh_acc,xlimit,ylimit):
+        self.mesh_acc = mesh_acc
+        self.xlimit = xlimit
+        self.ylimit = ylimit
+        # dimension is inverse to X,Y
+        self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
-    Publish : Marker (CubeList) with gradation color along to the value of function.
-    '''
+
+class plotter():
 
     def __init__(self, x_region, y_region, min_value, max_value):
         # Initialize variables
@@ -48,21 +48,6 @@ class SurfVisualize:
         self.surf_value_sub = rospy.Subscriber("surf_value", Float32MultiArray, self.callbackFunctionValue)
 
     def callbackFunctionValue(self, msg):
-        if not self.pub_start:
-            # Setting data size. Assuming dim[0].label="y" and dim[1].label="x".
-            self.function_size_x = msg.layout.dim[1].size
-            self.function_size_y = msg.layout.dim[0].size
-            # Setting stride
-            self.stride_x = msg.layout.dim[1].stride
-            self.stride_y = msg.layout.dim[0].stride
-            # Setting distance between each data point.
-            self.x_distance = (self.x_region[1]-self.x_region[0]) / (self.function_size_x-1)
-            self.y_distance = (self.y_region[1]-self.y_region[0]) / (self.function_size_y-1)
-            # Start to publish marker.
-            self.pub_start = True
-            # Initialize function value. It's 3 dimension and uint8 because of cv2.applyColorMap()
-            self.function_values = np.zeros((self.function_size_y, self.function_size_x, 1), np.uint8)
-
         self.function_values = np.array(msg.data).reshape((self.function_size_y, self.function_size_x))
 
     def CreateCubeList(self, values):
