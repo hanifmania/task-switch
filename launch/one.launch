@@ -2,12 +2,14 @@
 
 <launch>
 
-    <node pkg="task_switch" name="rigidmotion" type="rigidmotion2.py">
+    <node pkg="task_switch" name="virtualdrone" type="virtual_drone.py">
     </node>
 
-    <node pkg="task_switch" name="controller" type="coverage_controller.py" output='screen'>
-      <remap from="cmd_input" to="rigidmotion/command/cmd_vel"/>
-      <remap from="pose" to="rigidmotion/pose"/>
+    <node pkg="task_switch" name="controller" type="pcc_multitask_controller.py" output='screen'>
+      <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
+      <remap from="pose" to="virtualdrone/pose"/>
+      <remap from="energy" to="virtualdrone/energy"/>
+      <remap from="chargeState" to="virtualdrone/chargeState"/>
     </node>
 
     <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->

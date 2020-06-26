@@ -34,6 +34,7 @@ class CBFSLACKQPSolver(CBFQPSolver):
         subject to G*u + h >= Hw
 
         Args: m is the number of constraints
+            all are numpy array
             <u_nom>:nominal_input(6 x 1)
             <P>:optimization_weight_matrix for input(6 x 6)
             <Q>:slack_variable_weight_matrix (m x m)
@@ -48,11 +49,10 @@ class CBFSLACKQPSolver(CBFQPSolver):
         constraint_scale = 1
 
         m = h.shape[0]
-        
        
         P_np = np.block([[P, np.zeros((6,m))], [np.zeros((m,6)), Q]])
         q_np = np.vstack( [-np.dot(P.T,u_nom), np.zeros((m,1))] )
-        G_np = np.hstack([-G, H])
+        G_np = np.hstack([-G, H.reshape(m,m)])
         h_np = h
 
         # print "P="
