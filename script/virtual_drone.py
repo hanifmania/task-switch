@@ -13,20 +13,17 @@ from task_switch.se3_operations import *
 from task_switch.ros_utility import *
 
 class Energy(object):
-    def __init__(self,initialEnergy,drainRate):
+    def __init__(self,initialEnergy,drainRate,dt):
         # drain rate is -Kd * stepsize
         self.energy = initialEnergy
         self.drainRate = drainRate
-        self.chargeState = False
+        self.dt = dt
 
     def updateEnergy(self):
-        if self.chargeState:
-            self.energy = self.energy + 5*self.drainRate
-        else:
-            self.energy = self.energy - self.drainRate
+        self.energy = self.energy - self.drainRate*self.dt
 
-    def updateChargeState(self,chargeState):
-        self.chargeState = chargeState
+    def updateDrainRate(self,drainRate):
+        self.drainRate = drainRate
 
     def getEnergy(self):
         return self.energy
@@ -59,14 +56,17 @@ class RigidBodyMotion(object):
                 )
 
         # create energy
-        initialEnergy = 2000
-        Kd = 50 # per seconds
-        self.energy = Energy(initialEnergy,Kd*self.dt) 
+
+        initialEnergy = rospy.get_param("initialEnergy",2000)
+        # Kd will be updated by subscriber
+        Kd = 0 # per seconds
+
+        self.energy = Energy(initialEnergy,Kd,self.dt) 
 
         #subscriber
         rospy.Subscriber(self.node_name + "/command/pose", Pose, self.pose_callback, queue_size=1)
         rospy.Subscriber(self.node_name + "/command/cmd_vel", Twist, self.twist_callback, queue_size=1)
-        rospy.Subscriber(self.node_name + "/chargeState", Bool, self.bool_callback, queue_size=1)
+        rospy.Subscriber(self.node_name + "/drainRate", Float32, self.float_callback, queue_size=1)
 
         # publisher
         self.pose_pub = rospy.Publisher(self.node_name + "/pose", PoseStamped, queue_size=1)
@@ -112,8 +112,8 @@ class RigidBodyMotion(object):
         rospy.loginfo("Pose is commanded")
         return 0
 
-    def bool_callback(self,msg_data):
-        self.energy.updateChargeState(msg_data.data)
+    def float_callback(self,msg_data):
+        self.energy.updateDrainRate(msg_data.data)
 
     def integrate_g(self):
         # tagged integrator(台形積分)

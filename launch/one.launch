@@ -9,7 +9,7 @@
       <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
       <remap from="pose" to="virtualdrone/pose"/>
       <remap from="energy" to="virtualdrone/energy"/>
-      <remap from="chargeState" to="virtualdrone/chargeState"/>
+      <remap from="drainRate" to="virtualdrone/drainRate"/>
     </node>
 
     <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->

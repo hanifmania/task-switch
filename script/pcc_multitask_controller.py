@@ -22,6 +22,8 @@ import numpy as np
 import cv2 as cv
 import os
 
+
+
 # inherit
 class Field(Field):
 
@@ -89,7 +91,7 @@ class coverageController():
         # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
         # publisher for charge flag
-        self.pub_chargeState = rospy.Publisher('chargeState', Bool, queue_size=1)
+        self.pub_drainRate = rospy.Publisher('drainRate', Float32, queue_size=1)
 
 
         # initialize message
@@ -103,11 +105,30 @@ class coverageController():
         # init enegy
         self.lastEnergy = 0
         self.energy = 0
+        self.charging = False
         
 
         self.optimizer = CBFOptimizerROS()
 
+        centPos = [0.0,0.0]
+        theta = 0
+        norm = 2
+        width = [.5,.5]
+        inside = False
+        self.optimizer.setPnormArea(centPos,theta,norm,width,inside)
+
         
+        chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
+        radiusCharge = rospy.get_param("~charge_station/r",0.2) 
+
+        self.maxEnergy = 4000
+        energyMin = 1500        
+        Kd = 50 # per seconds
+        k_charge = 0.15
+
+        self.optimizer.setChargeStation(energyMin,Kd,k_charge,chargePos,radiusCharge)
+        self.publishDrainRate(Kd)
+
         rospy.loginfo("starting node")
         rospy.loginfo(self.agentID)
 
@@ -163,6 +184,7 @@ class coverageController():
 
         # extract x,y position from x,y,z position data
         pos = self.position[0:2]
+        currentEnergy = self.energy
 
         # extract x,y position from list of x,y,z position
         neighborPos2d = np.delete(self.allPositions,2,axis=1)
@@ -186,39 +208,35 @@ class coverageController():
         
         u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
         AgentPos = [pos[0], pos[1], 0., 0., 0., 0.]
-        u = self.optimizer.optimize(u_nom, AgentPos)
+        u = self.optimizer.optimize(u_nom, AgentPos, currentEnergy)
 
         # set command to be published
         self.twist_from_controller.linear.x = u[0]
         self.twist_from_controller.linear.y = u[1]
 
-    def publishChargeState(self,state):
-        if state:
-            self.pub_chargeState.publish(Bool(data=True))
-            print "publish true"
-        else:
-            self.pub_chargeState.publish(Bool(data=False))
-            print "publish false"
+    def publishDrainRate(self,drainRate):
+        self.pub_drainRate.publish(Float32(data=drainRate))
         
-        
-    def energyManagement(self):
+    def judgeCharge(self):
+        pos = self.position[0:2]
         currentEnergy = self.energy
-        nobattery = False
-        fullbattery = False
+        energyMin, Kd, k_charge, chargePos, radiusCharge = self.optimizer.getChargeStation()
+        isInStation = ( (pos[0]-chargePos[0])**2 + (pos[1]-chargePos[1])**2 < radiusCharge**2 ) 
 
-        if (currentEnergy<=1500):
-            nobattery = True
-            fullbattery = False
-        
-        if (currentEnergy>=3000):
-            nobattery = False
-            fullbattery = True
+        if isInStation or self.charging:
+            if (currentEnergy<= energyMin+500):
+                self.charging = True
             
-        if nobattery:
-            self.publishChargeState(True)
+            if (currentEnergy>=self.maxEnergy):
+                self.charging = False
 
-        if fullbattery:
-            self.publishChargeState(False)
+        if self.charging:
+            drainRate = -5*Kd
+        else:
+            drainRate = Kd
+
+        self.publishDrainRate(drainRate)
+            
 
     def allPositionGet(self):
         # get every agent's position
@@ -269,9 +287,13 @@ class coverageController():
             # get neighbor position
             self.allPositionGet()
 
-            self.energyManagement()
+            self.judgeCharge()
             # calculate voronoi region and input velocity
-            self.velCommandCalc()
+            if self.charging:
+                self.twist_from_controller.linear.x = 0.
+                self.twist_from_controller.linear.y = 0.
+            else:
+                self.velCommandCalc()
             
             # publish vel command
             self.pub_twist.publish(self.twist_from_controller)

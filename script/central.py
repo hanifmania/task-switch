@@ -13,7 +13,6 @@ from std_msgs.msg import Float32MultiArray,Int8MultiArray,MultiArrayLayout,Multi
 import tf
 
 
-import matplotlib.pyplot as plt
 
 import dynamic_reconfigure.client
 

@@ -15,6 +15,10 @@
       <arg name="number" default="1"/>
       <param name="~agentID" value="$(arg number)"/>
       <param name="~initial_pose/x" value="1.0"/>
+      <param name="~charge_station/x" value="0.0"/>
+      <param name="~charge_station/y" value="1.0"/>
+      <param name="~charge_station/r" value="0.2"/>
+      <param name="~initialEnergy" value="2000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>
@@ -24,6 +28,10 @@
       <param name="~agentID" value="$(arg number)"/>
       <param name="~initial_pose/x" value="-1.8"/>
       <param name="~initial_pose/y" value="-1.8"/>
+      <param name="~charge_station/x" value="0.0"/>
+      <param name="~charge_station/y" value="-1.0"/>
+      <param name="~charge_station/r" value="0.2"/>
+      <param name="~initialEnergy" value="3000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>

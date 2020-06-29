@@ -93,8 +93,8 @@ class pnorm2dCBF(CBF):
         coef2 = -norm*(base[1])**(norm-1)
 
 
-        self.G[0] = (coef1*math.cos(theta)/xw + coef2*math.sin(theta)/yw) * self.sign
-        self.G[1] = (coef1*math.sin(theta)/xw + coef2*math.cos(theta)/yw) * self.sign
+        self.G[0] = self.sign * (coef1*math.cos(theta)/xw + coef2*math.sin(theta)/yw) ** self.alpha
+        self.G[1] = self.sign * (coef1*math.sin(theta)/xw + coef2*math.cos(theta)/yw) ** self.alpha
         
     def calcConstraintValue(self,AgentPos):
         # to improve readability
@@ -102,13 +102,52 @@ class pnorm2dCBF(CBF):
 
         # calculate common coefficients in advance
         base = self.getCommonValue(AgentPos)
-        self.h[0] = (-base[0]**norm - base[1]**norm + 1) * self.sign
+        self.h[0] = self.sign * (-base[0]**norm - base[1]**norm + 1) ** self.alpha
 
     def getConstraintSetting(self,AgentPos):
         self.calcConstraintMatrix(AgentPos)
         self.calcConstraintValue(AgentPos)
         return self.G, self.h
     
+class chargeCBF(CBF):
+    """
+    Args: 
+        <AgentPos>:position of agent (list, 1x6)
+        <Kd>:battery drain rate (scalar)
+        <k_charge>:gain (scalar)
+        <chargePos>:position of charging station (list, 1x2)
+        <radiusCharge>:radius of charging station (scalar)
+    Returns:
+        <G>:constraint matrix(dh/dx)(list, 1x6)
+        <h>:constraint value(=alpha(h(x)))(list, 1x1)
+    """
+    def setChargeSettings(self, energyMin, Kd, k_charge, chargePos, radiusCharge):
+        self.energyMin = energyMin
+        self.Kd = Kd
+        self.k_charge = k_charge
+        self.chargePos = np.array(chargePos)
+        self.radiusCharge = radiusCharge
+
+    def calcConstraintMatrix(self,AgentPos,energy):
+        AgentPos2d = np.array((AgentPos[0],AgentPos[1]))
+        norm = np.linalg.norm(AgentPos2d - self.chargePos)
+        G_np = - (self.Kd/self.k_charge) * (AgentPos2d- self.chargePos)/norm
+        self.G[0] = G_np.tolist()[0]
+        self.G[1] = G_np.tolist()[1]
+
+        
+    
+    def calcConstraintValue(self,AgentPos,energy):
+        AgentPos2d = np.array((AgentPos[0],AgentPos[1]))
+        norm = np.linalg.norm(AgentPos2d - self.chargePos)
+        self.h[0] = energy - self.energyMin - (self.Kd/self.k_charge) * (norm - self.radiusCharge)
+
+    def getConstraintSetting(self,AgentPos,energy):
+        self.calcConstraintMatrix(AgentPos,energy)
+        self.calcConstraintValue(AgentPos,energy)
+        return self.G, self.h
+    
+
 
 
 if __name__ == '__main__':
@@ -117,9 +156,19 @@ if __name__ == '__main__':
     theta = 0
     norm = 2
     width = [1.0,2.0]
-    pnormcbf = pnorm2dCBF()
-    pnormcbf.setPnormSetting(centPos,theta,norm,width)
-    dhdp, h = pnormcbf.getConstraintSetting(AgentPos)
+    # pnormcbf = pnorm2dCBF()
+    # pnormcbf.setPnormSetting(centPos,theta,norm,width)
+    # dhdp, h = pnormcbf.getConstraintSetting(AgentPos)
+    # print dhdp, h
+
+    energyMin = 1500
+    Kd = 50
+    k_charge = 0.15
+    chargePos = [2.0,2.0]
+    radiusCharge = 0.2
+    energy = 3000
+    chargecbf = ChargeCBF(energyMin, Kd, k_charge, chargePos, radiusCharge)
+    dhdp, h = chargecbf.getConstraintSetting(AgentPos,energy)
     print dhdp, h
 
     
