@@ -54,6 +54,8 @@
     <!-- <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen"> -->
     <!--   <remap from="surf_value" to="/info"/> -->
     <!-- </node> -->
+    <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen"/>
+
     <node pkg="task_switch" name="plotter" type="plotter.py" output="screen">
       <remap from="surf_value" to="/info"/>
     </node>

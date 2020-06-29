@@ -75,14 +75,14 @@ class coverageController():
         self.allPositions = np.zeros((self.agentNum,3)) 
 
 
-        # listner for tf to get other agent's position
-        self.listner = tf.TransformListener()
         # subscriber to get own pose
         rospy.Subscriber("pose", PoseStamped, self.poseStampedCallback, queue_size=1)
         # subscriber to get own energy
         rospy.Subscriber("energy", Float32, self.energyCallback, queue_size=1)
         # subscriber to get field information density
         rospy.Subscriber("/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1)
+        # subscriber to other agent's position
+        rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
         # publisher for agent control
         self.pub_twist = rospy.Publisher('cmd_input', Twist, queue_size=1)
         self.pub_takeoff = rospy.Publisher('takeoff', Empty, queue_size=1)
@@ -132,6 +132,8 @@ class coverageController():
         rospy.loginfo("starting node")
         rospy.loginfo(self.agentID)
 
+        # wait for pose array
+        self.checkstart = False
         # wait for tf 
         # rospy.sleep(1.0)
 
@@ -238,67 +240,43 @@ class coverageController():
         self.publishDrainRate(drainRate)
             
 
-    def allPositionGet(self):
-        # get every agent's position
+    def poseArrayCallback(self,msg):
 
-        for i in range(self.agentNum):
+        if self.checkstart == False:
+            self.checkstart = True
+
+        # get every agent's position
+        arraynum = len(msg.poses)
+
+        for i in range(arraynum):
             if i+1 == self.agentID:
                 # don't get own position
                 pass
             else:
-                try:
-                    # agent i's tf prefix
-                    agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
-
-                    # get agent i's tf from world
-                    (position, orientation) = self.listner.lookupTransform(
-                        "/world",
-                         agenttf,
-                          rospy.Time(0))
-                    # Save agent position
-                    self.allPositions[i] = position
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    continue
-            # rospy.loginfo(self.allPositions)
+                pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
+                self.allPositions[i] = pos
     
-    def check_start(self):
-        for i in range(self.agentNum):
-            while not rospy.is_shutdown():
-                try:
-                    # agent i's tf prefix
-                    agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
-
-                    # get agent i's tf from world
-                    (_position, _orientation) = self.listner.lookupTransform(
-                        "/world",
-                         agenttf,
-                          rospy.Time(0))
-                    break
-
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    continue
-        rospy.loginfo("All tf is ready")
     
 
     def spin(self):
         self.set_config_params()
-        self.check_start()
         while not rospy.is_shutdown():
-            # get neighbor position
-            self.allPositionGet()
+            if self.checkstart:
+                # get neighbor position
+                # self.allPositionGet()
 
-            self.judgeCharge()
-            # calculate voronoi region and input velocity
-            if self.charging:
-                self.twist_from_controller.linear.x = 0.
-                self.twist_from_controller.linear.y = 0.
-            else:
-                self.velCommandCalc()
-            
-            # publish vel command
-            self.pub_twist.publish(self.twist_from_controller)
-            # publish my region
-            self.publishRegion(self.voronoi.getRegion())
+                self.judgeCharge()
+                # calculate voronoi region and input velocity
+                if self.charging:
+                    self.twist_from_controller.linear.x = 0.
+                    self.twist_from_controller.linear.y = 0.
+                else:
+                    self.velCommandCalc()
+                
+                # publish vel command
+                self.pub_twist.publish(self.twist_from_controller)
+                # publish my region
+                self.publishRegion(self.voronoi.getRegion())
             self.rate.sleep()
 
     

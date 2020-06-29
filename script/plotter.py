@@ -6,6 +6,8 @@ from visualization_msgs.msg import Marker
 from std_msgs.msg import Float32MultiArray, ColorRGBA
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import PoseArray
 from task_switch.voronoi_main import Voronoi
 from task_switch.voronoi_main import Field
 
@@ -80,57 +82,38 @@ class plotter():
         self.allPositions = np.zeros((self.agentNum,3)) 
 
         # ROS set up
-        self.listner = tf.TransformListener()
         self.plotimage_pub = rospy.Publisher("plotimage", Image)
-        self.surf_value_sub = rospy.Subscriber("surf_value", Float32MultiArray, self.callbackFunctionValue)
+        rospy.Subscriber("surf_value", Float32MultiArray, self.callbackFunctionValue)
+        # subscriber to other agent's position
+        rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
 
         # node freq
         self.clock = rospy.get_param("~clock",1)
         self.rate = rospy.Rate(self.clock)
 
-    def allPositionGet(self):
+
+        self.checkstart = False
+
+    def poseArrayCallback(self,msg):
+
+        if self.checkstart == False:
+            self.checkstart = True
+
         # get every agent's position
+        arraynum = len(msg.poses)
 
-        for i in range(self.agentNum):
-            try:
-                # agent i's tf prefix
-                agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
-
-                # get agent i's tf from world
-                (position, orientation) = self.listner.lookupTransform(
-                    "/world",
-                     agenttf,
-                      rospy.Time(0))
-                # Save agent position
-                self.allPositions[i] = position
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                continue
+        for i in range(arraynum):
+            pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
+            self.allPositions[i] = pos
+        
         self.field.updateAgentPos(self.allPositions)
 
-    def check_start(self):
-        for i in range(self.agentNum):
-            while not rospy.is_shutdown():
-                try:
-                    # agent i's tf prefix
-                    agenttf = "/bebop10" + str(i+1) + "/virtualdrone"
-
-                    # get agent i's tf from world
-                    (_position, _orientation) = self.listner.lookupTransform(
-                        "/world",
-                         agenttf,
-                          rospy.Time(0))
-                    break
-
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    continue
-        rospy.loginfo("All tf is ready")
 
     def callbackFunctionValue(self, msg):
         self.field.updatePhi(msg)
 
 
     def spin(self):
-        self.check_start()
         # # sampling time check 
         # count = 1
         # sample = 0
@@ -141,36 +124,36 @@ class plotter():
         previousTime = 0
 
         while not rospy.is_shutdown():
-            self.allPositionGet()
 
-            # publish updated information density
-            img = self.field.plotInfo()
-            self.plotimage_pub.publish(self.bridge.cv2_to_imgmsg(img,"bgr8"))
+            if self.checkstart:
+                # publish updated information density
+                img = self.field.plotInfo()
+                self.plotimage_pub.publish(self.bridge.cv2_to_imgmsg(img,"bgr8"))
 
 
-            # sampling time check 
-            currentTime = rospy.Time.now().to_sec()
-            processTime_ = currentTime - previousTime
-            previousTime = currentTime
-            rospy.loginfo( "Plot process time is "+ str(processTime_))
-            
-            # if count%samplespan == 0:
-            #     processTime[sample] = processTime_
-            #     sample += 1
+                # sampling time check 
+                currentTime = rospy.Time.now().to_sec()
+                processTime_ = currentTime - previousTime
+                previousTime = currentTime
+                rospy.loginfo( "Plot process time is "+ str(processTime_))
+                
+                # if count%samplespan == 0:
+                #     processTime[sample] = processTime_
+                #     sample += 1
 
-            # count += 1
+                # count += 1
 
-            # if sample == samplenum:
-            #     averagetime = sum(processTime)/len(processTime)
-            #     count = 1
-            #     sample = 0
-            #     # print "Sampling time is ", averagetime
-            #     rospy.loginfo( "Plot process time is "+ str(averagetime))
+                # if sample == samplenum:
+                #     averagetime = sum(processTime)/len(processTime)
+                #     count = 1
+                #     sample = 0
+                #     # print "Sampling time is ", averagetime
+                #     rospy.loginfo( "Plot process time is "+ str(averagetime))
 
 
             self.rate.sleep()
 
-        cv.destroyAllWindows()
+        # cv.destroyAllWindows()
     
 
 if __name__=="__main__":
