@@ -51,21 +51,29 @@ class VoronoiCalc(Voronoi):
         self.JintSPlusb = np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 + self.b ) * self.phi * self.pointDense )
 
         # calc \xi
+        agentNum = self.listNeighborPos.shape[0] + 1
         term1 = (self.delta_decrease - self.k) * np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 ) * self.phi * self.pointDense )
-        # term2 = np.sum(self.delta_increase + (self.k - self.delta_increase) * self.phi) * self.pointDense ) / 
-        # self.xi = 
+        term2 = np.sum(self.delta_increase + (self.k - self.delta_increase) * self.phi) * self.pointDense  / agentNum 
+        term3 = np.sum(self.delta_increase + (self.k - self.delta_increase) * self.phi * self.Region) * self.pointDense  
+        term4 = self.k*self.gamma/agentNum
+        self.xi = term1 + self.b * (term2 - term3) - term4
 
 
-    def update_param(self, R, b_, delta_decrease, delta_increase, k):
+    def update_agentParam(self, R, b_):
         self.R = R
         self.b = -(R**2)-b_
+
+    def update_fieldParam(self, delta_decrease, delta_increase, k, gamma):
         self.delta_decrease = delta_decrease
         self.delta_increase = delta_increase
         self.k = k
-
+        self.gamma = gamma
 
     def getJintSPlusb(self):
         return self.JintSPlusb
+
+    def getXi(self):
+        return self.xi
 
 # inherit
 class CBFOptimizerROS(CBFOptimizer):
@@ -170,12 +178,11 @@ class coverageController():
         rospy.loginfo("starting node")
         rospy.loginfo(self.agentID)
 
-        # wait for tf 
-        # rospy.sleep(1.0)
 
     def pcc_update_config_params(self, config):
         self.controllerGain = config.controller_gain
-        self.voronoi.update_param(config.agent_R,config.agent_b_,config.delta_decrease,config.delta_increase,1)
+        self.voronoi.update_agentParam(config.agent_R,config.agent_b_)
+        self.voronoi.update_fieldParam(config.delta_decrease,config.delta_increase,1,0)
 
 
     def pcc_set_config_params(self):
@@ -298,10 +305,6 @@ class coverageController():
         arraynum = len(msg.poses)
 
         for i in range(arraynum):
-        #     if i+1 == self.agentID:
-        #         # don't get own position
-        #         pass
-        #     else:
             pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
             self.allPositions[i] = pos
     

@@ -22,7 +22,7 @@ class Voronoi(object):
         self.pointDense = Xrange*Yrange/self.X.size
 
 
-        self.R = 1
+        self.R = .5
         self.b = -(self.R**2)-1
         
 
@@ -30,9 +30,9 @@ class Voronoi(object):
         self.listNeighborPos = np.array([[2,2],[-2,2]])
 
     def calcVoronoi(self):
-        self.Region = (self.X-self.Pos[0])**2 + (self.Y-self.Pos[1])**2 <= self.R**2
+        self.Region = (self.X-self.Pos[0])**2 + (self.Y-self.Pos[1])**2 < self.R**2
         # create R+margin circle
-        outside = (self.X-self.Pos[0])**2 + (self.Y-self.Pos[1])**2 <= (1.1*self.R)**2
+        outside = (self.X-self.Pos[0])**2 + (self.Y-self.Pos[1])**2 < (1.1*self.R)**2
 
         # calculate distance to each point in R+margin circle
         distance = (self.X*outside-self.Pos[0])**2 + (self.Y*outside-self.Pos[1])**2
@@ -42,7 +42,7 @@ class Voronoi(object):
 
         for neighborPos in self.listNeighborPos:
             # distance to each point from neighbor
-            neighborDistance = (self.X-neighborPos[0])**2 + (self.Y-neighborPos[1])**2
+            neighborDistance = (self.X*self.Region-neighborPos[0])**2 + (self.Y*self.Region-neighborPos[1])**2
             # nearer points in R+margin circle
             nearRegion = neighborDistance > distance
             # delete points near to neighbor from my Region
@@ -73,10 +73,10 @@ class Voronoi(object):
 
         vectorX = onEdgeX-self.Pos[0] 
         vectorY = onEdgeY-self.Pos[1]
-        distance = vectorX**2 + vectorY**2 
+        vectorNorm = np.sqrt(vectorX**2 + vectorY**2) 
 
-        expandX = vectorX[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
-        expandY = vectorY[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
+        expandX = vectorX[vectorNorm>0]/vectorNorm[vectorNorm>0]*onEdgePhi[vectorNorm>0]
+        expandY = vectorY[vectorNorm>0]/vectorNorm[vectorNorm>0]*onEdgePhi[vectorNorm>0]
         self.expand = (self.R**2+self.b)*np.array([expandX.sum(), expandY.sum()])*self.pointDense
     
     def setPos(self,pos):
@@ -221,17 +221,22 @@ def main():
     plotter = Plotter(0.01)
     for t in range(100):
         try:
+            # region = np.zeros((200,200))
             for i in range(AgentNum):
                 Agents[i].setPos(pos[i])
                 Agents[i].setNeighborPos(np.delete(pos,i,axis=0))
                 Agents[i].setPhi(field.getPhi())
 
                 Agents[i].calcVoronoi()
+                # temp = Agents[i].getRegion()
+                # region = region + temp.astype(np.int)
+                
+
+            for i in range(AgentNum):
                 ############################    
                 # normal coverage control  #
                 ############################    
                 # pos[i] = pos[i] + (-pos[i]+Agents[i].getCent())*0.3
-
                 ################################    
                 # persistent coverage control  #
                 ################################    
