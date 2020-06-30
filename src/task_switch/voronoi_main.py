@@ -7,13 +7,20 @@ from scipy.spatial import ConvexHull
 from scipy.stats import multivariate_normal
 
 
-class Voronoi:
+class Voronoi(object):
     def __init__(self,field):
 
         self.phi = field.getPhi()
         self.Grid = field.getGrid()
         self.X = self.Grid[0]
         self.Y = self.Grid[1]
+
+        Xrange = self.X.max() - self.X.min()
+        Yrange = self.Y.max() - self.Y.min()
+
+        # self.X.size is the number of grid points
+        self.pointDense = Xrange*Yrange/self.X.size
+
 
         self.R = 1
         self.b = -(self.R**2)-1
@@ -43,12 +50,23 @@ class Voronoi:
             # delete points near to neighbor from arc
             arc = arc*nearRegion
 
+        # X-Y cordinates of my region which is weighted
         weightedX = self.X*self.phi*self.Region
         weightedY = self.Y*self.phi*self.Region
 
-        self.mass = np.sum(self.phi*self.Region)
-        self.cent = np.array([weightedX.sum(), weightedY.sum()])/self.mass
+        # calculate mass and cent
+        self.mass = np.sum(self.phi*self.Region)*self.pointDense
+        self.cent = np.array([weightedX.sum(), weightedY.sum()])*self.pointDense/self.mass
 
+        # moved to pcc_multitrask_controller.py
+        # voronoiX = self.X*self.Region  
+        # voronoiY = self.Y*self.Region  
+        # # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
+        # #        = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t) + b dq + b\int_{Q} \phi(q,t)dq
+        # #                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <- here calc this term
+        # self.JintSPlusb = np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 + self.b ) * self.phi * self.pointDense )
+
+        # calculate X-Y cordinates on "edge"
         onEdgeX = self.X*arc
         onEdgeY = self.Y*arc
         onEdgePhi = self.phi*arc
@@ -59,7 +77,7 @@ class Voronoi:
 
         expandX = vectorX[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
         expandY = vectorY[distance>0]/distance[distance>0]*onEdgePhi[distance>0]
-        self.expand = (self.R**2+self.b)*np.array([expandX.sum(), expandY.sum()])
+        self.expand = (self.R**2+self.b)*np.array([expandX.sum(), expandY.sum()])*self.pointDense
     
     def setPos(self,pos):
         self.Pos = pos
@@ -81,6 +99,10 @@ class Voronoi:
 
     def getExpand(self):
         return self.expand
+
+    # moved to pcc_multitrask_controller.py
+    # def getJintSPlusb(self):
+    #     return self.JintSPlusb
 
     def getConv(self):
         onlymyX = self.X[self.Region == True]
@@ -117,7 +139,7 @@ class Plotter:
 
 
 
-class Field:
+class Field(object):
     def __init__(self):
         self.mesh_acc = [200,200]
         self.xlimit = [-2.0,2.0]
@@ -140,6 +162,20 @@ class Field:
 
     def getPhi(self):
         return self.phi
+
+    # moved to central.py
+    # def setb(self,b):
+    #     self.b = b
+
+    # moved to central.py
+    # def getJintQ(self):
+    #     # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
+    #     #        = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t) + b dq + b\int_{Q} \phi(q,t)dq
+    #     #                                   here calc this term -> ~~~~~~~~~~~~~~~~~~~~~                    
+    #     pointDense = (self.xlimit[1]-self.xlimit[0]) * (self.ylimit[1]-self.ylimit[0]) / (self.mesh_acc[0] * self.mesh_acc[1])
+    #     JintQ = self.b * np.sum(self.phi) * pointDense
+    #     return JintQ
+
 
 
 def infoUpdate(Z,Agents):
@@ -169,11 +205,15 @@ def main():
     AgentNum = 3
     pos = -2+4*np.random.rand(AgentNum,2)
     field = Field()
+    # R = 1
+    # b = -(R**2)-1
+    # field.setb(b)
     Agents = []
     for i in range(AgentNum):
         agent = Voronoi(field)
         Agents.append(agent)
 
+    JintSPlusb_all = [0]*AgentNum
     # gaussian distribution field weight
     gausZ = setGaussian(field) 
 
@@ -196,6 +236,12 @@ def main():
                 # persistent coverage control  #
                 ################################    
                 pos[i] = pos[i] + (-pos[i]+Agents[i].getCent()-Agents[i].getExpand()/(2*Agents[i].getMass()))*0.2
+                # JintSPlusb_all[i] = Agents[i].getJintSPlusb()
+
+            # JintQ = field.getJintQ()
+            # print "J value is " + str(-sum(JintSPlusb_all) + JintQ)
+
+
 
 
             ##########################
@@ -215,6 +261,8 @@ def main():
 
         except:
             break
+
+
 
 
 

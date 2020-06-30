@@ -8,7 +8,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseArray
 from task_switch.voronoi_main import Voronoi
 from task_switch.voronoi_main import Field
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty,Float32
 from std_msgs.msg import Float32MultiArray,Int8MultiArray,MultiArrayLayout,MultiArrayDimension
 import tf
 
@@ -29,16 +29,30 @@ class Field(Field):
         # dimension is inverse to X,Y
         self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
+    def setb(self,b):
+        self.b = b
+
+    def getJintQ(self):
+        # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
+        #        = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t) + b dq + b\int_{Q} \phi(q,t)dq
+        #                                   here calc this term -> ~~~~~~~~~~~~~~~~~~~~~                    
+        pointDense = (self.xlimit[1]-self.xlimit[0]) * (self.ylimit[1]-self.ylimit[0]) / (self.mesh_acc[0] * self.mesh_acc[1])
+        JintQ = self.b * np.sum(self.phi) * pointDense
+        return JintQ
+
 
 
 class Collector():
 
     def __init__(self,agentName,mesh_acc):
-        subTopic = agentName + "/region"
+        subTopicRegion = agentName + "/region"
+        subTopicJintSPlusb = agentName + "/JintSPlusb"
         # subscriber for each agent's region
-        rospy.Subscriber(subTopic, Int8MultiArray, self.int8MultiArrayCallback, queue_size=1)
+        rospy.Subscriber(subTopicRegion, Int8MultiArray, self.int8MultiArrayCallback, queue_size=1)
+        rospy.Subscriber(subTopicJintSPlusb, Float32, self.Float32Callback, queue_size=1)
         # initialze with zeros
         self.region = np.zeros((mesh_acc[1],mesh_acc[0]),dtype=np.bool)
+        self.JintSPlusb = 0
 
     def int8MultiArrayCallback(self,msg_data):
         # msg_data is region data, which is vectorized.
@@ -46,8 +60,14 @@ class Collector():
         # reset to boolean value
         self.region = region_.astype(np.bool)
 
+    def Float32Callback(self,msg_data):
+        self.JintSPlusb = msg_data.data
+
     def getRegion(self):
         return self.region
+
+    def getJintSPlusb(self):
+        return self.JintSPlusb
 
 class central():
     def __init__(self):
@@ -74,6 +94,8 @@ class central():
             
         # publisher for information density
         self.pub_info = rospy.Publisher('/info', Float32MultiArray, queue_size=1)
+
+        self.pub_J = rospy.Publisher('/J', Float32, queue_size=1)
         # information density initialize
 
         # node freq
@@ -83,6 +105,7 @@ class central():
         # information decay, acquisition parmeters. any numbers are ok because it will be overwritten by dycon
         self.delta_decrease = 1.0
         self.delta_increase = 0.01
+        self.b = 1
 
         #dynamic_reconfigure
         self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
@@ -90,12 +113,18 @@ class central():
         self.previousInfoUpdateTime = rospy.Time.now().to_sec()
 
 
-
+        
         rospy.loginfo("starting central node")
+
+    def update_param(self, R, b_):
+        self.b = -(R**2)-b_
+        self.field.setb(self.b)
+        
 
     def _update_config_params(self, config):
         self.delta_decrease = config.delta_decrease
         self.delta_increase = config.delta_increase
+        self.update_param(config.agent_R,config.agent_b_)
 
 
     def set_config_params(self):
@@ -153,10 +182,15 @@ class central():
             # initialize region
             region = self.Collectors[0].getRegion()
 
+            JintSPlusb_all = 0
+
             # collect each agent's region by sum
             for collector in self.Collectors:
                 region = region + collector.getRegion()
+                JintSPlusb_all = JintSPlusb_all + collector.getJintSPlusb()
 
+            J = - JintSPlusb_all + self.field.getJintQ()
+            self.pub_J.publish(Float32(data=J))
             phi = self.field.getPhi()
 
             # update information density phi according to region  

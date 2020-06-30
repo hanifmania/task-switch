@@ -36,12 +36,26 @@ class Field(Field):
         self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
 
+
 # inherit
 class VoronoiCalc(Voronoi):
+
+    def calcVoronoi(self):
+        super(VoronoiCalc,self).calcVoronoi()
+        voronoiX = self.X*self.Region  
+        voronoiY = self.Y*self.Region  
+        # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
+        #        = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t) + b dq + b\int_{Q} \phi(q,t)dq
+        #                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <- here calc this term
+        self.JintSPlusb = np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 + self.b ) * self.phi * self.pointDense )
 
     def update_param(self, R, b_):
         self.R = R
         self.b = -(R**2)-b_
+
+
+    def getJintSPlusb(self):
+        return self.JintSPlusb
 
 # inherit
 class CBFOptimizerROS(CBFOptimizer):
@@ -90,6 +104,7 @@ class coverageController():
         self.pub_reset = rospy.Publisher('reset', Empty, queue_size=1)
         # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
+        self.pub_JintSPlusb = rospy.Publisher('JintSPlusb', Float32, queue_size=1)
         # publisher for charge flag
         self.pub_drainRate = rospy.Publisher('drainRate', Float32, queue_size=1)
 
@@ -119,7 +134,7 @@ class coverageController():
         centPos = [0.0,0.0]
         theta = 0
         norm = 2
-        width = [.5,.5]
+        width = [.8,.8]
         inside = False
         self.optimizer.setPnormArea(centPos,theta,norm,width,inside)
 
@@ -148,11 +163,11 @@ class coverageController():
     def pcc_set_config_params(self):
         config = self.pcc_dycon_client.get_configuration()
         self.pcc_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Params SET")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params SET")
 
     def pcc_config_callback(self,config):
         self.pcc_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Params Update")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params Update")
 
     def charge_update_config_params(self, config):
         self.maxEnergy = config.maxEnergy
@@ -161,11 +176,11 @@ class coverageController():
     def charge_set_config_params(self):
         config = self.charge_dycon_client.get_configuration()
         self.charge_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Params SET")
+        rospy.loginfo("Dynamic Reconfigure Charge Params SET")
 
     def charge_config_callback(self,config):
         self.charge_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Params Update")
+        rospy.loginfo("Dynamic Reconfigure Charge Params Update")
         
     def poseStampedCallback(self, pose_msg):
         self.position = np.array([pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z])
@@ -196,6 +211,8 @@ class coverageController():
         # publish
         self.pub_region.publish(region_for_pub) 
 
+    def publishJintSPlusb(self,JintSPlusb):
+        self.pub_JintSPlusb.publish(Float32(data=JintSPlusb))
 
     def velCommandCalc(self):
         # calculate command for agent
@@ -217,8 +234,6 @@ class coverageController():
         self.voronoi.setPhi(self.field.getPhi())
         # rospy.loginfo(self.field.getPhi())
 
-        # calculate voronoi region
-        self.voronoi.calcVoronoi()
 
         # calculate command for agent
         u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.k
@@ -282,6 +297,9 @@ class coverageController():
                 # self.allPositionGet()
 
                 self.judgeCharge()
+                # calculate voronoi region
+                self.voronoi.calcVoronoi()
+                JintSPlusb = self.voronoi.getJintSPlusb()
                 # calculate voronoi region and input velocity
                 if self.charging:
                     self.twist_from_controller.linear.x = 0.
@@ -293,6 +311,7 @@ class coverageController():
                 self.pub_twist.publish(self.twist_from_controller)
                 # publish my region
                 self.publishRegion(self.voronoi.getRegion())
+                self.publishJintSPlusb(JintSPlusb)
             self.rate.sleep()
 
     

@@ -14,6 +14,9 @@ from task_switch.voronoi_main import Field
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+import dynamic_reconfigure.client
 
 import tf
 import time
@@ -47,6 +50,7 @@ class Field(Field):
         xbox = [xlimit[0],xlimit[1],xlimit[1],xlimit[0],xlimit[0]]
         ybox = [ylimit[0],ylimit[0],ylimit[1],ylimit[1],ylimit[0]]
         
+        # fig = plt.figure(figsize=(4.0, 4.0), dpi=50)
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(xbox,ybox,color="k")
@@ -54,6 +58,12 @@ class Field(Field):
         Z = self.getPhi()
         ax.contourf(X,Y,Z)
         ax.scatter(neighborPos2d[:,0],neighborPos2d[:,1])
+        agentNum = neighborPos2d.shape[0]
+
+        for i in range(agentNum):
+            pos = (neighborPos2d[i][0],neighborPos2d[i][1])
+            c = patches.Circle(xy=pos, radius=0.5, ec='r', fill=False)
+            ax.add_patch(c)
 
         fig.canvas.draw()
 
@@ -88,7 +98,7 @@ class plotter():
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
 
         # node freq
-        self.clock = rospy.get_param("~clock",1)
+        self.clock = rospy.get_param("~clock",2)
         self.rate = rospy.Rate(self.clock)
 
 
