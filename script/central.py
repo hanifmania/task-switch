@@ -53,8 +53,12 @@ class Collector():
         # initialze with zeros
         self.region = np.zeros((mesh_acc[1],mesh_acc[0]),dtype=np.bool)
         self.JintSPlusb = 0
+        self.ready = False
 
     def int8MultiArrayCallback(self,msg_data):
+        if self.ready == False:
+            self.ready = True
+
         # msg_data is region data, which is vectorized.
         region_ = np.array(msg_data.data).reshape((msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
         # reset to boolean value
@@ -68,6 +72,9 @@ class Collector():
 
     def getJintSPlusb(self):
         return self.JintSPlusb
+
+    def getReady(self):
+        return self.ready
 
 class central():
     def __init__(self):
@@ -178,23 +185,31 @@ class central():
 
         self.set_config_params()
 
+
         while not rospy.is_shutdown():
+            JintSPlusb_all = 0
+            ready = True
+
             # initialize region
             region = self.Collectors[0].getRegion()
-
-            JintSPlusb_all = 0
 
             # collect each agent's region by sum
             for collector in self.Collectors:
                 region = region + collector.getRegion()
                 JintSPlusb_all = JintSPlusb_all + collector.getJintSPlusb()
 
+                # wait for all collector's subscriber get region message
+                ready = ready * collector.getReady()
+
             J = - JintSPlusb_all + self.field.getJintQ()
             self.pub_J.publish(Float32(data=J))
             phi = self.field.getPhi()
 
-            # update information density phi according to region  
-            self.field.updatePhi(self.infoUpdate(phi,region))
+            # if any collector does not get region message from agent, 
+            # do not update field density
+            if ready:
+                # update information density phi according to region  
+                self.field.updatePhi(self.infoUpdate(phi,region))
 
             # publish updated information density
             self.publishInfo(self.field.getPhi())

@@ -40,6 +40,7 @@ class Field(Field):
 # inherit
 class VoronoiCalc(Voronoi):
 
+    # override
     def calcVoronoi(self):
         super(VoronoiCalc,self).calcVoronoi()
         voronoiX = self.X*self.Region  
@@ -49,9 +50,18 @@ class VoronoiCalc(Voronoi):
         #                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <- here calc this term
         self.JintSPlusb = np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 + self.b ) * self.phi * self.pointDense )
 
-    def update_param(self, R, b_):
+        # calc \xi
+        term1 = (self.delta_decrease - self.k) * np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 ) * self.phi * self.pointDense )
+        # term2 = np.sum(self.delta_increase + (self.k - self.delta_increase) * self.phi) * self.pointDense ) / 
+        # self.xi = 
+
+
+    def update_param(self, R, b_, delta_decrease, delta_increase, k):
         self.R = R
         self.b = -(R**2)-b_
+        self.delta_decrease = delta_decrease
+        self.delta_increase = delta_increase
+        self.k = k
 
 
     def getJintSPlusb(self):
@@ -59,7 +69,13 @@ class VoronoiCalc(Voronoi):
 
 # inherit
 class CBFOptimizerROS(CBFOptimizer):
-        pass
+
+    # override
+    def __init__(self):
+        super(CBFOptimizerROS,self).__init__()
+        self.activate_cbf = True
+        self.activate_pnormcbf = False
+        self.activate_chargeCBF = True
 
 class coverageController():
 
@@ -67,6 +83,10 @@ class coverageController():
         # ROS Initialize
         rospy.init_node('coverageController', anonymous=True)
 
+        # wait for pose array
+        self.checkAgentStart = False
+        # wait for info density
+        self.checkInfoStart = False
 
 
         #get_ROSparam
@@ -116,7 +136,7 @@ class coverageController():
         self.charge_dycon_client = dynamic_reconfigure.client.Client("/charge_parameter", timeout=2, config_callback=self.charge_config_callback)
 
         # controller gain. any number is ok because it will be overwritten by dycon
-        self.k = 0.1
+        self.controllerGain = 0.1
         # charging configs. any number is ok because it will be overwitten by dycon
         self.maxEnergy = 4000
         minEnergy = 1500        
@@ -150,14 +170,12 @@ class coverageController():
         rospy.loginfo("starting node")
         rospy.loginfo(self.agentID)
 
-        # wait for pose array
-        self.checkstart = False
         # wait for tf 
         # rospy.sleep(1.0)
 
     def pcc_update_config_params(self, config):
-        self.k = config.controller_gain
-        self.voronoi.update_param(config.agent_R,config.agent_b_)
+        self.controllerGain = config.controller_gain
+        self.voronoi.update_param(config.agent_R,config.agent_b_,config.delta_decrease,config.delta_increase,1)
 
 
     def pcc_set_config_params(self):
@@ -183,6 +201,8 @@ class coverageController():
         rospy.loginfo("Dynamic Reconfigure Charge Params Update")
         
     def poseStampedCallback(self, pose_msg):
+        if self.checkAgentStart == False:
+            self.checkAgentStart = True
         self.position = np.array([pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z])
         self.orientation = np.array([pose_msg.pose.orientation.x, pose_msg.pose.orientation.y, \
                 pose_msg.pose.orientation.z, pose_msg.pose.orientation.w])
@@ -191,6 +211,8 @@ class coverageController():
         self.energy = msg.data
 
     def Float32MultiArrayCallback(self,msg_data):
+        if self.checkInfoStart == False:
+            self.checkInfoStart = True
         # msg_data is information density, which is vectorized.
         info = np.array(msg_data.data).reshape((msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
         self.field.updatePhi(info)
@@ -236,7 +258,7 @@ class coverageController():
 
 
         # calculate command for agent
-        u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.k
+        u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
 
         
         u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
@@ -272,36 +294,30 @@ class coverageController():
             
 
     def poseArrayCallback(self,msg):
-
-        if self.checkstart == False:
-            self.checkstart = True
-
         # get every agent's position
         arraynum = len(msg.poses)
 
         for i in range(arraynum):
-            if i+1 == self.agentID:
-                # don't get own position
-                pass
-            else:
-                pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
-                self.allPositions[i] = pos
+        #     if i+1 == self.agentID:
+        #         # don't get own position
+        #         pass
+        #     else:
+            pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
+            self.allPositions[i] = pos
     
     
 
     def spin(self):
         self.pcc_set_config_params()
         while not rospy.is_shutdown():
-            if self.checkstart:
-                # get neighbor position
-                # self.allPositionGet()
+            if self.checkAgentStart:
 
                 self.judgeCharge()
                 # calculate voronoi region
                 self.voronoi.calcVoronoi()
                 JintSPlusb = self.voronoi.getJintSPlusb()
                 # calculate voronoi region and input velocity
-                if self.charging:
+                if self.charging or (self.checkInfoStart == False):
                     self.twist_from_controller.linear.x = 0.
                     self.twist_from_controller.linear.y = 0.
                 else:

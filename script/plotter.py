@@ -105,7 +105,6 @@ class plotter():
         self.checkstart = False
 
     def poseArrayCallback(self,msg):
-
         if self.checkstart == False:
             self.checkstart = True
 
@@ -145,7 +144,7 @@ class plotter():
                 currentTime = rospy.Time.now().to_sec()
                 processTime_ = currentTime - previousTime
                 previousTime = currentTime
-                rospy.loginfo( "Plot process time is "+ str(processTime_))
+                # rospy.loginfo( "Plot process time is "+ str(processTime_))
                 
                 # if count%samplespan == 0:
                 #     processTime[sample] = processTime_
