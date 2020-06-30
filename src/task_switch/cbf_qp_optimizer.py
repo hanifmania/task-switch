@@ -55,12 +55,13 @@ class CBFOptimizer(object):
         self.setPnormArea(centPos,theta,norm,width,inside)
 
         # energy initialize (must be overwritten)
-        energyMin = 1500
+        minEnergy = 1500
         Kd = 50
         k_charge = 0.15
         chargePos = [2.0,2.0]
         radiusCharge = 0.2
-        self.setChargeStation(energyMin,Kd,k_charge,chargePos,radiusCharge)
+        self.setChargeStation(chargePos,radiusCharge)
+        self.setChargeSettings(minEnergy,Kd,k_charge)
 
     def setPnormArea(self,centPos,theta,norm,width,inside):
         """
@@ -81,15 +82,17 @@ class CBFOptimizer(object):
     def getPnormArea(self):
         return self.centPos, self.theta, self.norm, self.width, self.inside
 
-    def setChargeStation(self, energyMin, Kd, k_charge, chargePos, radiusCharge):
-        self.energyMin = energyMin
-        self.Kd = Kd
-        self.k_charge = k_charge
+    def setChargeStation(self, chargePos, radiusCharge):
         self.chargePos = chargePos
         self.radiusCharge = radiusCharge
 
+    def setChargeSettings(self,minEnergy, Kd, k_charge):
+        self.minEnergy = minEnergy
+        self.Kd = Kd
+        self.k_charge = k_charge
+
     def getChargeStation(self):
-        return self.energyMin, self.Kd, self.k_charge, self.chargePos, self.radiusCharge
+        return self.minEnergy, self.Kd, self.k_charge, self.chargePos, self.radiusCharge
 
 
 
@@ -137,8 +140,8 @@ class CBFOptimizer(object):
         if self.activate_cbf == True:
 
             if self.activate_chargeCBF == True:
-                energyMin, Kd, k_charge, chargePos, radiusCharge = self.getChargeStation()
-                self.chargecbf.setChargeSettings(energyMin, Kd, k_charge, chargePos, radiusCharge)
+                minEnergy, Kd, k_charge, chargePos, radiusCharge = self.getChargeStation()
+                self.chargecbf.setChargeSettings(minEnergy, Kd, k_charge, chargePos, radiusCharge)
                 dhdp, h = self.chargecbf.getConstraintSetting(AgentPos,energy)
                 G_list.append(dhdp)
                 h_list.append(h)
@@ -204,12 +207,13 @@ if __name__ == '__main__':
     optimizer.setPnormArea(centPos,theta,norm,width,inside)
 
     # energy station set
-    energyMin = 1500
+    minEnergy = 1500
     Kd = 50
     k_charge = 0.15
     chargePos = [2.0,2.0]
     radiusCharge = 0.2
-    optimizer.setChargeStation(energyMin,Kd,k_charge,chargePos,radiusCharge)
+    optimizer.setChargeStation(chargePos,radiusCharge)
+    optimizer.setChargeSettings(minEnergy,Kd,k_charge)
 
     u_nom = np.array([0., 0., 0. ,0., 0., 0.]).reshape(-1,1)
     AgentPos = [3., 0., 0., 0., 0., 0.]

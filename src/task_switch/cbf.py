@@ -121,8 +121,8 @@ class chargeCBF(CBF):
         <G>:constraint matrix(dh/dx)(list, 1x6)
         <h>:constraint value(=alpha(h(x)))(list, 1x1)
     """
-    def setChargeSettings(self, energyMin, Kd, k_charge, chargePos, radiusCharge):
-        self.energyMin = energyMin
+    def setChargeSettings(self, minEnergy, Kd, k_charge, chargePos, radiusCharge):
+        self.minEnergy = minEnergy
         self.Kd = Kd
         self.k_charge = k_charge
         self.chargePos = np.array(chargePos)
@@ -140,7 +140,7 @@ class chargeCBF(CBF):
     def calcConstraintValue(self,AgentPos,energy):
         AgentPos2d = np.array((AgentPos[0],AgentPos[1]))
         norm = np.linalg.norm(AgentPos2d - self.chargePos)
-        self.h[0] = energy - self.energyMin - (self.Kd/self.k_charge) * (norm - self.radiusCharge)
+        self.h[0] = energy - self.minEnergy - (self.Kd/self.k_charge) * (norm - self.radiusCharge) - self.Kd
 
     def getConstraintSetting(self,AgentPos,energy):
         self.calcConstraintMatrix(AgentPos,energy)
@@ -161,13 +161,13 @@ if __name__ == '__main__':
     # dhdp, h = pnormcbf.getConstraintSetting(AgentPos)
     # print dhdp, h
 
-    energyMin = 1500
+    minEnergy = 1500
     Kd = 50
     k_charge = 0.15
     chargePos = [2.0,2.0]
     radiusCharge = 0.2
     energy = 3000
-    chargecbf = ChargeCBF(energyMin, Kd, k_charge, chargePos, radiusCharge)
+    chargecbf = ChargeCBF(minEnergy, Kd, k_charge, chargePos, radiusCharge)
     dhdp, h = chargecbf.getConstraintSetting(AgentPos,energy)
     print dhdp, h
 

@@ -6,7 +6,7 @@
     <param name="/y_min" value="-2.0"/>
     <param name="/y_max" value="2.0"/>
     <param name="/mesh_acc/x" value="100"/>
-    <param name="/mesh_acc/y" value="150"/>
+    <param name="/mesh_acc/y" value="100"/>
 
     
 
@@ -60,7 +60,8 @@
       <remap from="surf_value" to="/info"/>
     </node>
 
-    <node name="pcc_parameter" pkg="task_switch" type="task_switch_param_server" output="screen"/>
+    <node name="pcc_parameter" pkg="task_switch" type="task_switch_pcc_param_server" output="screen"/>
+    <node name="charge_parameter" pkg="task_switch" type="task_switch_charge_param_server" output="screen"/>
 
     <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
 

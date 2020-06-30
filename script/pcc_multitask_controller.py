@@ -97,19 +97,25 @@ class coverageController():
         # initialize message
         self.twist_from_controller = Twist()
         #dynamic_reconfigure
-        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
+        self.pcc_dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.pcc_config_callback)
+        self.charge_dycon_client = dynamic_reconfigure.client.Client("/charge_parameter", timeout=2, config_callback=self.charge_config_callback)
 
         # controller gain. any number is ok because it will be overwritten by dycon
         self.k = 0.1
+        # charging configs. any number is ok because it will be overwitten by dycon
+        self.maxEnergy = 4000
+        minEnergy = 1500        
+        Kd = 50 # per seconds
+        k_charge = 0.15
 
         # init enegy
-        self.lastEnergy = 0
         self.energy = 0
         self.charging = False
         
 
         self.optimizer = CBFOptimizerROS()
 
+        # pnorm setting
         centPos = [0.0,0.0]
         theta = 0
         norm = 2
@@ -121,12 +127,9 @@ class coverageController():
         chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
         radiusCharge = rospy.get_param("~charge_station/r",0.2) 
 
-        self.maxEnergy = 4000
-        energyMin = 1500        
-        Kd = 50 # per seconds
-        k_charge = 0.15
+        self.optimizer.setChargeStation(chargePos,radiusCharge)
+        self.optimizer.setChargeSettings(minEnergy,Kd,k_charge)
 
-        self.optimizer.setChargeStation(energyMin,Kd,k_charge,chargePos,radiusCharge)
         self.publishDrainRate(Kd)
 
         rospy.loginfo("starting node")
@@ -137,18 +140,31 @@ class coverageController():
         # wait for tf 
         # rospy.sleep(1.0)
 
-    def _update_config_params(self, config):
+    def pcc_update_config_params(self, config):
         self.k = config.controller_gain
         self.voronoi.update_param(config.agent_R,config.agent_b_)
 
 
-    def set_config_params(self):
-        config = self.dycon_client.get_configuration()
-        self._update_config_params(config)
+    def pcc_set_config_params(self):
+        config = self.pcc_dycon_client.get_configuration()
+        self.pcc_update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure Params SET")
 
-    def config_callback(self,config):
-        self._update_config_params(config)
+    def pcc_config_callback(self,config):
+        self.pcc_update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure Params Update")
+
+    def charge_update_config_params(self, config):
+        self.maxEnergy = config.maxEnergy
+        self.optimizer.setChargeSettings(config.minEnergy,config.Kd,config.k_charge)
+
+    def charge_set_config_params(self):
+        config = self.charge_dycon_client.get_configuration()
+        self.charge_update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure Params SET")
+
+    def charge_config_callback(self,config):
+        self.charge_update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure Params Update")
         
     def poseStampedCallback(self, pose_msg):
@@ -222,11 +238,11 @@ class coverageController():
     def judgeCharge(self):
         pos = self.position[0:2]
         currentEnergy = self.energy
-        energyMin, Kd, k_charge, chargePos, radiusCharge = self.optimizer.getChargeStation()
+        minEnergy, Kd, k_charge, chargePos, radiusCharge = self.optimizer.getChargeStation()
         isInStation = ( (pos[0]-chargePos[0])**2 + (pos[1]-chargePos[1])**2 < radiusCharge**2 ) 
 
         if isInStation or self.charging:
-            if (currentEnergy<= energyMin+500):
+            if (currentEnergy<= minEnergy+500):
                 self.charging = True
             
             if (currentEnergy>=self.maxEnergy):
@@ -259,7 +275,7 @@ class coverageController():
     
 
     def spin(self):
-        self.set_config_params()
+        self.pcc_set_config_params()
         while not rospy.is_shutdown():
             if self.checkstart:
                 # get neighbor position

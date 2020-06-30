@@ -97,6 +97,7 @@ catkin_python_setup()
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
   cfg/pcc_params.cfg
+  cfg/charge_params.cfg
 )
 
 ###################################
@@ -204,12 +205,15 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 # c++ ROSノードの追加
-add_executable(${PROJECT_NAME}_param_server src/param_server.cpp)
+add_executable(${PROJECT_NAME}_pcc_param_server src/pcc_param_server.cpp)
+add_executable(${PROJECT_NAME}_charge_param_server src/charge_param_server.cpp)
 add_executable(${PROJECT_NAME}_tf2pose_baselink src/tf2pose_baselink.cpp)
 
 # c++ ROSノードのDynamic Reconfigureのmsgへの依存の追加
-add_dependencies(${PROJECT_NAME}_param_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_pcc_param_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_charge_param_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # c++ ROSノードのライブラリの追加
-target_link_libraries(${PROJECT_NAME}_param_server ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_pcc_param_server ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_charge_param_server ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_tf2pose_baselink ${catkin_LIBRARIES})
