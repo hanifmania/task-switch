@@ -92,9 +92,7 @@ class coverageController():
         rospy.init_node('coverageController', anonymous=True)
 
         # wait for pose array
-        self.checkAgentStart = False
-        # wait for info density
-        self.checkInfoStart = False
+        self.checkNeighborStart = False
 
 
         #get_ROSparam
@@ -208,8 +206,6 @@ class coverageController():
         rospy.loginfo("Dynamic Reconfigure Charge Params Update")
         
     def poseStampedCallback(self, pose_msg):
-        if self.checkAgentStart == False:
-            self.checkAgentStart = True
         self.position = np.array([pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z])
         self.orientation = np.array([pose_msg.pose.orientation.x, pose_msg.pose.orientation.y, \
                 pose_msg.pose.orientation.z, pose_msg.pose.orientation.w])
@@ -218,8 +214,6 @@ class coverageController():
         self.energy = msg.data
 
     def Float32MultiArrayCallback(self,msg_data):
-        if self.checkInfoStart == False:
-            self.checkInfoStart = True
         # msg_data is information density, which is vectorized.
         info = np.array(msg_data.data).reshape((msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
         self.field.updatePhi(info)
@@ -254,6 +248,7 @@ class coverageController():
         neighborPos2d = np.delete(self.allPositions,2,axis=1)
         # delete THIS agent position
         neighborPosOnly = np.delete(neighborPos2d,self.agentID-1,axis=0)
+        # print str(self.agentID)+"'s pos: "+str(pos)+ " neighborpos: "+str(neighborPosOnly)
 
         # set my x,y position, and neighbor's position
         self.voronoi.setPos(pos)
@@ -303,29 +298,37 @@ class coverageController():
     def poseArrayCallback(self,msg):
         # get every agent's position
         arraynum = len(msg.poses)
+        if (self.checkNeighborStart == False) and (arraynum == self.agentNum):
+            self.checkNeighborStart = True
+            rospy.loginfo("NeighborStart")
 
-        for i in range(arraynum):
-            pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
-            self.allPositions[i] = pos
+        elif self.checkNeighborStart:
+            for i in range(arraynum):
+                pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
+                self.allPositions[i] = pos
     
     
 
     def spin(self):
         self.pcc_set_config_params()
+        self.charge_set_config_params()
+        
+        rospy.wait_for_message("/info", Float32MultiArray)
+        rospy.wait_for_message("pose", PoseStamped)
+
         while not rospy.is_shutdown():
-            if self.checkAgentStart:
+            if self.checkNeighborStart:
 
                 self.judgeCharge()
                 # calculate voronoi region
                 self.voronoi.calcVoronoi()
                 JintSPlusb = self.voronoi.getJintSPlusb()
                 # calculate voronoi region and input velocity
-                if self.charging or (self.checkInfoStart == False):
+                if self.charging:
                     self.twist_from_controller.linear.x = 0.
                     self.twist_from_controller.linear.y = 0.
                 else:
                     self.velCommandCalc()
-                
                 # publish vel command
                 self.pub_twist.publish(self.twist_from_controller)
                 # publish my region

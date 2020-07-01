@@ -58,11 +58,11 @@ class Collector():
     def int8MultiArrayCallback(self,msg_data):
         if self.ready == False:
             self.ready = True
-
-        # msg_data is region data, which is vectorized.
-        region_ = np.array(msg_data.data).reshape((msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
-        # reset to boolean value
-        self.region = region_.astype(np.bool)
+        else:
+            # msg_data is region data, which is vectorized.
+            region_ = np.array(msg_data.data).reshape((msg_data.layout.dim[0].size, msg_data.layout.dim[1].size))
+            # reset to boolean value
+            self.region = region_.astype(np.bool)
 
     def Float32Callback(self,msg_data):
         self.JintSPlusb = msg_data.data

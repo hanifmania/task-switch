@@ -7,7 +7,7 @@ from task_switch.se3_operations import *
 
 from task_switch.cbf_slack_qp_solver import CBFSLACKQPSolver
 
-from task_switch.cbf import pnorm2dCBF,chargeCBF
+from task_switch.cbf import generalCBF,pnorm2dCBF,chargeCBF
 # from vfc_cbf_controller.fov_cbf import FoVCBF
 # from vfc_cbf_controller.collision_cbf import CollisionCBF
 # from vfc_cbf_controller.attitude_cbf import AttitudeCBF
@@ -31,8 +31,9 @@ class CBFOptimizer(object):
     
         
         self.activate_cbf = True
-        self.activate_pnormcbf = False
-        self.activate_chargeCBF = True
+        self.activate_pnormcbf = True
+        self.activate_chargeCBF = False
+        self.activate_pccCBF = False
         # self.activate_fov = False
         # self.activate_ca = False
         # self.activate_aa = False
@@ -41,6 +42,8 @@ class CBFOptimizer(object):
         # CBF instances
         self.pnormcbf = pnorm2dCBF()
         self.chargecbf = chargeCBF()
+        self.pcccbf = generalCBF()
+
         # self.fov_cbf = FoVCBF(po)
         # self.collision_cbf = CollisionCBF()
         # self.attitude_cbf = AttitudeCBF()
@@ -51,8 +54,8 @@ class CBFOptimizer(object):
         theta = 0
         norm = 2
         width = [.5,.5]
-        inside = False
-        self.setPnormArea(centPos,theta,norm,width,inside)
+        keepInside = False
+        self.setPnormArea(centPos,theta,norm,width,keepInside)
 
         # energy initialize (must be overwritten)
         minEnergy = 1500
@@ -63,7 +66,7 @@ class CBFOptimizer(object):
         self.setChargeStation(chargePos,radiusCharge)
         self.setChargeSettings(minEnergy,Kd,k_charge)
 
-    def setPnormArea(self,centPos,theta,norm,width,inside):
+    def setPnormArea(self,centPos,theta,norm,width,keepInside):
         """
         Args: 
             <CentPos>:center of ellipsoid (list, 1x2)
@@ -71,16 +74,27 @@ class CBFOptimizer(object):
             <norm>:p-norm
             <width>:half width and half height of ellipsoid(list, 1x2)
             <AgentPos>:position of agent (list, 1x6)
-            <inside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
+            <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
         """
         self.centPos = centPos
         self.theta = theta
         self.norm = norm
         self.width = width
-        self.inside = inside
+        self.keepInside = keepInside
 
     def getPnormArea(self):
-        return self.centPos, self.theta, self.norm, self.width, self.inside
+        return self.centPos, self.theta, self.norm, self.width, self.keepInside
+
+    def calcPnormConstraint(self,AgentPos):
+        centPos,theta,norm,width,keepInside = self.getPnormArea()
+        self.pnormcbf.setPnormSetting(centPos,theta,norm,width,keepInside)
+        self.pnormcbf.calcConstraint(AgentPos)
+
+    def getPnormConstraint(self):
+        G, h = self.pnormcbf.getConstraint()
+        return G, h
+
+
 
     def setChargeStation(self, chargePos, radiusCharge):
         self.chargePos = chargePos
@@ -94,6 +108,29 @@ class CBFOptimizer(object):
     def getChargeStation(self):
         return self.minEnergy, self.Kd, self.k_charge, self.chargePos, self.radiusCharge
 
+    def calcChargeConstraint(self,AgentPos,energy):
+        minEnergy, Kd, k_charge, chargePos, radiusCharge = self.getChargeStation()
+        self.chargecbf.setChargeSettings(minEnergy, Kd, k_charge, chargePos, radiusCharge)
+        self.chargecbf.calcConstraint(AgentPos,energy)
+
+    def getChargeConstraint(self):
+        G, h = self.chargecbf.getConstraint()
+        return G, h
+
+
+
+
+    def setPccConstraint(self,G,h):
+        self.pcccbf.setConstraintMatrix(G)
+        self.pcccbf.setConstraintValue(h)
+
+    def getPccConstraint(self):
+        G, h = self.pcccbf.getConstraintSetting()
+        return G, h
+
+
+        
+
 
 
     def get_weight_matrix(self, weight_list):
@@ -103,7 +140,7 @@ class CBFOptimizer(object):
     def set_optimize_slack_weights(self, weight_list):
         self.slack_weight_matrix = np.diag([w for w in weight_list])
 
-    def set_qp_problem(self, AgentPos, energy):
+    def set_qp_problem(self):
         """
         define the following optimization problem
 
@@ -139,10 +176,24 @@ class CBFOptimizer(object):
 
         if self.activate_cbf == True:
 
+            if self.activate_pnormcbf == True:
+                """
+                Args: 
+                    <CentPos>:center of ellipsoid (list, 1x2)
+                    <theta>:rotation angle (rad)
+                    <norm>:p-norm
+                    <width>:half width and half height of ellipsoid(list, 1x2)
+                    <AgentPos>:position of agent (list, 1x6)
+                    <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering Inside of ellipsoid
+                """
+                dhdp, h = self.getPnormConstraint()
+                G_list.append(dhdp)
+                h_list.append(h)
+                slack_weight_list.append(1.)
+                slack_flag_list.append(0.) # if soft constraint -> 1. if hard -> 0.
+
             if self.activate_chargeCBF == True:
-                minEnergy, Kd, k_charge, chargePos, radiusCharge = self.getChargeStation()
-                self.chargecbf.setChargeSettings(minEnergy, Kd, k_charge, chargePos, radiusCharge)
-                dhdp, h = self.chargecbf.getConstraintSetting(AgentPos,energy)
+                dhdp, h = self.getChargeConstraint()
                 G_list.append(dhdp)
                 h_list.append(h)
                 slack_weight_list.append(1.)
@@ -154,23 +205,13 @@ class CBFOptimizer(object):
             #         self.G_list.append(G_ca)
             #         self.h_list.append(h_ca)
 
-            if self.activate_pnormcbf == True:
-                """
-                Args: 
-                    <CentPos>:center of ellipsoid (list, 1x2)
-                    <theta>:rotation angle (rad)
-                    <norm>:p-norm
-                    <width>:half width and half height of ellipsoid(list, 1x2)
-                    <AgentPos>:position of agent (list, 1x6)
-                    <inside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
-                """
-                centPos,theta,norm,width,inside = self.getPnormArea()
-                self.pnormcbf.setPnormSetting(centPos,theta,norm,width,inside)
-                dhdp, h = self.pnormcbf.getConstraintSetting(AgentPos)
+            if self.activate_pccCBF == True :
+                dhdp, h = self.getPccConstraint()
                 G_list.append(dhdp)
                 h_list.append(h)
                 slack_weight_list.append(1.)
                 slack_flag_list.append(0.) # if soft constraint -> 1. if hard -> 0.
+
                 
             self.h_list = np.array(h_list)
             self.G_list = np.array(G_list)
@@ -189,7 +230,9 @@ class CBFOptimizer(object):
 
 
     def optimize(self,u_nom, AgentPos, energy):
-        self.set_qp_problem(AgentPos,energy)
+        self.calcChargeConstraint(AgentPos,energy)
+        self.calcPnormConstraint(AgentPos)
+        self.set_qp_problem()
         # u_optimal is optimized input, delta is slack variables value for soft constraints
         self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
         return self.u_optimal
@@ -203,8 +246,8 @@ if __name__ == '__main__':
     theta = 0
     norm = 2
     width = [.5,.5]
-    inside = False
-    optimizer.setPnormArea(centPos,theta,norm,width,inside)
+    keepInside = True
+    optimizer.setPnormArea(centPos,theta,norm,width,keepInside)
 
     # energy station set
     minEnergy = 1500

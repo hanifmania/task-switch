@@ -23,6 +23,7 @@ from cv_bridge import CvBridge
 class Collector():
 
     def __init__(self,agentName):
+        self.ready = False
         subTopic = agentName + "/virtualdrone/pose"
         # subscriber for each agent's region
         rospy.Subscriber(subTopic, PoseStamped, self.poseStampedCallback, queue_size=1)
@@ -30,10 +31,15 @@ class Collector():
         self.pose = Pose()
 
     def poseStampedCallback(self,msg_data):
+        if self.ready == False:
+            self.ready = True
         self.pose = msg_data.pose
 
     def getPose(self):
         return self.pose
+
+    def getReady(self):
+        return self.ready
 
 class poseCollector():
     def __init__(self):
@@ -54,7 +60,7 @@ class poseCollector():
 
         self.pub_allPose = rospy.Publisher("/allPose", PoseArray, queue_size=1)
         # node freq
-        self.clock = rospy.get_param("~clock",1)
+        self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
 
 
@@ -64,11 +70,14 @@ class poseCollector():
 
         while not rospy.is_shutdown():
             poselist = []
+            ready = True
             for agentID in range(self.agentNum):
                 pose = self.Collectors[agentID].getPose()
                 poselist.append(pose)
+                ready = ready * self.Collectors[agentID].getReady()
 
-            self.pub_allPose.publish(PoseArray(poses=poselist))
+            if ready:
+                self.pub_allPose.publish(PoseArray(poses=poselist))
 
             self.rate.sleep()
 

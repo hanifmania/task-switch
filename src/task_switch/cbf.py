@@ -29,8 +29,30 @@ class CBF(object):
         # calc h
         pass
 
-    def getConstraintSetting(self):
+    def calcConstraint(self):
+        # calc h
+        pass
+
+    def getConstraint(self):
         return self.G, self.h
+
+class generalCBF(CBF):
+    # keep ConstraintValue( =h(x) ) satisfying h(x)>0
+    """
+    Args: 
+        <G>:constraint matrix(dh/dx)(list, 1x6)
+        <h>:constraint value(=alpha(h(x)))(list, 1x1)
+    Returns:
+        <G>:constraint matrix(dh/dx)(list, 1x6)
+        <h>:constraint value(=alpha(h(x)))(list, 1x1)
+    """
+
+    def setConstraintMatrix(self,G):
+        self.G = G
+
+    def setConstraintValue(self,h):
+        self.h = h
+
 
 class pnorm2dCBF(CBF):
     # if ConstraintValue( =h(x) ) satisfies h(x)>0
@@ -42,7 +64,7 @@ class pnorm2dCBF(CBF):
         <norm>:p-norm
         <width>:width and height of ellipsoid(list, 1x2)
         <AgentPos>:position of agent (list, 1x6)
-        <inside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
+        <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
     Returns:
         <G>:constraint matrix(dh/dx)(list, 1x6)
         <h>:constraint value(=alpha(h(x)))(list, 1x1)
@@ -50,12 +72,12 @@ class pnorm2dCBF(CBF):
 
 
 
-    def setPnormSetting(self,centPos,theta,norm,width,inside=True):
+    def setPnormSetting(self,centPos,theta,norm,width,keepInside=True):
         self.centPos = centPos
         self.theta = theta
         self.norm = norm
         self.width = width
-        if inside:
+        if keepInside:
             self.sign = 1
         else:
             self.sign = -1
@@ -104,9 +126,11 @@ class pnorm2dCBF(CBF):
         base = self.getCommonValue(AgentPos)
         self.h[0] = self.sign * (-base[0]**norm - base[1]**norm + 1) ** self.alpha
 
-    def getConstraintSetting(self,AgentPos):
+    def calcConstraint(self,AgentPos):
         self.calcConstraintMatrix(AgentPos)
         self.calcConstraintValue(AgentPos)
+
+    def getConstraint(self):
         return self.G, self.h
     
 class chargeCBF(CBF):
@@ -140,12 +164,15 @@ class chargeCBF(CBF):
     def calcConstraintValue(self,AgentPos,energy):
         AgentPos2d = np.array((AgentPos[0],AgentPos[1]))
         norm = np.linalg.norm(AgentPos2d - self.chargePos)
-        self.h[0] = energy - self.minEnergy - (self.Kd/self.k_charge) * (norm - self.radiusCharge) - self.Kd
+        self.h[0] = (energy - self.minEnergy - (self.Kd/self.k_charge) * (norm - self.radiusCharge) - self.Kd ) ** self.alpha
 
-    def getConstraintSetting(self,AgentPos,energy):
+    def calcConstraint(self,AgentPos,energy):
         self.calcConstraintMatrix(AgentPos,energy)
         self.calcConstraintValue(AgentPos,energy)
+
+    def getConstraint(self):
         return self.G, self.h
+
     
 
 
