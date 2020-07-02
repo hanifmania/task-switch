@@ -31,9 +31,10 @@ class CBFOptimizer(object):
     
         
         self.activate_cbf = True
-        self.activate_pnormcbf = True
+        self.activate_pnormcbf = False 
         self.activate_chargeCBF = False
-        self.activate_pccCBF = False
+        self.activate_pccCBF = True
+
         # self.activate_fov = False
         # self.activate_ca = False
         # self.activate_aa = False
@@ -125,7 +126,7 @@ class CBFOptimizer(object):
         self.pcccbf.setConstraintValue(h)
 
     def getPccConstraint(self):
-        G, h = self.pcccbf.getConstraintSetting()
+        G, h = self.pcccbf.getConstraint()
         return G, h
 
 
@@ -205,7 +206,7 @@ class CBFOptimizer(object):
             #         self.G_list.append(G_ca)
             #         self.h_list.append(h_ca)
 
-            if self.activate_pccCBF == True :
+            if self.activate_pccCBF == True:
                 dhdp, h = self.getPccConstraint()
                 G_list.append(dhdp)
                 h_list.append(h)
@@ -229,13 +230,17 @@ class CBFOptimizer(object):
             # print m, self.Q
 
 
-    def optimize(self,u_nom, AgentPos, energy):
-        self.calcChargeConstraint(AgentPos,energy)
-        self.calcPnormConstraint(AgentPos)
-        self.set_qp_problem()
-        # u_optimal is optimized input, delta is slack variables value for soft constraints
-        self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
-        return self.u_optimal
+    def optimize(self,u_nom, AgentPos, energy, dJdp, xi):
+        if self.activate_cbf == True:
+            self.calcChargeConstraint(AgentPos,energy)
+            self.calcPnormConstraint(AgentPos)
+            self.setPccConstraint(dJdp,xi)
+            self.set_qp_problem()
+            # u_optimal is optimized input, delta is slack variables value for soft constraints
+            self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
+            return self.u_optimal
+        else:
+            return u_nom
 
 
 if __name__ == '__main__':
@@ -261,6 +266,9 @@ if __name__ == '__main__':
     u_nom = np.array([0., 0., 0. ,0., 0., 0.]).reshape(-1,1)
     AgentPos = [3., 0., 0., 0., 0., 0.]
     energy = 1000
-    print optimizer.optimize(u_nom, AgentPos, energy)
+    dJdp = [0.] * 6
+    xi = [0.]
+
+    print optimizer.optimize(u_nom, AgentPos, energy, dJdp, xi)
     
 

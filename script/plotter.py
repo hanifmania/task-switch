@@ -92,7 +92,7 @@ class plotter():
         self.allPositions = np.zeros((self.agentNum,3)) 
 
         # ROS set up
-        self.plotimage_pub = rospy.Publisher("plotimage", Image)
+        self.plotimage_pub = rospy.Publisher("plotimage", Image, queue_size=1)
         rospy.Subscriber("surf_value", Float32MultiArray, self.callbackFunctionValue)
         # subscriber to other agent's position
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)

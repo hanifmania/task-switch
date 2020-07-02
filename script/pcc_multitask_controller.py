@@ -48,7 +48,8 @@ class VoronoiCalc(Voronoi):
         # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
         #        = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t) + b dq + b\int_{Q} \phi(q,t)dq
         #                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <- here calc this term
-        self.JintSPlusb = np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 + self.b ) * self.phi * self.pointDense )
+        # self.JintSPlusb = np.sum( ((voronoiX - self.Pos[0])**2 + (voronoiY - self.Pos[1])**2 + self.b ) * self.phi * self.pointDense )
+        self.JintSPlusb = np.sum( ((self.X - self.Pos[0])**2 + (self.Y - self.Pos[1])**2 + self.b ) * self.Region * self.phi * self.pointDense )
 
         # calc \xi
         agentNum = self.listNeighborPos.shape[0] + 1
@@ -83,7 +84,20 @@ class CBFOptimizerROS(CBFOptimizer):
         super(CBFOptimizerROS,self).__init__()
         self.activate_cbf = True
         self.activate_pnormcbf = False
-        self.activate_chargeCBF = True
+        self.activate_chargeCBF = False
+        self.activate_pccCBF = False
+        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF]):
+            self.activate_cbf = False 
+        print self.activate_cbf
+
+    # def optimize(self,u_nom, AgentPos, energy):
+    #     self.calcChargeConstraint(AgentPos,energy)
+    #     self.calcPnormConstraint(AgentPos)
+    #     self.set_qp_problem()
+    #     # u_optimal is optimized input, delta is slack variables value for soft constraints
+    #     self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
+    #     return self.u_optimal
+
 
 class coverageController():
 
@@ -161,14 +175,15 @@ class coverageController():
         theta = 0
         norm = 2
         width = [.8,.8]
-        inside = False
-        self.optimizer.setPnormArea(centPos,theta,norm,width,inside)
+        keepInside = False
+        self.optimizer.setPnormArea(centPos,theta,norm,width,keepInside)
 
         
         chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
         radiusCharge = rospy.get_param("~charge_station/r",0.2) 
 
         self.optimizer.setChargeStation(chargePos,radiusCharge)
+        # charging configs. any number is ok because it will be overwitten by dycon
         self.optimizer.setChargeSettings(minEnergy,Kd,k_charge)
 
         self.publishDrainRate(Kd)
@@ -180,7 +195,9 @@ class coverageController():
     def pcc_update_config_params(self, config):
         self.controllerGain = config.controller_gain
         self.voronoi.update_agentParam(config.agent_R,config.agent_b_)
-        self.voronoi.update_fieldParam(config.delta_decrease,config.delta_increase,1,0)
+        k = 1
+        gamma = -3
+        self.voronoi.update_fieldParam(config.delta_decrease,config.delta_increase,k,gamma)
 
 
     def pcc_set_config_params(self):
@@ -237,12 +254,10 @@ class coverageController():
     def publishJintSPlusb(self,JintSPlusb):
         self.pub_JintSPlusb.publish(Float32(data=JintSPlusb))
 
-    def velCommandCalc(self):
-        # calculate command for agent
-
+    def calcVoronoiRegion(self):
         # extract x,y position from x,y,z position data
         pos = self.position[0:2]
-        currentEnergy = self.energy
+        # print pos
 
         # extract x,y position from list of x,y,z position
         neighborPos2d = np.delete(self.allPositions,2,axis=1)
@@ -256,16 +271,31 @@ class coverageController():
 
         # set information density 
         self.voronoi.setPhi(self.field.getPhi())
-        # rospy.loginfo(self.field.getPhi())
+        self.voronoi.calcVoronoi()
 
+
+    def velCommandCalc(self):
+        # calculate command for agent
+
+        pos = self.position[0:2]
+        currentEnergy = self.energy
 
         # calculate command for agent
+        # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)
         u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
+        u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
 
         
-        u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
+        # u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
         AgentPos = [pos[0], pos[1], 0., 0., 0., 0.]
-        u = self.optimizer.optimize(u_nom, AgentPos, currentEnergy)
+
+        dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
+
+        # dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
+        # xi = [self.voronoi.getXi()]
+        dJdp = [0., 0., 0., 0., 0., 0.]
+        xi = [0.]
+        u = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi)
 
         # set command to be published
         self.twist_from_controller.linear.x = u[0]
@@ -280,6 +310,8 @@ class coverageController():
         minEnergy, Kd, k_charge, chargePos, radiusCharge = self.optimizer.getChargeStation()
         isInStation = ( (pos[0]-chargePos[0])**2 + (pos[1]-chargePos[1])**2 < radiusCharge**2 ) 
 
+        lastChargeState = self.charging 
+
         if isInStation or self.charging:
             if (currentEnergy<= minEnergy+500):
                 self.charging = True
@@ -288,9 +320,14 @@ class coverageController():
                 self.charging = False
 
         if self.charging:
-            drainRate = -5*Kd
+            drainRate = -5*Kd # minus drainrate means battery is being charged
+            if lastChargeState == False:
+                rospy.loginfo("start charge")
         else:
             drainRate = Kd
+            if lastChargeState == True:
+                rospy.loginfo("end charge")
+
 
         self.publishDrainRate(drainRate)
             
@@ -321,7 +358,7 @@ class coverageController():
 
                 self.judgeCharge()
                 # calculate voronoi region
-                self.voronoi.calcVoronoi()
+                self.calcVoronoiRegion()
                 JintSPlusb = self.voronoi.getJintSPlusb()
                 # calculate voronoi region and input velocity
                 if self.charging:
@@ -330,9 +367,9 @@ class coverageController():
                 else:
                     self.velCommandCalc()
                 # publish vel command
+                self.publishRegion(self.voronoi.getRegion())
                 self.pub_twist.publish(self.twist_from_controller)
                 # publish my region
-                self.publishRegion(self.voronoi.getRegion())
                 self.publishJintSPlusb(JintSPlusb)
             self.rate.sleep()
 

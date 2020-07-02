@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
+    <param name="/agentNum" value="2"/>
+    <param name="/x_min" value="-2.0"/>
+    <param name="/x_max" value="2.0"/>
+    <param name="/y_min" value="-2.0"/>
+    <param name="/y_max" value="2.0"/>
+    <param name="/mesh_acc/x" value="100"/>
+    <param name="/mesh_acc/y" value="100"/>
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen"/>
     <node name="pcc_parameter" pkg="task_switch" type="task_switch_pcc_param_server" output="screen"/>
@@ -9,13 +16,6 @@
 
     <node pkg="task_switch" name="central" type="central.py" output="screen"/>
 
-    <param name="/agentNum" value="2"/>
-    <param name="/x_min" value="-2.0"/>
-    <param name="/x_max" value="2.0"/>
-    <param name="/y_min" value="-2.0"/>
-    <param name="/y_max" value="2.0"/>
-    <param name="/mesh_acc/x" value="100"/>
-    <param name="/mesh_acc/y" value="100"/>
 
     
 
@@ -27,7 +27,7 @@
       <param name="~charge_station/x" value="0.0"/>
       <param name="~charge_station/y" value="1.5"/>
       <param name="~charge_station/r" value="0.2"/>
-      <param name="~initialEnergy" value="2000"/>
+      <param name="~initialEnergy" value="4000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>
@@ -40,7 +40,7 @@
       <param name="~charge_station/x" value="0.0"/>
       <param name="~charge_station/y" value="-1.5"/>
       <param name="~charge_station/r" value="0.2"/>
-      <param name="~initialEnergy" value="3000"/>
+      <param name="~initialEnergy" value="4000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>

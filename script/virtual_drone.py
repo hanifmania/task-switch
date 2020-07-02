@@ -57,7 +57,7 @@ class RigidBodyMotion(object):
 
         # create energy
 
-        initialEnergy = rospy.get_param("initialEnergy",2000)
+        initialEnergy = rospy.get_param("~initialEnergy",2000)
         # Kd will be updated by subscriber
         Kd = 0 # per seconds
 
