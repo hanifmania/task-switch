@@ -11,6 +11,8 @@ class CBF(object):
     Returns:
         <G>:constraint matrix(dh/dx)(list, 1x6)
         <h>:constraint value(=alpha(h(x)))(list, 1x1)
+        <q>:element of slack_variable_weight_matrix(Q) (scalar)
+        <r>:element of soft constraint flag matrix(R) (scalar)
     """
     def __init__(self):
         self.G = [0.] * 6
@@ -30,7 +32,7 @@ class CBF(object):
         pass
 
     def calcConstraint(self):
-        # calc h
+        # calc G and h by call calcConstraintMatrix, and calcConstraintValue.
         pass
 
     def getConstraint(self):
@@ -47,12 +49,15 @@ class generalCBF(CBF):
         <h>:constraint value(=alpha(h(x)))(list, 1x1)
     """
 
-    def setConstraintMatrix(self,G):
+    def calcConstraintMatrix(self,G):
         self.G = G
 
-    def setConstraintValue(self,h):
+    def calcConstraintValue(self,h):
         self.h = h
 
+    def calcConstraint(self,G,h):
+        self.calcConstraintMatrix(G)
+        self.calcConstraintValue(h)
 
 class pnorm2dCBF(CBF):
     # if ConstraintValue( =h(x) ) satisfies h(x)>0
@@ -78,9 +83,9 @@ class pnorm2dCBF(CBF):
         self.norm = norm
         self.width = width
         if keepInside:
-            self.sign = 1
+            self.sign = 1.
         else:
-            self.sign = -1
+            self.sign = -1.
 
 
     def getCommonValue(self,AgentPos):
@@ -130,8 +135,6 @@ class pnorm2dCBF(CBF):
         self.calcConstraintMatrix(AgentPos)
         self.calcConstraintValue(AgentPos)
 
-    def getConstraint(self):
-        return self.G, self.h
     
 class chargeCBF(CBF):
     """
@@ -170,10 +173,6 @@ class chargeCBF(CBF):
         self.calcConstraintMatrix(AgentPos,energy)
         self.calcConstraintValue(AgentPos,energy)
 
-    def getConstraint(self):
-        return self.G, self.h
-
-    
 
 
 

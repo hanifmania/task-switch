@@ -9,8 +9,10 @@
     <param name="/mesh_acc/y" value="100"/>
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen"/>
+
     <node name="pcc_parameter" pkg="task_switch" type="task_switch_pcc_param_server" output="screen"/>
     <node name="charge_parameter" pkg="task_switch" type="task_switch_charge_param_server" output="screen"/>
+    <node name="cbf_parameter" pkg="task_switch" type="task_switch_cbf_param_server" output="screen"/>
 
     <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
 

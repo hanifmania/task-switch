@@ -34,8 +34,8 @@ class Field(Field):
 
     def getJintQ(self):
         # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
-        #        = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t) + b dq + b\int_{Q} \phi(q,t)dq
-        #                                   here calc this term -> ~~~~~~~~~~~~~~~~~~~~~                    
+        #        = - \sum \int_{S_i} (\|q-p_i\|^2 + b) \phi(q,t)dq + b\int_{Q} \phi(q,t)dq
+        #                                    here calc this term -> ~~~~~~~~~~~~~~~~~~~~                    
         pointDense = (self.xlimit[1]-self.xlimit[0]) * (self.ylimit[1]-self.ylimit[0]) / (self.mesh_acc[0] * self.mesh_acc[1])
         JintQ = self.b * np.sum(self.phi) * pointDense
         return JintQ
@@ -137,11 +137,11 @@ class central():
     def set_config_params(self):
         config = self.dycon_client.get_configuration()
         self._update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Params SET")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params SET in central")
 
     def config_callback(self,config):
         self._update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Params Update")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params Update in central")
 
 
     def infoUpdate(self,Z,region):
@@ -155,8 +155,8 @@ class central():
 
         Z = Z-self.delta_decrease*dt*region
         Z = np.where(Z<0.01,0.01,Z) 
-        Z = Z + self.delta_increase*dt*~region
-        Z = np.where(Z>1,1,Z) 
+        Z = Z + self.delta_increase*(1-Z)*dt*~region
+        Z = np.where(Z>1.,1.,Z) 
         return Z
 
     def publishInfo(self,info):
@@ -187,7 +187,7 @@ class central():
 
 
         while not rospy.is_shutdown():
-            JintSPlusb_all = 0
+            JintSPlusb_all = 0.
             ready = True
 
             # initialize region
@@ -201,9 +201,12 @@ class central():
                 # wait for all collector's subscriber get region message
                 ready = ready * collector.getReady()
 
+
+
+            # get current field information density
+            phi = self.field.getPhi()
             J = - JintSPlusb_all + self.field.getJintQ()
             self.pub_J.publish(Float32(data=J))
-            phi = self.field.getPhi()
 
             # if any collector does not get region message from agent, 
             # do not update field density
@@ -213,10 +216,6 @@ class central():
 
             # publish updated information density
             self.publishInfo(self.field.getPhi())
-
-
-
-
 
 
             self.rate.sleep()

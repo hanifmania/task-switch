@@ -26,12 +26,12 @@ class CBFSLACKQPSolver(CBFQPSolver):
         return sol
 
     # override
-    def optimize(self, u_nom, P, Q, G, h, H):
+    def optimize(self, u_nom, P, Q, G, h, R):
         """
         solve the following optimization problem
 
         min_{u,w} (1/2) * (u-u_nom)^T*P*(u-u_nom) + (1/2)*w^T*Q*w
-        subject to G*u + h >= Hw
+        subject to G*u + h >= Rw
 
         Args: m is the number of constraints
             all are numpy array
@@ -40,7 +40,7 @@ class CBFSLACKQPSolver(CBFQPSolver):
             <Q>:slack_variable_weight_matrix (m x m)
             <G>:constraint_matrix (m x 6)
             <h>:constraint_matrix (m x 1)
-            <H>:soft constraint flag matrix (m x m)
+            <R>:soft constraint flag matrix (m x m)
         Returns:
             <u_optimal>:optimal_output(6 x 1)
             <w>:optimal_slack(m x 1)
@@ -52,7 +52,7 @@ class CBFSLACKQPSolver(CBFQPSolver):
        
         P_np = np.block([[P, np.zeros((6,m))], [np.zeros((m,6)), Q]])
         q_np = np.vstack( [-np.dot(P.T,u_nom), np.zeros((m,1))] )
-        G_np = np.hstack([-G, H.reshape(m,m)])
+        G_np = np.hstack([-G, R.reshape(m,m)])
         h_np = h
 
         # print "P="
@@ -79,9 +79,9 @@ def main():
     Q = 100*np.eye(4)
     G = np.array([[1.,0.,0.,0.,0.,0.],[0.,1.,0.,0.,0.,0.],[1.,1.,0.,0.,0.,0.],[-1.,0.,0.,0.,0.,0.]])
     h = np.array([0.,0.,-1.,0.3]).reshape(-1,1)
-    H = np.diag([0,0,1,0])
+    R = np.diag([0,0,1,0])
 
-    (u_opt, w) = slack_qp_solver.optimize(u_nom, P, Q, G, h, H)
+    (u_opt, w) = slack_qp_solver.optimize(u_nom, P, Q, G, h, R)
     print "u_opt = \n", u_opt, "\n w = \n", w
 
 if __name__ == '__main__':

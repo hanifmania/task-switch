@@ -34,6 +34,9 @@ class CBFOptimizer(object):
         self.activate_pnormcbf = False 
         self.activate_chargeCBF = False
         self.activate_pccCBF = True
+        self.pnormcbf_slack_weight = 1.0
+        self.chargecbf_slack_weight = 1.0
+        self.pcccbf_slack_weight = 1.0
 
         # self.activate_fov = False
         # self.activate_ca = False
@@ -121,9 +124,8 @@ class CBFOptimizer(object):
 
 
 
-    def setPccConstraint(self,G,h):
-        self.pcccbf.setConstraintMatrix(G)
-        self.pcccbf.setConstraintValue(h)
+    def calcPccConstraint(self,G,h):
+        self.pcccbf.calcConstraint(G,h)
 
     def getPccConstraint(self):
         G, h = self.pcccbf.getConstraint()
@@ -131,7 +133,20 @@ class CBFOptimizer(object):
 
 
         
+    def listAppend(self,G_list,h_list,slack_weight_list,slack_flag_list,dhdp,h,weight):
+        G_list.append(dhdp)
+        h_list.append(h)
 
+        # if slack weight is 0, then consider the constraint as "HARD"(never allowed to violate)
+        # otherwise, "Soft"(allow to violate)
+        if weight > 0.:
+            slack_weight_list.append(weight)
+            slack_flag_list.append(1.)# if soft constraint -> 1. if hard -> 0.
+        else:
+            slack_weight_list.append(1.)
+            slack_flag_list.append(0.) # if soft constraint -> 1. if hard -> 0.
+
+        return G_list, h_list, slack_weight_list, slack_flag_list
 
 
     def get_weight_matrix(self, weight_list):
@@ -146,7 +161,7 @@ class CBFOptimizer(object):
         define the following optimization problem
 
         min_{u,w} (1/2) * (u-u_nom)^T*P*(u-u_nom) + (1/2)*w^T*Q*w
-        subject to G*u + h >= Hw
+        subject to G*u + h >= Rw
 
         all are numpy
         Args: m is the number of constraints
@@ -155,7 +170,7 @@ class CBFOptimizer(object):
             <Q>:slack_variable_weight_matrix (m x m)
             <G>:constraint_matrix (m x 6)
             <h>:constraint_matrix (m x 1)
-            <H>:soft constraint flag matrix (m x m)
+            <R>:soft constraint flag matrix (m x m)
         Returns:
             <u_optimal>:optimal_output(6 x 1)
             <w>:optimal_slack(m x 1)
@@ -167,11 +182,11 @@ class CBFOptimizer(object):
         # self.G_list = np.empty(0)
         # self.h_list = np.empty(0)
         # self.Q = np.empty(0)
-        # self.H = np.empty(0)
+        # self.R = np.empty(0)
         G_list = [] 
         h_list = [] 
         Q = [] 
-        H = [] 
+        R = [] 
         slack_weight_list = []
         slack_flag_list = []
 
@@ -188,17 +203,15 @@ class CBFOptimizer(object):
                     <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering Inside of ellipsoid
                 """
                 dhdp, h = self.getPnormConstraint()
-                G_list.append(dhdp)
-                h_list.append(h)
-                slack_weight_list.append(1.)
-                slack_flag_list.append(0.) # if soft constraint -> 1. if hard -> 0.
+                weight = self.pnormcbf_slack_weight
+                G_list, h_list, slack_weight_list, slack_flag_list \
+                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
             if self.activate_chargeCBF == True:
                 dhdp, h = self.getChargeConstraint()
-                G_list.append(dhdp)
-                h_list.append(h)
-                slack_weight_list.append(1.)
-                slack_flag_list.append(0.) # if soft constraint -> 1. if hard -> 0.
+                weight = self.chargecbf_slack_weight
+                G_list, h_list, slack_weight_list, slack_flag_list \
+                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
             # if self.activate_ca == True :
             #     if len(self.g_adj_list) > 0:
@@ -208,10 +221,9 @@ class CBFOptimizer(object):
 
             if self.activate_pccCBF == True:
                 dhdp, h = self.getPccConstraint()
-                G_list.append(dhdp)
-                h_list.append(h)
-                slack_weight_list.append(1.)
-                slack_flag_list.append(0.) # if soft constraint -> 1. if hard -> 0.
+                weight = self.pcccbf_slack_weight
+                G_list, h_list, slack_weight_list, slack_flag_list \
+                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
                 
             self.h_list = np.array(h_list)
@@ -226,7 +238,7 @@ class CBFOptimizer(object):
             # print slack_weight_list
 
             self.Q = self.get_weight_matrix(slack_weight_list)
-            self.H = self.get_weight_matrix(slack_flag_list)
+            self.R = self.get_weight_matrix(slack_flag_list)
             # print m, self.Q
 
 
@@ -234,10 +246,10 @@ class CBFOptimizer(object):
         if self.activate_cbf == True:
             self.calcChargeConstraint(AgentPos,energy)
             self.calcPnormConstraint(AgentPos)
-            self.setPccConstraint(dJdp,xi)
+            self.calcPccConstraint(dJdp,xi)
             self.set_qp_problem()
             # u_optimal is optimized input, delta is slack variables value for soft constraints
-            self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
+            self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
             return self.u_optimal
         else:
             return u_nom
