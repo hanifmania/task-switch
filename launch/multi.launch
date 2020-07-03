@@ -62,7 +62,10 @@
     <!--   <include file="$(find task_switch)/launch/one.launch"/> -->
     <!-- </group> -->
 
-    <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen">
+    <!-- <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen"> -->
+    <!--   <remap from="surf_value" to="/info"/> -->
+    <!-- </node> -->
+    <node pkg="task_switch" name="visualize_surf" type="visualize_surf_pointcloud.py" output="screen">
       <remap from="surf_value" to="/info"/>
     </node>
 
