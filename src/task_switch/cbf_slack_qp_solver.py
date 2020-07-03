@@ -70,11 +70,19 @@ class CBFSLACKQPSolver(CBFQPSolver):
         # print "h="
         # print h_np
         
-        sol = self.__qp_solver(P_np * minimize_scale, q_np * minimize_scale, G_np * constraint_scale, h_np * constraint_scale)
+        try:
+            sol = self.__qp_solver(P_np * minimize_scale, q_np * minimize_scale, G_np * constraint_scale, h_np * constraint_scale)
 
-        u_optimal = np.c_[np.array(sol['x'])[:6]]
-        delta = np.c_[np.array(sol['x'])[6:]]
-        self.solver_state = sol['status']
+            u_optimal = np.c_[np.array(sol['x'])[:6]]
+            delta = np.c_[np.array(sol['x'])[6:]]
+            self.solver_state = sol['status']
+        except ValueError as e:
+            print(e)
+            u_optimal = np.c_[np.zeros((6,1))]
+            delta = np.c_[np.zeros((m,1))]
+            self.solver_state = "error"
+            
+
 
         return u_optimal, delta, self.solver_state 
 

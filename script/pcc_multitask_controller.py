@@ -93,6 +93,11 @@ class CBFOptimizerROS(CBFOptimizer):
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
 
+        # input range constraint
+        self.activate_umax = True
+        self.umax = 2.0
+        self.umin = -self.umax 
+
     def updateCbfConfig(self,config):
         self.activate_cbf = config.activate_cbf
         self.activate_pnormcbf = config.activate_pnormcbf
@@ -104,6 +109,8 @@ class CBFOptimizerROS(CBFOptimizer):
         self.pnormcbf_slack_weight = config.pnormcbf_slack_weight
         self.chargecbf_slack_weight = config.chargecbf_slack_weight
         self.pcccbf_slack_weight = config.pcccbf_slack_weight
+
+        self.updateInputRange(config.activate_umax,config.umax,-config.umax)
 
     # def optimize(self,u_nom, AgentPos, energy):
     #     self.calcChargeConstraint(AgentPos,energy)
@@ -348,6 +355,8 @@ class coverageController():
         showText.text = "agent" + str(self.agentID) + "'s optimization: " + optStatus 
         if optStatus == "optimal":
             showText.fg_color = ColorRGBA(25/255.0, 1.0, 240.0/255.0, 1.0)
+        elif optStatus == "error":
+            showText.fg_color = ColorRGBA(240.0/255.0, 0.0, 240.0/255.0, 1.0)
         else:
             showText.fg_color = ColorRGBA(240.0/255.0, 1.0, 25/255.0, 1.0)
         showText.bg_color = ColorRGBA(0.0,0.0,0.0,0.2)

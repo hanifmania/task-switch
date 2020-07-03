@@ -54,6 +54,8 @@ class SurfVisualize:
 
         self.field = Field(mesh_acc,xlimit,ylimit)
         self.X,self.Y = self.field.getGrid()
+        # the height to be aligned for pointcloud2
+        self.Z = -0.1*np.ones((self.X.size,1))
 
         self.points = np.hstack([self.X.reshape([-1,1]),self.Y.reshape([-1,1]),np.zeros((self.X.size,1))])
 
@@ -124,7 +126,7 @@ class SurfVisualize:
         colorrgb = colorrgb_.squeeze()
 
 
-        self.points = np.hstack([self.X.reshape([-1,1]),self.Y.reshape([-1,1]),np.zeros((self.X.size,1))])
+        self.points = np.hstack([self.X.reshape([-1,1]),self.Y.reshape([-1,1]),self.Z])
         # colorrgb = np.hstack([r,g,b])
         msg = self.xyzrgb_array_to_pointcloud2(self.points,colorrgb[:,0:3],frame_id="world")
         return msg

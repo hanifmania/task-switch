@@ -38,6 +38,13 @@ class CBFOptimizer(object):
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
 
+        # input range constraint
+        self.activate_umax = True
+
+        self.umax = 2.0
+        self.umin = -2.0
+
+        
         # self.activate_fov = False
         # self.activate_ca = False
         # self.activate_aa = False
@@ -131,6 +138,10 @@ class CBFOptimizer(object):
         G, h = self.pcccbf.getConstraint()
         return G, h
 
+    def updateInputRange(self,flag,umax,umin):
+        self.activate_umax = flag
+        self.umax = umax
+        self.umin = umin
 
         
     def listAppend(self,G_list,h_list,slack_weight_list,slack_flag_list,dhdp,h,weight):
@@ -224,6 +235,21 @@ class CBFOptimizer(object):
                 weight = self.pcccbf_slack_weight
                 G_list, h_list, slack_weight_list, slack_flag_list \
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+
+            if self.activate_umax == True:
+                # replace by np.eyes? 
+                G = [[-1.,0.,0.,0.,0.,0.],[0.,-1.,0.,0.,0.,0.],[1.,0.,0.,0.,0.,0.],[0.,1.,0.,0.,0.,0.]]
+                # h becomes [[umax],[umax],[umin],[umin]]
+                h = [[self.umax]]*2 + [[-self.umin]]*2
+                # treat as hard constraint
+                slack_weight_list.extend([1.]*len(h))
+                slack_flag_list.extend([0.]*len(h))
+
+                G_list.extend(G)
+                h_list.extend(h)
+
+            
+
 
                 
             self.h_list = np.array(h_list)
