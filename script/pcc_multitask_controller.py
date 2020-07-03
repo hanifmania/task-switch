@@ -307,9 +307,9 @@ class coverageController():
         # print pos
 
         # extract x,y position from list of x,y,z position
-        neighborPos2d = np.delete(self.allPositions,2,axis=1)
+        allPos2d = np.delete(self.allPositions,2,axis=1)
         # delete THIS agent position
-        neighborPosOnly = np.delete(neighborPos2d,self.agentID-1,axis=0)
+        neighborPosOnly = np.delete(allPos2d,self.agentID-1,axis=0)
         # print str(self.agentID)+"'s pos: "+str(pos)+ " neighborpos: "+str(neighborPosOnly)
 
         # set my x,y position, and neighbor's position

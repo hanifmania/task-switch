@@ -174,6 +174,14 @@ class chargeCBF(CBF):
         self.calcConstraintValue(AgentPos,energy)
 
 
+# class Collision2dCBF(pnorm2dCBF):
+
+#     def __init__(self):
+#         self.neighborPosOnly = np.array([[1.,1.],[-1.,-1.],[1.,-1.]])
+#         self.agent_R = .3
+#         self.G = [[0.] * 6] * self.neighborPosOnly.shape[0] # the number of neighbor * 6 matrix
+#         self.h = [[0.]] * self.neighborPosOnly.shape[0]
+#         self.alpha = 1
 
 
 if __name__ == '__main__':

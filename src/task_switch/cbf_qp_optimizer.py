@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import warnings
 import numpy as np
+import copy
 
 from task_switch.se3_operations import *
 
@@ -27,13 +28,16 @@ class CBFOptimizer(object):
         self.u_optimal = np.zeros((6,1))
         self.G_list = []
         self.h_list = []
+
         self.NeighborPos = [] # will be AgentNum-1 x 2 matrix
+        # print self.neighborPosOnlyList[0]
     
         
         self.activate_cbf = True
         self.activate_pnormcbf = False 
-        self.activate_chargeCBF = False
+        self.activate_chargeCBF = True
         self.activate_pccCBF = True
+        self.activate_collisionCBF = False
         self.pnormcbf_slack_weight = 1.0
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
@@ -54,6 +58,7 @@ class CBFOptimizer(object):
         self.pnormcbf = pnorm2dCBF()
         self.chargecbf = chargeCBF()
         self.pcccbf = generalCBF()
+        self.collisioncbf = pnorm2dCBF()
 
         # self.fov_cbf = FoVCBF(po)
         # self.collision_cbf = CollisionCBF()
@@ -137,6 +142,11 @@ class CBFOptimizer(object):
     def getPccConstraint(self):
         G, h = self.pcccbf.getConstraint()
         return G, h
+
+
+
+
+
 
     def updateInputRange(self,flag,umax,umin):
         self.activate_umax = flag
@@ -224,11 +234,19 @@ class CBFOptimizer(object):
                 G_list, h_list, slack_weight_list, slack_flag_list \
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
-            # if self.activate_ca == True :
-            #     if len(self.g_adj_list) > 0:
-            #         G_ca, h_ca = self.collision_cbf.constraint_matrix(self.g_adj_list)
-            #         self.G_list.append(G_ca)
-            #         self.h_list.append(h_ca)
+
+            if self.activate_collisionCBF == True:
+                G_list.extend(self.ColG_list)
+                h_list.extend(self.Colh_list)
+                slack_weight_list.extend(self.Colslack_weight_list)
+                slack_flag_list.extend(self.Colslack_flag_list)
+                
+
+                # if len(self.g_adj_list) > 0:
+                #     G_ca, h_ca = self.collision_cbf.constraint_matrix(self.g_adj_list)
+                #     self.G_list.append(G_ca)
+                #     self.h_list.append(h_ca)
+
 
             if self.activate_pccCBF == True:
                 dhdp, h = self.getPccConstraint()
@@ -241,15 +259,16 @@ class CBFOptimizer(object):
                 G = [[-1.,0.,0.,0.,0.,0.],[0.,-1.,0.,0.,0.,0.],[1.,0.,0.,0.,0.,0.],[0.,1.,0.,0.,0.,0.]]
                 # h becomes [[umax],[umax],[umin],[umin]]
                 h = [[self.umax]]*2 + [[-self.umin]]*2
-                # treat as hard constraint
-                slack_weight_list.extend([1.]*len(h))
-                slack_flag_list.extend([0.]*len(h))
 
                 G_list.extend(G)
                 h_list.extend(h)
 
-            
+                # treat as hard constraint
+                slack_weight_list.extend([1.]*len(h))
+                slack_flag_list.extend([0.]*len(h))
 
+
+            
 
                 
             self.h_list = np.array(h_list)
@@ -273,6 +292,28 @@ class CBFOptimizer(object):
             self.calcChargeConstraint(AgentPos,energy)
             self.calcPnormConstraint(AgentPos)
             self.calcPccConstraint(dJdp,xi)
+
+            # 一番近いのだけ衝突判定すればよいのでは？
+            self.neighborPosOnly = np.array([[1.,1.],[3.5,-0.3],[1.,-1.]])
+            self.neighborPosOnlyList = self.neighborPosOnly.tolist()
+            ColG_list = []
+            Colh_list = []
+            Colslack_weight_list = []
+            Colslack_flag_list = []
+            for eachNeighborPos in self.neighborPosOnlyList:
+                G, h = self.calcNeighborCBF(AgentPos,eachNeighborPos)
+                weight = 0.
+                ColG_list, Colh_list, Colslack_weight_list, Colslack_flag_list \
+                        = self.listAppend(ColG_list, Colh_list, Colslack_weight_list, Colslack_flag_list, G, h, weight)
+            
+            print ColG_list
+            print Colh_list
+            self.ColG_list = ColG_list
+            self.Colh_list = Colh_list
+            self.Colslack_weight_list = Colslack_weight_list
+            self.Colslack_flag_list = Colslack_flag_list
+            
+
             self.set_qp_problem()
             # u_optimal is optimized input, delta is slack variables value for soft constraints
             self.u_optimal, self.delta, self.status = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
@@ -280,6 +321,18 @@ class CBFOptimizer(object):
         else:
             return u_nom
 
+    def calcNeighborCBF(self,AgentPos,eachNeighborPos):
+        agent_R = .3*2
+        centPos = eachNeighborPos
+        theta = 0.
+        norm = 2
+        width = [agent_R, agent_R]
+        self.collisioncbf.setPnormSetting(centPos,theta,norm,width,False)
+        self.collisioncbf.calcConstraint(AgentPos)
+        G, h = self.collisioncbf.getConstraint()
+        A = copy.copy(G)
+        b = copy.copy(h)
+        return A,b
 
 if __name__ == '__main__':
     optimizer = CBFOptimizer()
