@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
   vision_msgs
+  jsk_rviz_plugins
   dynamic_reconfigure
 )
 
@@ -78,6 +79,7 @@ catkin_python_setup()
    geometry_msgs
    sensor_msgs
    vision_msgs
+   jsk_rviz_plugins
  )
 
 ################################################
@@ -113,7 +115,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES vision_coverage
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs sensor_msgs vision_msgs tf message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs sensor_msgs vision_msgs tf message_runtime 
 #  DEPENDS system_lib
 )
 

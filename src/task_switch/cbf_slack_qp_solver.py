@@ -15,6 +15,12 @@ from task_switch.cbf_qp_solver import CBFQPSolver
 
 class CBFSLACKQPSolver(CBFQPSolver):
 
+    def __init__(self): 
+        # set configrations
+        self.set_solver_options(False, 1e-1, 1e-1, 1e-7, 100, 0)
+
+        self.solver_state = None
+
     # override
     def __qp_solver(self, P_np, q_np, G_np, h_np):
         P=matrix(P_np)
@@ -67,10 +73,10 @@ class CBFSLACKQPSolver(CBFQPSolver):
         sol = self.__qp_solver(P_np * minimize_scale, q_np * minimize_scale, G_np * constraint_scale, h_np * constraint_scale)
 
         u_optimal = np.c_[np.array(sol['x'])[:6]]
-        w = np.c_[np.array(sol['x'])[6:]]
+        delta = np.c_[np.array(sol['x'])[6:]]
         self.solver_state = sol['status']
 
-        return u_optimal, w 
+        return u_optimal, delta, self.solver_state 
 
 def main():
     slack_qp_solver = CBFSLACKQPSolver()

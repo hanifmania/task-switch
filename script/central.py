@@ -103,6 +103,7 @@ class central():
         self.pub_info = rospy.Publisher('/info', Float32MultiArray, queue_size=1)
 
         self.pub_J = rospy.Publisher('/J', Float32, queue_size=1)
+        self.pub_targetJ = rospy.Publisher('/targetJ', Float32, queue_size=1)
         # information density initialize
 
         # node freq
@@ -131,7 +132,9 @@ class central():
     def _update_config_params(self, config):
         self.delta_decrease = config.delta_decrease
         self.delta_increase = config.delta_increase
+        gamma = config.gamma
         self.update_param(config.agent_R,config.agent_b_)
+        self.publishTarget(gamma)
 
 
     def set_config_params(self):
@@ -143,6 +146,8 @@ class central():
         self._update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure Pcc Params Update in central")
 
+    def publishTarget(self,gamma):
+        self.pub_targetJ.publish(Float32(data=gamma))
 
     def infoUpdate(self,Z,region):
         # information reliability update

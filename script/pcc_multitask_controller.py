@@ -6,9 +6,10 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseArray
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, String, ColorRGBA
 from std_msgs.msg import Int8MultiArray,MultiArrayLayout,MultiArrayDimension
 from std_msgs.msg import Bool,Float32,Float32MultiArray
+from jsk_rviz_plugins.msg import *
 
 import dynamic_reconfigure.client
 
@@ -143,6 +144,9 @@ class coverageController():
         self.allPositions = np.zeros((self.agentNum,3)) 
 
 
+        self.optimizer = CBFOptimizerROS()
+
+
         # subscriber to get own pose
         rospy.Subscriber("pose", PoseStamped, self.poseStampedCallback, queue_size=1)
         # subscriber to get own energy
@@ -161,6 +165,7 @@ class coverageController():
         self.pub_JintSPlusb = rospy.Publisher('JintSPlusb', Float32, queue_size=1)
         # publisher for charge flag
         self.pub_drainRate = rospy.Publisher('drainRate', Float32, queue_size=1)
+        self.pub_optStatus = rospy.Publisher('optStatus', OverlayText, queue_size=1)
 
 
         # initialize message
@@ -187,7 +192,6 @@ class coverageController():
         self.charging = False
         
 
-        self.optimizer = CBFOptimizerROS()
 
         # pnorm setting
         centPos = [0.0,0.0]
@@ -331,10 +335,23 @@ class coverageController():
         xi = [self.voronoi.getXi()]
         # dJdp = [0., 0., 0., 0., 0., 0.]
         # xi = [0.]
-        u = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi)
+        u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi)
+
+        self.publishOptStatus(opt_status)
+
         # set command to be published
         self.twist_from_controller.linear.x = u[0]
         self.twist_from_controller.linear.y = u[1]
+
+    def publishOptStatus(self,optStatus):
+        showText = OverlayText()
+        showText.text = "agent" + str(self.agentID) + "'s optimization: " + optStatus 
+        if optStatus == "optimal":
+            showText.fg_color = ColorRGBA(25/255.0, 1.0, 240.0/255.0, 1.0)
+        else:
+            showText.fg_color = ColorRGBA(240.0/255.0, 1.0, 25/255.0, 1.0)
+        showText.bg_color = ColorRGBA(0.0,0.0,0.0,0.2)
+        self.pub_optStatus.publish(showText)
 
     def publishDrainRate(self,drainRate):
         self.pub_drainRate.publish(Float32(data=drainRate))
@@ -382,12 +399,13 @@ class coverageController():
     
 
     def spin(self):
+        rospy.wait_for_message("/info", Float32MultiArray)
+        rospy.wait_for_message("pose", PoseStamped)
+
         self.pcc_set_config_params()
         self.charge_set_config_params()
         self.cbf_set_config_params()
         
-        rospy.wait_for_message("/info", Float32MultiArray)
-        rospy.wait_for_message("pose", PoseStamped)
 
         while not rospy.is_shutdown():
             if self.checkNeighborStart:
