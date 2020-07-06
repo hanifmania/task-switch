@@ -15,6 +15,8 @@
     <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
       <remap from="posestamped" to="virtualdrone/posestamped"/>
     </node>
+    <node pkg="task_switch" name="charge_station_visualize" type="charge_station_visualize.py">
+    </node>
 
     <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->
     <!--   <param name = "bebop_number" value="$(arg number)"/> -->
