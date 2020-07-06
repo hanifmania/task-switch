@@ -69,7 +69,7 @@ class RigidBodyMotion(object):
         rospy.Subscriber(self.node_name + "/drainRate", Float32, self.float_callback, queue_size=1)
 
         # publisher
-        self.pose_pub = rospy.Publisher(self.node_name + "/pose", PoseStamped, queue_size=1)
+        self.pose_pub = rospy.Publisher(self.node_name + "/posestamped", PoseStamped, queue_size=1)
         self.velocity_pub = rospy.Publisher(self.node_name + "/velocity", Twist, queue_size=1)
         self.energy_pub = rospy.Publisher(self.node_name + "/energy", Float32, queue_size=1)
 

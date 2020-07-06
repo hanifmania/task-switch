@@ -13,6 +13,7 @@ Panels:
         - /Plotter2D2
         - /Marker1
         - /PointCloud21
+        - /Marker2
       Splitter Ratio: 0.461095095
     Tree Height: 775
   - Class: rviz/Selection
@@ -257,6 +258,14 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /visualization/agentSphere
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:

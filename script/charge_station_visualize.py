@@ -9,14 +9,11 @@ import dynamic_reconfigure.client
 
 class BebopMarker:
     def __init__(self):
-        rospy.init_node("pose2marker")
+        rospy.init_node("charge_station_visualize")
         agentID = rospy.get_param("~agentID",1)
-        self.basename = "agent" + str(agentID)
         # self.pubtopic = str(self.basename)+"/marker"
-        self.pubtopic = "/visualization/agentSphere"
+        self.pubtopic = "/visualization/chargeStation"
 
-        self.pcc_dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.pcc_config_callback)
-        self.collisionR = .5 # this will be overwritten by dycon
 
         self.red = rospy.get_param("~red", default=1)
         self.green = rospy.get_param("~green", default=0)

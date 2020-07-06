@@ -86,7 +86,8 @@ class CBFOptimizerROS(CBFOptimizer):
         self.activate_pnormcbf = False
         self.activate_chargeCBF = False
         self.activate_pccCBF = True
-        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF]):
+        self.activate_collisionCBF = True
+        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
             self.activate_cbf = False 
 
         self.pnormcbf_slack_weight = 1.0
@@ -103,7 +104,8 @@ class CBFOptimizerROS(CBFOptimizer):
         self.activate_pnormcbf = config.activate_pnormcbf
         self.activate_chargeCBF = config.activate_chargecbf
         self.activate_pccCBF = config.activate_pcccbf
-        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF]):
+        self.activate_collisionCBF = config.activate_collisioncbf
+        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
             self.activate_cbf = False 
 
         self.pnormcbf_slack_weight = config.pnormcbf_slack_weight
@@ -155,7 +157,7 @@ class coverageController():
 
 
         # subscriber to get own pose
-        rospy.Subscriber("pose", PoseStamped, self.poseStampedCallback, queue_size=1)
+        rospy.Subscriber("posestamped", PoseStamped, self.poseStampedCallback, queue_size=1)
         # subscriber to get own energy
         rospy.Subscriber("energy", Float32, self.energyCallback, queue_size=1)
         # subscriber to get field information density
@@ -198,6 +200,7 @@ class coverageController():
         self.energy = 0
         self.charging = False
         
+        self.collisionR = 0.5
 
 
         # pnorm setting
@@ -224,6 +227,7 @@ class coverageController():
 
     def pcc_update_config_params(self, config):
         self.controllerGain = config.controller_gain
+        self.collisionR = config.collisionR
         agent_R = config.agent_R
         agent_b_ = config.agent_b_
         delta_decrease = config.delta_decrease
@@ -327,10 +331,16 @@ class coverageController():
         pos = self.position[0:2]
         currentEnergy = self.energy
 
+        # extract x,y position from list of x,y,z position
+        allPos2d = np.delete(self.allPositions,2,axis=1)
+        # delete THIS agent position
+        neighborPosOnly = np.delete(allPos2d,self.agentID-1,axis=0)
+
         # calculate command for agent
         # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)
         # u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
         # u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
+
 
         
         u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
@@ -342,7 +352,7 @@ class coverageController():
         xi = [self.voronoi.getXi()]
         # dJdp = [0., 0., 0., 0., 0., 0.]
         # xi = [0.]
-        u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi)
+        u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 
         self.publishOptStatus(opt_status)
 
@@ -409,7 +419,7 @@ class coverageController():
 
     def spin(self):
         rospy.wait_for_message("/info", Float32MultiArray)
-        rospy.wait_for_message("pose", PoseStamped)
+        rospy.wait_for_message("posestamped", PoseStamped)
 
         self.pcc_set_config_params()
         self.charge_set_config_params()

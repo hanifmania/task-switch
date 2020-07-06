@@ -7,9 +7,13 @@
 
     <node pkg="task_switch" name="controller" type="pcc_multitask_controller.py" output='screen'>
       <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
-      <remap from="pose" to="virtualdrone/pose"/>
+      <remap from="posestamped" to="virtualdrone/posestamped"/>
       <remap from="energy" to="virtualdrone/energy"/>
       <remap from="drainRate" to="virtualdrone/drainRate"/>
+    </node>
+
+    <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
+      <remap from="posestamped" to="virtualdrone/posestamped"/>
     </node>
 
     <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->

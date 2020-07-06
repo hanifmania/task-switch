@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import math
+import copy
 import cv2 as cv
 from task_switch.se3_operations import *
 import matplotlib.pyplot as plt
@@ -77,11 +78,12 @@ class pnorm2dCBF(CBF):
 
 
 
-    def setPnormSetting(self,centPos,theta,norm,width,keepInside=True):
+    def setPnormSetting(self,centPos,theta,norm,width,keepInside=True,alpha=1):
         self.centPos = centPos
         self.theta = theta
         self.norm = norm
         self.width = width
+        self.alpha = alpha
         if keepInside:
             self.sign = 1.
         else:
@@ -174,14 +176,39 @@ class chargeCBF(CBF):
         self.calcConstraintValue(AgentPos,energy)
 
 
-# class Collision2dCBF(pnorm2dCBF):
+class collision2dCBF(pnorm2dCBF):
 
-#     def __init__(self):
-#         self.neighborPosOnly = np.array([[1.,1.],[-1.,-1.],[1.,-1.]])
-#         self.agent_R = .3
-#         self.G = [[0.] * 6] * self.neighborPosOnly.shape[0] # the number of neighbor * 6 matrix
-#         self.h = [[0.]] * self.neighborPosOnly.shape[0]
-#         self.alpha = 1
+    def __init__(self):
+        self.AgentPos = [0., 0., 0., 0., 0., 0.]
+        self.clearance = .3
+        self.G = [0.] * 6
+        self.h = [0.]
+        self.alpha = 1
+
+
+    def calcEachConstraint(self,eachNeighborPos):
+        centPos = eachNeighborPos
+        theta = 0.
+        norm = 2
+        width = [self.clearance, self.clearance]
+        self.setPnormSetting(centPos,theta,norm,width,False)
+        self.calcConstraint(self.AgentPos)
+        G, h = self.getConstraint()
+        A = copy.copy(G)
+        b = copy.copy(h)
+        return A,b
+
+    
+    def getNeighborPosOnlyList(self):
+        return self.neighborPosOnlyList
+    
+
+    def setNeighborPos(self,AgentPos,neighborPosOnly,clearance):
+        self.neighborPosOnlyList = neighborPosOnly.tolist()
+        self.AgentPos = AgentPos
+        self.clearance = clearance
+
+        
 
 
 if __name__ == '__main__':

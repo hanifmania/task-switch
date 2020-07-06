@@ -8,7 +8,7 @@ from task_switch.se3_operations import *
 
 from task_switch.cbf_slack_qp_solver import CBFSLACKQPSolver
 
-from task_switch.cbf import generalCBF,pnorm2dCBF,chargeCBF
+from task_switch.cbf import generalCBF,pnorm2dCBF,chargeCBF,collision2dCBF
 # from vfc_cbf_controller.fov_cbf import FoVCBF
 # from vfc_cbf_controller.collision_cbf import CollisionCBF
 # from vfc_cbf_controller.attitude_cbf import AttitudeCBF
@@ -35,15 +35,15 @@ class CBFOptimizer(object):
         
         self.activate_cbf = True
         self.activate_pnormcbf = False 
-        self.activate_chargeCBF = True
-        self.activate_pccCBF = True
-        self.activate_collisionCBF = False
+        self.activate_chargeCBF = False
+        self.activate_pccCBF = False
+        self.activate_collisionCBF = True
         self.pnormcbf_slack_weight = 1.0
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
 
         # input range constraint
-        self.activate_umax = True
+        self.activate_umax = False
 
         self.umax = 2.0
         self.umin = -2.0
@@ -58,7 +58,7 @@ class CBFOptimizer(object):
         self.pnormcbf = pnorm2dCBF()
         self.chargecbf = chargeCBF()
         self.pcccbf = generalCBF()
-        self.collisioncbf = pnorm2dCBF()
+        self.collisioncbf = collision2dCBF()
 
         # self.fov_cbf = FoVCBF(po)
         # self.collision_cbf = CollisionCBF()
@@ -236,10 +236,13 @@ class CBFOptimizer(object):
 
 
             if self.activate_collisionCBF == True:
-                G_list.extend(self.ColG_list)
-                h_list.extend(self.Colh_list)
-                slack_weight_list.extend(self.Colslack_weight_list)
-                slack_flag_list.extend(self.Colslack_flag_list)
+                neighborPosOnly = self.collisioncbf.getNeighborPosOnlyList()
+                for eachNeighborPos in neighborPosOnly:
+                    dhdp, h = self.collisioncbf.calcEachConstraint(eachNeighborPos)
+                    # treat as hard constraint
+                    weight = 0.
+                    G_list, h_list, slack_weight_list, slack_flag_list \
+                            = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
                 
 
                 # if len(self.g_adj_list) > 0:
@@ -287,31 +290,15 @@ class CBFOptimizer(object):
             # print m, self.Q
 
 
-    def optimize(self,u_nom, AgentPos, energy, dJdp, xi):
+    def optimize(self,u_nom, AgentPos, energy, dJdp, xi, neighborPosOnly, collisionR):
         if self.activate_cbf == True:
             self.calcChargeConstraint(AgentPos,energy)
             self.calcPnormConstraint(AgentPos)
             self.calcPccConstraint(dJdp,xi)
 
-            # 一番近いのだけ衝突判定すればよいのでは？
-            self.neighborPosOnly = np.array([[1.,1.],[3.5,-0.3],[1.,-1.]])
-            self.neighborPosOnlyList = self.neighborPosOnly.tolist()
-            ColG_list = []
-            Colh_list = []
-            Colslack_weight_list = []
-            Colslack_flag_list = []
-            for eachNeighborPos in self.neighborPosOnlyList:
-                G, h = self.calcNeighborCBF(AgentPos,eachNeighborPos)
-                weight = 0.
-                ColG_list, Colh_list, Colslack_weight_list, Colslack_flag_list \
-                        = self.listAppend(ColG_list, Colh_list, Colslack_weight_list, Colslack_flag_list, G, h, weight)
-            
-            print ColG_list
-            print Colh_list
-            self.ColG_list = ColG_list
-            self.Colh_list = Colh_list
-            self.Colslack_weight_list = Colslack_weight_list
-            self.Colslack_flag_list = Colslack_flag_list
+            clearance = collisionR*2
+            self.collisioncbf.setNeighborPos(AgentPos,neighborPosOnly,clearance)
+
             
 
             self.set_qp_problem()
@@ -321,18 +308,6 @@ class CBFOptimizer(object):
         else:
             return u_nom
 
-    def calcNeighborCBF(self,AgentPos,eachNeighborPos):
-        agent_R = .3*2
-        centPos = eachNeighborPos
-        theta = 0.
-        norm = 2
-        width = [agent_R, agent_R]
-        self.collisioncbf.setPnormSetting(centPos,theta,norm,width,False)
-        self.collisioncbf.calcConstraint(AgentPos)
-        G, h = self.collisioncbf.getConstraint()
-        A = copy.copy(G)
-        b = copy.copy(h)
-        return A,b
 
 if __name__ == '__main__':
     optimizer = CBFOptimizer()
