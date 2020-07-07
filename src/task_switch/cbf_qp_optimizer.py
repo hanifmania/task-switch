@@ -21,7 +21,6 @@ class CBFOptimizer(object):
         
         self.slack_qp_solver = CBFSLACKQPSolver()
 
-        # self.set_optimize_weights([1.0, 1.0, 1.0, 50.0, 1.0, 1.0])
         self.input_weight_matrix = self.get_weight_matrix([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
         self.u_nominal = np.zeros((6,1))
@@ -29,8 +28,6 @@ class CBFOptimizer(object):
         self.G_list = []
         self.h_list = []
 
-        self.NeighborPos = [] # will be AgentNum-1 x 2 matrix
-        # print self.neighborPosOnlyList[0]
     
         
         self.activate_cbf = True
@@ -49,9 +46,6 @@ class CBFOptimizer(object):
         self.umin = -2.0
 
         
-        # self.activate_fov = False
-        # self.activate_ca = False
-        # self.activate_aa = False
 
 
         # CBF instances
@@ -60,9 +54,6 @@ class CBFOptimizer(object):
         self.pcccbf = generalCBF()
         self.collisioncbf = collision2dCBF()
 
-        # self.fov_cbf = FoVCBF(po)
-        # self.collision_cbf = CollisionCBF()
-        # self.attitude_cbf = AttitudeCBF()
 
 
         # field initialize (must be overwritten)
