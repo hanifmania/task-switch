@@ -295,10 +295,11 @@ class CBFOptimizer(object):
             self.set_qp_problem()
             # u_optimal is optimized input, delta is slack variables value for soft constraints
             self.u_optimal, self.delta, self.status = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
-            return self.u_optimal, self.status
         else:
-            return u_nom
+            self.status = "no optimization"
+            self.u_optimal = u_nom
 
+        return self.u_optimal, self.status
 
 if __name__ == '__main__':
     optimizer = CBFOptimizer()

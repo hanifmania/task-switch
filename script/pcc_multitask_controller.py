@@ -446,6 +446,7 @@ class coverageController():
         # calculate command for agent
 
         pos = self.position[0:2]
+        AgentPos = [pos[0], pos[1], 0., 0., 0., 0.]
         currentEnergy = self.energy
 
         # extract x,y position from list of x,y,z position
@@ -459,18 +460,14 @@ class coverageController():
         # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)
         # u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
         # u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
-
-
-        
-        u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
-        AgentPos = [pos[0], pos[1], 0., 0., 0., 0.]
-
-        dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
-
-        dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
-        xi = [self.voronoi.getXi()]
         # dJdp = [0., 0., 0., 0., 0., 0.]
         # xi = [0.]
+
+        u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
+        dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
+        dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
+        xi = [self.voronoi.getXi()]
+
         u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 
         return u[0], u[1], opt_status
@@ -500,7 +497,7 @@ class coverageController():
             if lastChargeState == False:
                 rospy.loginfo("start charge")
         else:
-            drainRate = Kd
+            drainRate = Kd*self.optimizer.activate_chargeCBF
             if lastChargeState == True:
                 rospy.loginfo("end charge")
 
@@ -532,7 +529,7 @@ class coverageController():
                 # calculate voronoi region
                 self.calcVoronoiRegion()
                 # calculate voronoi region and input velocity
-                if self.charging:
+                if self.charging and self.optimizer.activate_chargeCBF:
                     twist.linear.x = 0.
                     twist.linear.y = 0.
                 else:
