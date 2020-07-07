@@ -43,6 +43,7 @@ class Field(Field):
 
 
 class Collector():
+    # collect each agent's sensing region and coverage performance(JintSPlusb)
 
     def __init__(self,agentName,mesh_acc):
         subTopicRegion = agentName + "/region"
@@ -56,7 +57,7 @@ class Collector():
         self.ready = False
 
     def int8MultiArrayCallback(self,msg_data):
-        if self.ready == False:
+        if self.ready == False:# wait for message, can be replace by wait_for_message?
             self.ready = True
         else:
             # msg_data is region data, which is vectorized.
@@ -92,7 +93,7 @@ class central():
 
         
         self.Collectors = []
-        # create [Agent's number] subscriber 
+        # createsubscriber x[Agent's number]
         for agentID in range(self.agentNum):
             agentName = "bebop10" + str(agentID+1)
             rospy.loginfo(agentName)
@@ -102,9 +103,10 @@ class central():
         # publisher for information density
         self.pub_info = rospy.Publisher('/info', Float32MultiArray, queue_size=1)
 
+        # publisher for coverage performance
         self.pub_J = rospy.Publisher('/J', Float32, queue_size=1)
+        # publisher for target coverage performance
         self.pub_targetJ = rospy.Publisher('/targetJ', Float32, queue_size=1)
-        # information density initialize
 
         # node freq
         self.clock = rospy.get_param("~clock",100)
@@ -121,7 +123,6 @@ class central():
         
         self.previousInfoUpdateTime = rospy.Time.now().to_sec()
 
-
         
         rospy.loginfo("starting central node")
 
@@ -130,6 +131,11 @@ class central():
         self.field.setb(self.b)
         
 
+    ###################################################################
+    ### dycon update functions 
+    ###################################################################
+
+    ############## PCC dycon ##########################################
     def pcc_update_config_params(self, config):
         self.delta_decrease = config.delta_decrease
         self.delta_increase = config.delta_increase
@@ -145,8 +151,9 @@ class central():
         self.pcc_update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure Pcc Params Update in central")
 
+    ############## cbf dycon ##########################################
     def cbf_update_config_params(self, config):
-        self.publishTarget(config.gamma)
+        self.publishTargetJ(config.gamma)
 
     def cbf_set_config_params(self):
         config = self.cbf_dycon_client.get_configuration()
@@ -157,23 +164,16 @@ class central():
         self.cbf_update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure CBF Params Update in central")
 
-    def publishTarget(self,gamma):
+
+    ###################################################################
+    ### publisher functions 
+    ###################################################################
+
+    def publishTargetJ(self,gamma):
         self.pub_targetJ.publish(Float32(data=gamma))
 
-    def infoUpdate(self,Z,region):
-        # information reliability update
-
-        # delta_decrease = 0.01
-        # delta_increase = 0.0001
-        currentTime = rospy.Time.now().to_sec()
-        dt = currentTime - self.previousInfoUpdateTime
-        self.previousInfoUpdateTime = currentTime
-
-        Z = Z-self.delta_decrease*dt*region
-        Z = np.where(Z<0.01,0.01,Z) 
-        Z = Z + self.delta_increase*(1-Z)*dt*~region
-        Z = np.where(Z>1.,1.,Z) 
-        return Z
+    def publishJ(self,J):
+        self.pub_J.publish(Float32(data=J))
 
     def publishInfo(self,info):
         # publish information density
@@ -194,6 +194,20 @@ class central():
         # publish
         self.pub_info.publish(info_for_pub) 
         
+    def infoUpdate(self,Z,region):
+        # information reliability update
+
+        # delta_decrease = 0.01
+        # delta_increase = 0.0001
+        currentTime = rospy.Time.now().to_sec()
+        dt = currentTime - self.previousInfoUpdateTime
+        self.previousInfoUpdateTime = currentTime
+
+        Z = Z-self.delta_decrease*dt*region
+        Z = np.where(Z<0.01,0.01,Z) 
+        Z = Z + self.delta_increase*(1-Z)*dt*~region
+        Z = np.where(Z>1.,1.,Z) 
+        return Z
 
 
     def spin(self):
@@ -222,8 +236,10 @@ class central():
 
             # get current field information density
             phi = self.field.getPhi()
+
+            # publish current coverage performance
             J = - JintSPlusb_all + self.field.getJintQ()
-            self.pub_J.publish(Float32(data=J))
+            self.publishJ(J)
 
             # if any collector does not get region message from agent, 
             # do not update field density
