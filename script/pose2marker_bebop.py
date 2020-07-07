@@ -11,15 +11,15 @@ class BebopMarker:
         rospy.init_node("pose2marker")
         self.basename = rospy.get_param("~markername")
         # self.pubtopic = str(self.basename)+"/marker"
-        # self.pubtopic = "/visualization/bebop2"
-        self.pubtopic = "/visualization/" + str(self.basename)
+        self.pubtopic = "/visualization/bebop2"
+        # self.pubtopic = "/visualization/" + str(self.basename)
         self.markerpub = rospy.Publisher(self.pubtopic, Marker, queue_size=10)
         self.posestampedsub = rospy.Subscriber("posestamped", PoseStamped, self.poseCallback)
 
-        self.red = rospy.get_param("~red", default=0)
-        self.green = rospy.get_param("~green", default=0)
-        self.blue = rospy.get_param("~blue", default=0)
-        self.alpha = rospy.get_param("~alpha", default=0)
+        self.red = rospy.get_param("~red", default=.5)
+        self.green = rospy.get_param("~green", default=.5)
+        self.blue = rospy.get_param("~blue", default=.5)
+        self.alpha = rospy.get_param("~alpha", default=1)
         
         self.marker = Marker()
         self.marker.ns = str(self.basename)
@@ -46,7 +46,8 @@ class BebopMarker:
         self.marker.lifetime = rospy.Duration()
         self.marker.type = Marker.MESH_RESOURCE
         self.marker.mesh_use_embedded_materials = True
-        self.marker.mesh_resource = "package://task_switch/meshes/bebop2.dae"
+        # self.marker.mesh_use_embedded_materials = False
+        self.marker.mesh_resource = "package://rotors_description/meshes/bebop2.dae"
 
 
     def poseCallback(self, msg):

@@ -15,6 +15,9 @@
     <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
       <remap from="posestamped" to="virtualdrone/posestamped"/>
     </node>
+    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+      <remap from="posestamped" to="virtualdrone/posestamped"/>
+    </node>
     <node pkg="task_switch" name="charge_station_visualize" type="charge_station_visualize.py">
     </node>
 

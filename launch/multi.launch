@@ -25,6 +25,7 @@
     <!-- Run simulation -->
     <group ns="bebop101">
       <arg name="number" default="1"/>
+      <param name="~markername" value="$(arg number)"/>
       <param name="~agentID" value="$(arg number)"/>
       <param name="~initial_pose/x" value="1.0"/>
       <param name="~charge_station/x" value="0.0"/>
@@ -37,6 +38,7 @@
 
     <group ns="bebop102">
       <arg name="number" default="2"/>
+      <param name="~markername" value="$(arg number)"/>
       <param name="~agentID" value="$(arg number)"/>
       <param name="~initial_pose/x" value="-1.8"/>
       <param name="~initial_pose/y" value="-1.8"/>
@@ -50,6 +52,7 @@
 
     <group ns="bebop103">
       <arg name="number" default="3"/>
+      <param name="~markername" value="$(arg number)"/>
       <param name="~agentID" value="$(arg number)"/>
       <param name="~initial_pose/x" value="1.8"/>
       <param name="~initial_pose/y" value="-1.8"/>
