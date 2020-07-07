@@ -34,11 +34,11 @@ class CBFOptimizer(object):
     
         
         self.activate_cbf = True
-        self.activate_pnormcbf = False 
+        self.activate_fieldcbf = False 
         self.activate_chargeCBF = False
         self.activate_pccCBF = False
         self.activate_collisionCBF = True
-        self.pnormcbf_slack_weight = 1.0
+        self.fieldcbf_slack_weight = 1.0
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
 
@@ -55,7 +55,7 @@ class CBFOptimizer(object):
 
 
         # CBF instances
-        self.pnormcbf = pnorm2dCBF()
+        self.fieldcbf = pnorm2dCBF()
         self.chargecbf = chargeCBF()
         self.pcccbf = generalCBF()
         self.collisioncbf = collision2dCBF()
@@ -65,13 +65,13 @@ class CBFOptimizer(object):
         # self.attitude_cbf = AttitudeCBF()
 
 
-        # pnorm initialize (must be overwritten)
+        # field initialize (must be overwritten)
         centPos = [0.0,0.0]
         theta = 0
         norm = 2
-        width = [.5,.5]
-        keepInside = False
-        self.setPnormArea(centPos,theta,norm,width,keepInside)
+        width = [1.,1.0]
+        keepInside = True
+        self.setFieldArea(centPos,theta,norm,width,keepInside)
 
         # energy initialize (must be overwritten)
         minEnergy = 1500
@@ -82,7 +82,7 @@ class CBFOptimizer(object):
         self.setChargeStation(chargePos,radiusCharge)
         self.setChargeSettings(minEnergy,Kd,k_charge)
 
-    def setPnormArea(self,centPos,theta,norm,width,keepInside):
+    def setFieldArea(self,centPos,theta,norm,width,keepInside):
         """
         Args: 
             <CentPos>:center of ellipsoid (list, 1x2)
@@ -98,16 +98,16 @@ class CBFOptimizer(object):
         self.width = width
         self.keepInside = keepInside
 
-    def getPnormArea(self):
+    def getFieldArea(self):
         return self.centPos, self.theta, self.norm, self.width, self.keepInside
 
-    def calcPnormConstraint(self,AgentPos):
-        centPos,theta,norm,width,keepInside = self.getPnormArea()
-        self.pnormcbf.setPnormSetting(centPos,theta,norm,width,keepInside)
-        self.pnormcbf.calcConstraint(AgentPos)
+    def calcFieldConstraint(self,AgentPos):
+        centPos,theta,norm,width,keepInside = self.getFieldArea()
+        self.fieldcbf.setPnormSetting(centPos,theta,norm,width,keepInside)
+        self.fieldcbf.calcConstraint(AgentPos)
 
-    def getPnormConstraint(self):
-        G, h = self.pnormcbf.getConstraint()
+    def getFieldConstraint(self):
+        G, h = self.fieldcbf.getConstraint()
         return G, h
 
 
@@ -213,7 +213,7 @@ class CBFOptimizer(object):
 
         if self.activate_cbf == True:
 
-            if self.activate_pnormcbf == True:
+            if self.activate_fieldcbf == True:
                 """
                 Args: 
                     <CentPos>:center of ellipsoid (list, 1x2)
@@ -223,8 +223,8 @@ class CBFOptimizer(object):
                     <AgentPos>:position of agent (list, 1x6)
                     <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering Inside of ellipsoid
                 """
-                dhdp, h = self.getPnormConstraint()
-                weight = self.pnormcbf_slack_weight
+                dhdp, h = self.getFieldConstraint()
+                weight = self.fieldcbf_slack_weight
                 G_list, h_list, slack_weight_list, slack_flag_list \
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
@@ -293,7 +293,7 @@ class CBFOptimizer(object):
     def optimize(self,u_nom, AgentPos, energy, dJdp, xi, neighborPosOnly, collisionR):
         if self.activate_cbf == True:
             self.calcChargeConstraint(AgentPos,energy)
-            self.calcPnormConstraint(AgentPos)
+            self.calcFieldConstraint(AgentPos)
             self.calcPccConstraint(dJdp,xi)
 
             clearance = collisionR*2
@@ -315,10 +315,10 @@ if __name__ == '__main__':
     # pnorm set 
     centPos = [0.0,0.0]
     theta = 0
-    norm = 2
+    norm = 2.
     width = [.5,.5]
     keepInside = True
-    optimizer.setPnormArea(centPos,theta,norm,width,keepInside)
+    optimizer.setFieldArea(centPos,theta,norm,width,keepInside)
 
     # energy station set
     minEnergy = 1500
@@ -330,11 +330,14 @@ if __name__ == '__main__':
     optimizer.setChargeSettings(minEnergy,Kd,k_charge)
 
     u_nom = np.array([0., 0., 0. ,0., 0., 0.]).reshape(-1,1)
-    AgentPos = [3., 0., 0., 0., 0., 0.]
+    AgentPos = [-1.72, 2.14, 0., 0., 0., 0.]
     energy = 1000
     dJdp = [0.] * 6
     xi = [0.]
 
-    print optimizer.optimize(u_nom, AgentPos, energy, dJdp, xi)
+    neighborPosOnly = np.array([[-1.83, -2.16],[2.56, 0.55]])
+    collisionR = .5
+    
+    print optimizer.optimize(u_nom, AgentPos, energy, dJdp, xi, neighborPosOnly, collisionR)
     
 

@@ -64,10 +64,12 @@ class VoronoiCalc(Voronoi):
         self.R = R
         self.b = -(R**2)-b_
 
-    def update_fieldParam(self, delta_decrease, delta_increase, k, gamma):
+    def update_fieldParam(self, delta_decrease, delta_increase, k):
         self.delta_decrease = delta_decrease
         self.delta_increase = delta_increase
         self.k = k
+
+    def update_CoverageGoal(self,gamma):
         self.gamma = gamma
 
     def getJintSPlusb(self):
@@ -83,14 +85,14 @@ class CBFOptimizerROS(CBFOptimizer):
     def __init__(self):
         super(CBFOptimizerROS,self).__init__()
         self.activate_cbf = True
-        self.activate_pnormcbf = False
+        self.activate_fieldcbf = False
         self.activate_chargeCBF = False
         self.activate_pccCBF = True
         self.activate_collisionCBF = True
-        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
+        if not any([self.activate_fieldcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
             self.activate_cbf = False 
 
-        self.pnormcbf_slack_weight = 1.0
+        self.fieldcbf_slack_weight = 1.0
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
 
@@ -99,16 +101,19 @@ class CBFOptimizerROS(CBFOptimizer):
         self.umax = 2.0
         self.umin = -self.umax 
 
+
+
+
     def updateCbfConfig(self,config):
         self.activate_cbf = config.activate_cbf
-        self.activate_pnormcbf = config.activate_pnormcbf
+        self.activate_fieldcbf = config.activate_fieldcbf
         self.activate_chargeCBF = config.activate_chargecbf
         self.activate_pccCBF = config.activate_pcccbf
         self.activate_collisionCBF = config.activate_collisioncbf
-        if not any([self.activate_pnormcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
+        if not any([self.activate_fieldcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
             self.activate_cbf = False 
 
-        self.pnormcbf_slack_weight = config.pnormcbf_slack_weight
+        self.fieldcbf_slack_weight = config.fieldcbf_slack_weight
         self.chargecbf_slack_weight = config.chargecbf_slack_weight
         self.pcccbf_slack_weight = config.pcccbf_slack_weight
 
@@ -116,11 +121,57 @@ class CBFOptimizerROS(CBFOptimizer):
 
     # def optimize(self,u_nom, AgentPos, energy):
     #     self.calcChargeConstraint(AgentPos,energy)
-    #     self.calcPnormConstraint(AgentPos)
+    #     self.calcFieldConstraint(AgentPos)
     #     self.set_qp_problem()
     #     # u_optimal is optimized input, delta is slack variables value for soft constraints
     #     self.u_optimal, self.delta = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.H)
     #     return self.u_optimal
+
+# class CBFVisualizer(object):
+#     def __init__(self,agentID):
+#         self.basename = "agent" + str(agentID)
+#         # self.pubtopic = str(self.basename)+"/marker"
+#         self.collisioncbf_pubtopic = "/visualization/agentSphere"
+
+
+#         self.red = rospy.get_param("~red", default=1)
+#         self.green = rospy.get_param("~green", default=0)
+#         self.blue = rospy.get_param("~blue", default=0)
+#         self.alpha = rospy.get_param("~alpha", default=.5)
+        
+#         self.marker = Marker()
+#         self.marker.ns = str(self.basename)
+#         self.marker.id = 0
+#         self.marker.color.r = self.red
+#         self.marker.color.g = self.green
+#         self.marker.color.b = self.blue
+#         self.marker.color.a = self.alpha
+
+
+#         self.markerpub = rospy.Publisher(self.pubtopic, Marker, queue_size=10)
+
+
+
+#     def setCollisionMarker(self, pose_msg, collisionR):
+        
+#         self.marker.header.frame_id = "/world"
+#         self.marker.header.stamp = rospy.Time.now()
+
+#         self.marker.action = Marker.ADD
+
+#         self.marker.pose = pose_msg.pose
+
+
+#         self.marker.scale.x = collisionR*2
+#         self.marker.scale.y = collisionR*2
+#         self.marker.scale.z = collisionR*2
+
+#         self.marker.lifetime = rospy.Duration()
+#         self.marker.type = Marker.SPHERE
+
+#     def publishCollisionCBF(self):
+#         self.markerpub.publish(self.marker)
+
 
 
 class coverageController():
@@ -203,13 +254,13 @@ class coverageController():
         self.collisionR = 0.5
 
 
-        # pnorm setting
-        centPos = [0.0,0.0]
+        # field setting
+        centPos = [sum(xlimit)/len(xlimit),sum(ylimit)/len(ylimit)]
         theta = 0
-        norm = 2
-        width = [.8,.8]
-        keepInside = False
-        self.optimizer.setPnormArea(centPos,theta,norm,width,keepInside)
+        norm = 6
+        width = [(xlimit[1]-xlimit[0])/2,(ylimit[1]-ylimit[0])/2]
+        keepInside = True
+        self.optimizer.setFieldArea(centPos,theta,norm,width,keepInside)
 
         
         chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
@@ -233,10 +284,9 @@ class coverageController():
         delta_decrease = config.delta_decrease
         delta_increase = config.delta_increase
         k = config.pcc_CBF_h_gain_k
-        gamma = config.gamma
 
         self.voronoi.update_agentParam(agent_R,agent_b_)
-        self.voronoi.update_fieldParam(delta_decrease,delta_increase,k,gamma)
+        self.voronoi.update_fieldParam(delta_decrease,delta_increase,k)
 
 
     def pcc_set_config_params(self):
@@ -263,6 +313,7 @@ class coverageController():
 
     def cbf_update_config_params(self, config):
         self.optimizer.updateCbfConfig(config)
+        self.voronoi.update_CoverageGoal(config.gamma)
 
     def cbf_set_config_params(self):
         config = self.cbf_dycon_client.get_configuration()
@@ -335,6 +386,11 @@ class coverageController():
         allPos2d = np.delete(self.allPositions,2,axis=1)
         # delete THIS agent position
         neighborPosOnly = np.delete(allPos2d,self.agentID-1,axis=0)
+
+        
+        # if self.agentID == 1:
+        #     rospy.loginfo(pos)
+        #     rospy.loginfo(neighborPosOnly)
 
         # calculate command for agent
         # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)

@@ -107,7 +107,6 @@ class pnorm2dCBF(CBF):
         base1 = (-(x-xc)*math.sin(theta)+(y-yc)*math.cos(theta))/yw
         base = [base0,base1]
         return base
-        
    
     def calcConstraintMatrix(self,AgentPos):
         # to improve readability
@@ -189,7 +188,7 @@ class collision2dCBF(pnorm2dCBF):
     def calcEachConstraint(self,eachNeighborPos):
         centPos = eachNeighborPos
         theta = 0.
-        norm = 2
+        norm = 2.
         width = [self.clearance, self.clearance]
         self.setPnormSetting(centPos,theta,norm,width,False)
         self.calcConstraint(self.AgentPos)

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <param name="/agentNum" value="2"/>
+    <param name="/agentNum" value="3"/>
+
     <param name="/x_min" value="-2.0"/>
     <param name="/x_max" value="2.0"/>
     <param name="/y_min" value="-2.0"/>
@@ -41,6 +42,19 @@
       <param name="~initial_pose/y" value="-1.8"/>
       <param name="~charge_station/x" value="0.0"/>
       <param name="~charge_station/y" value="-1.5"/>
+      <param name="~charge_station/r" value="0.2"/>
+      <param name="~initialEnergy" value="4000"/>
+      <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
+      <include file="$(find task_switch)/launch/one.launch"/>
+    </group>
+
+    <group ns="bebop103">
+      <arg name="number" default="3"/>
+      <param name="~agentID" value="$(arg number)"/>
+      <param name="~initial_pose/x" value="1.8"/>
+      <param name="~initial_pose/y" value="-1.8"/>
+      <param name="~charge_station/x" value="1.5"/>
+      <param name="~charge_station/y" value="-0.0"/>
       <param name="~charge_station/r" value="0.2"/>
       <param name="~initialEnergy" value="4000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->

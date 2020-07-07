@@ -116,7 +116,8 @@ class central():
         self.b = 1
 
         #dynamic_reconfigure
-        self.dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.config_callback)
+        self.pcc_dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.pcc_config_callback)
+        self.cbf_dycon_client = dynamic_reconfigure.client.Client("/cbf_parameter", timeout=2, config_callback=self.cbf_config_callback)
         
         self.previousInfoUpdateTime = rospy.Time.now().to_sec()
 
@@ -129,22 +130,32 @@ class central():
         self.field.setb(self.b)
         
 
-    def _update_config_params(self, config):
+    def pcc_update_config_params(self, config):
         self.delta_decrease = config.delta_decrease
         self.delta_increase = config.delta_increase
-        gamma = config.gamma
         self.update_param(config.agent_R,config.agent_b_)
-        self.publishTarget(gamma)
 
 
-    def set_config_params(self):
-        config = self.dycon_client.get_configuration()
-        self._update_config_params(config)
+    def pcc_set_config_params(self):
+        config = self.pcc_dycon_client.get_configuration()
+        self.pcc_update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure Pcc Params SET in central")
 
-    def config_callback(self,config):
-        self._update_config_params(config)
+    def pcc_config_callback(self,config):
+        self.pcc_update_config_params(config)
         rospy.loginfo("Dynamic Reconfigure Pcc Params Update in central")
+
+    def cbf_update_config_params(self, config):
+        self.publishTarget(config.gamma)
+
+    def cbf_set_config_params(self):
+        config = self.cbf_dycon_client.get_configuration()
+        self.cbf_update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure CBF Params SET in central")
+
+    def cbf_config_callback(self,config):
+        self.cbf_update_config_params(config)
+        rospy.loginfo("Dynamic Reconfigure CBF Params Update in central")
 
     def publishTarget(self,gamma):
         self.pub_targetJ.publish(Float32(data=gamma))
@@ -188,7 +199,8 @@ class central():
     def spin(self):
         # check sampling time
 
-        self.set_config_params()
+        self.pcc_set_config_params()
+        self.cbf_set_config_params()
 
 
         while not rospy.is_shutdown():

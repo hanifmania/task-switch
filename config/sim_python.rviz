@@ -6,14 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /OverlayImage1
-        - /PieChart1
-        - /PieChart2
-        - /Plotter2D1
-        - /Plotter2D2
-        - /Marker1
-        - /PointCloud21
-        - /Marker2
       Splitter Ratio: 0.461095095
     Tree Height: 775
   - Class: rviz/Selection
@@ -67,6 +59,8 @@ Visualization Manager:
           Value: true
         bebop102/virtualdrone:
           Value: true
+        bebop103/virtualdrone:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -80,21 +74,10 @@ Visualization Manager:
             {}
           bebop102/virtualdrone:
             {}
+          bebop103/virtualdrone:
+            {}
       Update Interval: 0
       Value: true
-    - Class: jsk_rviz_plugin/OverlayImage
-      Enabled: false
-      Name: OverlayImage
-      Topic: /plotimage
-      Value: false
-      alpha: 0.800000012
-      height: 360
-      keep aspect ratio: false
-      left: 30
-      overwrite alpha value: false
-      top: 30
-      transport hint: raw
-      width: 480
     - Class: jsk_rviz_plugin/PieChart
       Enabled: true
       Name: PieChart
@@ -106,7 +89,7 @@ Visualization Manager:
       foreground alpha: 0.699999988
       foreground alpha 2: 0.400000006
       foreground color: 255; 0; 0
-      left: 128
+      left: 50
       max color: 0; 0; 255
       max value: 4000
       min value: 1000
@@ -125,7 +108,26 @@ Visualization Manager:
       foreground alpha: 0.699999988
       foreground alpha 2: 0.400000006
       foreground color: 255; 0; 0
-      left: 300
+      left: 200
+      max color: 0; 0; 255
+      max value: 4000
+      min value: 1000
+      show caption: true
+      size: 128
+      text size: 14
+      top: 100
+    - Class: jsk_rviz_plugin/PieChart
+      Enabled: true
+      Name: PieChart
+      Topic: /bebop103/virtualdrone/energy
+      Value: true
+      auto color change: true
+      background color: 0; 0; 0
+      backround alpha: 0
+      foreground alpha: 0.699999988
+      foreground alpha 2: 0.400000006
+      foreground color: 255; 0; 0
+      left: 350
       max color: 0; 0; 255
       max value: 4000
       min value: 1000
@@ -184,13 +186,15 @@ Visualization Manager:
       update interval: 0.0399999991
       width: 128
     - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /field_visualization
+      Enabled: true
+      Marker Topic: /visualization/chargeStation
       Name: Marker
       Namespaces:
-        {}
+        charge_station1: true
+        charge_station2: true
+        charge_station3: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Align Bottom: false
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
@@ -229,6 +233,25 @@ Visualization Manager:
       text size: 12
       top: 30
       width: 400
+    - Align Bottom: false
+      Background Alpha: 0.800000012
+      Background Color: 0; 0; 0
+      Class: jsk_rviz_plugin/OverlayText
+      Enabled: true
+      Foreground Alpha: 0.800000012
+      Foreground Color: 25; 255; 240
+      Name: OverlayText
+      Overtake Color Properties: false
+      Overtake Position Properties: true
+      Topic: /bebop103/optStatus
+      Value: true
+      font: Liberation Mono
+      height: 20
+      left: 10
+      line width: 2
+      text size: 12
+      top: 50
+      width: 400
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
@@ -264,7 +287,9 @@ Visualization Manager:
       Marker Topic: /visualization/agentSphere
       Name: Marker
       Namespaces:
-        {}
+        agent1: true
+        agent2: true
+        agent3: true
       Queue Size: 100
       Value: true
   Enabled: true
