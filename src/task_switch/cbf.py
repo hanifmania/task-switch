@@ -89,6 +89,14 @@ class pnorm2dCBF(CBF):
         else:
             self.sign = -1.
 
+    def getPnormSetting(self):
+        if self.sign > 0:
+            keepInside = True
+        else:
+            keepInside = False
+
+        return self.centPos, self.theta, self.norm, self.width, keepInside 
+
 
     def getCommonValue(self,AgentPos):
         # calculate p-exponential's base

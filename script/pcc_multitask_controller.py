@@ -455,7 +455,7 @@ class coverageController():
         neighborPosOnly = np.delete(allPos2d,self.agentID-1,axis=0)
 
         
-
+        # normal persistent coverage
         # calculate command for agent
         # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)
         # u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
@@ -463,6 +463,7 @@ class coverageController():
         # dJdp = [0., 0., 0., 0., 0., 0.]
         # xi = [0.]
 
+        # cbf persistent coverage
         u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
         dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
         dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
@@ -525,7 +526,6 @@ class coverageController():
         while not rospy.is_shutdown():
             if self.checkNeighborStart:# wait for all neighbor start
 
-                drainRate = self.judgeCharge()
                 # calculate voronoi region
                 self.calcVoronoiRegion()
                 # calculate voronoi region and input velocity
@@ -540,6 +540,7 @@ class coverageController():
 
 
                 # publish drain rate
+                drainRate = self.judgeCharge()
                 self.publishDrainRate(drainRate)
 
                 # publish optimization status

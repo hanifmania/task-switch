@@ -83,14 +83,11 @@ class CBFOptimizer(object):
             <AgentPos>:position of agent (list, 1x6)
             <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
         """
-        self.centPos = centPos
-        self.theta = theta
-        self.norm = norm
-        self.width = width
-        self.keepInside = keepInside
+        self.fieldcbf.setPnormSetting(centPos,theta,norm,width,keepInside)
 
     def getFieldArea(self):
-        return self.centPos, self.theta, self.norm, self.width, self.keepInside
+        centPos,theta,norm,width,keepInside = self.fieldcbf.getPnormSetting()
+        return centPos, theta, norm, width, keepInside
 
     def calcFieldConstraint(self,AgentPos):
         centPos,theta,norm,width,keepInside = self.getFieldArea()
@@ -256,7 +253,7 @@ class CBFOptimizer(object):
 
                 G_list.extend(G)
                 h_list.extend(h)
-
+                
                 # treat as hard constraint
                 slack_weight_list.extend([1.]*len(h))
                 slack_flag_list.extend([0.]*len(h))
