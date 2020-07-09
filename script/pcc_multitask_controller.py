@@ -90,11 +90,12 @@ class CBFOptimizerROS(CBFOptimizer):
         # cbf activations, these will be overwritten by dycon 
         self.activate_cbf = True
         self.activate_fieldcbf = False
-        self.activate_chargeCBF = False
-        self.activate_pccCBF = True
-        self.activate_collisionCBF = True
+        self.activate_chargecbf = False
+        self.activate_pcccbf = True
+        self.activate_staycbf = False
+        self.activate_collisioncbf = True
         # if any cbf are not activated, set active_cbf False
-        if not any([self.activate_fieldcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
+        if not any([self.activate_fieldcbf,self.activate_chargecbf,self.activate_pcccbf,self.activate_collisioncbf]):
             self.activate_cbf = False 
 
         
@@ -102,6 +103,7 @@ class CBFOptimizerROS(CBFOptimizer):
         self.fieldcbf_slack_weight = 1.0
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
+        self.staycbf_slack_weight = 1.0
 
         # input range constraint, these will be overwritten by dycon
         self.activate_umax = True
@@ -115,17 +117,19 @@ class CBFOptimizerROS(CBFOptimizer):
         # update cbf activations status
         self.activate_cbf = config.activate_cbf
         self.activate_fieldcbf = config.activate_fieldcbf
-        self.activate_chargeCBF = config.activate_chargecbf
-        self.activate_pccCBF = config.activate_pcccbf
-        self.activate_collisionCBF = config.activate_collisioncbf
+        self.activate_chargecbf = config.activate_chargecbf
+        self.activate_pcccbf = config.activate_pcccbf
+        self.activate_staycbf = config.activate_staycbf
+        self.activate_collisioncbf = config.activate_collisioncbf
         # if any cbf are not activated, set active_cbf False
-        if not any([self.activate_fieldcbf,self.activate_chargeCBF,self.activate_pccCBF,self.activate_collisionCBF]):
+        if not any([self.activate_fieldcbf,self.activate_chargecbf,self.activate_pcccbf,self.activate_collisioncbf,self.activate_staycbf]):
             self.activate_cbf = False 
 
         # update cbf slack weight
         self.fieldcbf_slack_weight = config.fieldcbf_slack_weight
         self.chargecbf_slack_weight = config.chargecbf_slack_weight
         self.pcccbf_slack_weight = config.pcccbf_slack_weight
+        self.staycbf_slack_weight = config.staycbf_slack_weight
 
         # update input range constraint
         self.updateInputRange(config.activate_umax,config.umax,-config.umax)
@@ -498,14 +502,26 @@ class coverageController():
             if lastChargeState == False:
                 rospy.loginfo("start charge")
         else:
-            drainRate = Kd*self.optimizer.activate_chargeCBF
+            drainRate = Kd*self.optimizer.activate_chargecbf
             if lastChargeState == True:
                 rospy.loginfo("end charge")
 
         return drainRate
 
             
+    ###################################################################
+    ### for the object detection, set detected object position
+    ###################################################################
+    def setObjectPosition(self):
+        objectPos = [0.0]
 
+        centPos = objectPos
+        theta = 0
+        norm = 2.
+        width = [.5,.5]
+        keepInside = True
+        self.optimizer.setStayArea(centPos,theta,norm,width,keepInside)
+        
     
     
     ###################################################################
@@ -529,7 +545,7 @@ class coverageController():
                 # calculate voronoi region
                 self.calcVoronoiRegion()
                 # calculate voronoi region and input velocity
-                if self.charging and self.optimizer.activate_chargeCBF:
+                if self.charging and self.optimizer.activate_chargecbf:
                     twist.linear.x = 0.
                     twist.linear.y = 0.
                 else:

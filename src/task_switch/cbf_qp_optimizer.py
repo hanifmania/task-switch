@@ -32,12 +32,14 @@ class CBFOptimizer(object):
         
         self.activate_cbf = True
         self.activate_fieldcbf = False 
-        self.activate_chargeCBF = False
-        self.activate_pccCBF = False
-        self.activate_collisionCBF = True
+        self.activate_chargecbf = False
+        self.activate_pcccbf = False
+        self.activate_staycbf = True
+        self.activate_collisioncbf = True
         self.fieldcbf_slack_weight = 1.0
         self.chargecbf_slack_weight = 1.0
         self.pcccbf_slack_weight = 1.0
+        self.staycbf_slack_weight = 1.0
 
         # input range constraint
         self.activate_umax = False
@@ -52,6 +54,7 @@ class CBFOptimizer(object):
         self.fieldcbf = pnorm2dCBF()
         self.chargecbf = chargeCBF()
         self.pcccbf = generalCBF()
+        self.staycbf = pnorm2dCBF()
         self.collisioncbf = collision2dCBF()
 
 
@@ -64,6 +67,7 @@ class CBFOptimizer(object):
         keepInside = True
         self.setFieldArea(centPos,theta,norm,width,keepInside)
 
+
         # energy initialize (must be overwritten)
         minEnergy = 1500
         Kd = 50
@@ -72,6 +76,15 @@ class CBFOptimizer(object):
         radiusCharge = 0.2
         self.setChargeStation(chargePos,radiusCharge)
         self.setChargeSettings(minEnergy,Kd,k_charge)
+
+        # stay initialize (must be overwritten)
+        centPos = [0.0,0.0]
+        theta = 0
+        norm = 2
+        width = [.5,.5]
+        keepInside = True
+        self.setStayArea(centPos,theta,norm,width,keepInside)
+
 
     def setFieldArea(self,centPos,theta,norm,width,keepInside):
         """
@@ -133,7 +146,30 @@ class CBFOptimizer(object):
 
 
 
+    def setStayArea(self,centPos,theta,norm,width,keepInside):
+        """
+        Args: 
+            <CentPos>:center of ellipsoid (list, 1x2)
+            <theta>:rotation angle (rad)
+            <norm>:p-norm
+            <width>:half width and half height of ellipsoid(list, 1x2)
+            <AgentPos>:position of agent (list, 1x6)
+            <keepInside>:True->prohibit going outside of ellipsoid, False->prohibit entering inside of ellipsoid
+        """
+        self.staycbf.setPnormSetting(centPos,theta,norm,width,keepInside)
 
+    def getStayArea(self):
+        centPos,theta,norm,width,keepInside = self.staycbf.getPnormSetting()
+        return centPos, theta, norm, width, keepInside
+
+    def calcStayConstraint(self,AgentPos):
+        centPos,theta,norm,width,keepInside = self.getStayArea()
+        self.staycbf.setPnormSetting(centPos,theta,norm,width,keepInside)
+        self.staycbf.calcConstraint(AgentPos)
+
+    def getStayConstraint(self):
+        G, h = self.staycbf.getConstraint()
+        return G, h
 
 
     def updateInputRange(self,flag,umax,umin):
@@ -216,14 +252,14 @@ class CBFOptimizer(object):
                 G_list, h_list, slack_weight_list, slack_flag_list \
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
-            if self.activate_chargeCBF == True:
+            if self.activate_chargecbf == True:
                 dhdp, h = self.getChargeConstraint()
                 weight = self.chargecbf_slack_weight
                 G_list, h_list, slack_weight_list, slack_flag_list \
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
 
-            if self.activate_collisionCBF == True:
+            if self.activate_collisioncbf == True:
                 neighborPosOnly = self.collisioncbf.getNeighborPosOnlyList()
                 for eachNeighborPos in neighborPosOnly:
                     dhdp, h = self.collisioncbf.calcEachConstraint(eachNeighborPos)
@@ -233,15 +269,17 @@ class CBFOptimizer(object):
                             = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
                 
 
-                # if len(self.g_adj_list) > 0:
-                #     G_ca, h_ca = self.collision_cbf.constraint_matrix(self.g_adj_list)
-                #     self.G_list.append(G_ca)
-                #     self.h_list.append(h_ca)
 
 
-            if self.activate_pccCBF == True:
+            if self.activate_pcccbf == True:
                 dhdp, h = self.getPccConstraint()
                 weight = self.pcccbf_slack_weight
+                G_list, h_list, slack_weight_list, slack_flag_list \
+                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+
+            if self.activate_staycbf == True:
+                dhdp, h = self.getStayConstraint()
+                weight = self.staycbf_slack_weight
                 G_list, h_list, slack_weight_list, slack_flag_list \
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
@@ -283,6 +321,7 @@ class CBFOptimizer(object):
             self.calcChargeConstraint(AgentPos,energy)
             self.calcFieldConstraint(AgentPos)
             self.calcPccConstraint(dJdp,xi)
+            self.calcStayConstraint(AgentPos)
 
             clearance = collisionR*2
             self.collisioncbf.setNeighborPos(AgentPos,neighborPosOnly,clearance)
@@ -317,6 +356,14 @@ if __name__ == '__main__':
     radiusCharge = 0.2
     optimizer.setChargeStation(chargePos,radiusCharge)
     optimizer.setChargeSettings(minEnergy,Kd,k_charge)
+
+    # pnorm set 
+    centPos = [0.0,0.0]
+    theta = 0
+    norm = 2.
+    width = [.5,.5]
+    keepInside = True
+    optimizer.setStayArea(centPos,theta,norm,width,keepInside)
 
     u_nom = np.array([0., 0., 0. ,0., 0., 0.]).reshape(-1,1)
     AgentPos = [-1.72, 2.14, 0., 0., 0., 0.]
