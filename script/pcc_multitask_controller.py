@@ -468,10 +468,10 @@ class coverageController():
         # xi = [0.]
 
         #### cbf persistent coverage #####################################
-        u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
-        dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
-        dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
-        xi = [self.voronoi.getXi()]
+        # u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
+        # dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
+        # dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
+        # xi = [self.voronoi.getXi()]
 
         u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 

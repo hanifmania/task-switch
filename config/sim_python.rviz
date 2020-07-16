@@ -82,10 +82,10 @@ Visualization Manager:
       Update Interval: 0
       Value: true
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop101/virtualdrone/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -101,10 +101,10 @@ Visualization Manager:
       text size: 14
       top: 100
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop102/virtualdrone/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -120,10 +120,10 @@ Visualization Manager:
       text size: 14
       top: 100
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop103/virtualdrone/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -189,15 +189,13 @@ Visualization Manager:
       update interval: 0.0399999991
       width: 128
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /visualization/chargeStation
       Name: Marker
       Namespaces:
-        charge_station1: true
-        charge_station2: true
-        charge_station3: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Align Bottom: false
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
