@@ -6,7 +6,7 @@
     <include file="$(find flea3)/launch/single_node.launch">
       <!-- select device -->
       <arg name="device" value="18549320"/>
-      <arg name="calib_url" value="file://$(find vfc_experiments)/w8/params/pg_camera.yaml"/>
+      <arg name="calib_url" value="file://$(find task_switch)/config/pg_camera.yaml"/>
       <!-- param -->
       <arg name="rate" value="30"/>
       <!-- options -->

@@ -33,7 +33,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Camera
+    SyncSource: Image
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -71,9 +71,9 @@ Visualization Manager:
         All Enabled: false
         base_link:
           Value: false
-        bebop102:
+        bebop101:
           Value: true
-        bebop103:
+        bebop102:
           Value: true
         odom:
           Value: false
@@ -81,13 +81,13 @@ Visualization Manager:
           Value: false
         pg_camera:
           Value: false
+        visualize/agent1:
+          Value: true
         visualize/agent2:
           Value: true
-        visualize/agent3:
+        visualize/down_camera1:
           Value: true
         visualize/down_camera2:
-          Value: true
-        visualize/down_camera3:
           Value: true
         world:
           Value: false
@@ -98,18 +98,15 @@ Visualization Manager:
       Show Names: false
       Tree:
         world:
+          bebop101:
+            {}
           bebop102:
             {}
-          bebop103:
-            {}
-          pg_camera:
-            pg_18549320:
+          visualize/agent1:
+            visualize/down_camera1:
               {}
           visualize/agent2:
             visualize/down_camera2:
-              {}
-          visualize/agent3:
-            visualize/down_camera3:
               {}
       Update Interval: 0
       Value: true
@@ -157,13 +154,12 @@ Visualization Manager:
       Marker Topic: /visualize/field_visualization
       Name: Marker
       Namespaces:
-        surface_plot: true
         w8_3dmap: false
       Queue Size: 100
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /bebop103/debug_image
+      Image Topic: /bebop101/debug_image
       Max Value: 1
       Median window: 5
       Min Value: 0

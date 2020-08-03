@@ -26,8 +26,9 @@ global Echarge
 real = 1;
 
 % Plot in matlab or ROS.
-matlab_plot = 1;
-rviz_info_plot = 0;
+
+matlab_plot = 0;
+rviz_info_plot = 1;
 crazyflie = 0;
 bebop = 1;
 
