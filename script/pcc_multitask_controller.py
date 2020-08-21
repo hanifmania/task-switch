@@ -309,11 +309,11 @@ class coverageController():
     def pcc_set_config_params(self):
         config = self.pcc_dycon_client.get_configuration()
         self.pcc_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Pcc Params SET")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params SET in agent"+str(self.agentID))
 
     def pcc_config_callback(self,config):
         self.pcc_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Pcc Params Update")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params Update in agent"+str(self.agentID))
 
     ############## charge dycon ##########################################
     def charge_update_config_params(self, config):
@@ -323,11 +323,11 @@ class coverageController():
     def charge_set_config_params(self):
         config = self.charge_dycon_client.get_configuration()
         self.charge_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Charge Params SET")
+        rospy.loginfo("Dynamic Reconfigure Charge Params SET in agent"+str(self.agentID))
 
     def charge_config_callback(self,config):
         self.charge_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Charge Params Update")
+        rospy.loginfo("Dynamic Reconfigure Charge Params Update in agent"+str(self.agentID))
 
     ############## cbf dycon ##########################################
     def cbf_update_config_params(self, config):
@@ -337,11 +337,11 @@ class coverageController():
     def cbf_set_config_params(self):
         config = self.cbf_dycon_client.get_configuration()
         self.cbf_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure cbf Params SET")
+        rospy.loginfo("Dynamic Reconfigure cbf Params SET in agent"+str(self.agentID))
 
     def cbf_config_callback(self,config):
         self.cbf_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure cbf Params Update")
+        rospy.loginfo("Dynamic Reconfigure cbf Params Update in agent"+str(self.agentID))
         
 
 
