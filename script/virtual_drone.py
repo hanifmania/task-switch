@@ -40,24 +40,24 @@ class RigidBodyMotion(object):
 
         #getROSparam
 
-        self.tf_prefix = rospy.get_param("~tf_prefix","")
+        self.tf_prefix = rospy.get_param("tf_prefix","")
         clock = rospy.get_param("~clock",100)
         self.dt = 1.0/clock
         # pose_topic = rospy.get_param("~pose_topic","rigid_body_motion/pose")
         # self.my_frame = rospy.get_param("~my_frame","/rigid_body_motion")
         self.g = point_rpy_to_gmatrix(
-                rospy.get_param("~initial_pose/x",0),
-                rospy.get_param("~initial_pose/y",0),
-                rospy.get_param("~initial_pose/z",0),
-                rospy.get_param("~initial_pose/R",0) /180.0 * 3.14159265358979,
-                rospy.get_param("~initial_pose/P",0) /180.0 * 3.14159265358979,
-                rospy.get_param("~initial_pose/Y",0) /180.0 * 3.14159265358979,
+                rospy.get_param("initial_pose/x",0),
+                rospy.get_param("initial_pose/y",0),
+                rospy.get_param("initial_pose/z",0),
+                rospy.get_param("initial_pose/R",0) /180.0 * 3.14159265358979,
+                rospy.get_param("initial_pose/P",0) /180.0 * 3.14159265358979,
+                rospy.get_param("initial_pose/Y",0) /180.0 * 3.14159265358979,
                 axes="rxyz"
                 )
 
         # create energy
 
-        initialEnergy = rospy.get_param("~initialEnergy",2000)
+        initialEnergy = rospy.get_param("initialEnergy",2000)
         # Kd will be updated by subscriber
         Kd = 0. # per seconds
 

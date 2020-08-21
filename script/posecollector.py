@@ -25,7 +25,7 @@ class Collector():
     def __init__(self,agentName):
         self.ready = False
         
-        topicName = rospy.get_param("~poseStampedTopic","/posestamped")
+        topicName = rospy.get_param("~posestampedTopic")
         subTopic = agentName + topicName
         rospy.loginfo("topicName:"+subTopic)
         # subscriber for each agent's region

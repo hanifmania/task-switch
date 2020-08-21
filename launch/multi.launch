@@ -10,7 +10,7 @@
     <param name="/mesh_acc/y" value="100"/>
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
-      <param name="/posestampedTopic" value="/virtualdrone/posestamped"/>
+      <param name="posestampedTopic" value="/virtualdrone/posestamped"/>
     </node>
 
 
@@ -28,41 +28,41 @@
     <!-- Run simulation -->
     <group ns="bebop101">
       <arg name="number" default="1"/>
-      <param name="~markername" value="$(arg number)"/>
-      <param name="~agentID" value="$(arg number)"/>
-      <param name="~initial_pose/x" value="1.0"/>
-      <param name="~charge_station/x" value="0.0"/>
-      <param name="~charge_station/y" value="1.5"/>
-      <param name="~charge_station/r" value="0.2"/>
-      <param name="~initialEnergy" value="4000"/>
+      <param name="markername" value="$(arg number)"/>
+      <param name="agentID" value="$(arg number)"/>
+      <param name="initial_pose/x" value="1.0"/>
+      <param name="charge_station/x" value="0.0"/>
+      <param name="charge_station/y" value="1.5"/>
+      <param name="charge_station/r" value="0.2"/>
+      <param name="initialEnergy" value="4000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>
 
     <group ns="bebop102">
       <arg name="number" default="2"/>
-      <param name="~markername" value="$(arg number)"/>
-      <param name="~agentID" value="$(arg number)"/>
-      <param name="~initial_pose/x" value="-1.8"/>
-      <param name="~initial_pose/y" value="-1.8"/>
-      <param name="~charge_station/x" value="0.0"/>
-      <param name="~charge_station/y" value="-1.5"/>
-      <param name="~charge_station/r" value="0.2"/>
-      <param name="~initialEnergy" value="4000"/>
+      <param name="markername" value="$(arg number)"/>
+      <param name="agentID" value="$(arg number)"/>
+      <param name="initial_pose/x" value="-1.8"/>
+      <param name="initial_pose/y" value="-1.8"/>
+      <param name="charge_station/x" value="0.0"/>
+      <param name="charge_station/y" value="-1.5"/>
+      <param name="charge_station/r" value="0.2"/>
+      <param name="initialEnergy" value="4000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>
 
     <group ns="bebop103">
       <arg name="number" default="3"/>
-      <param name="~markername" value="$(arg number)"/>
-      <param name="~agentID" value="$(arg number)"/>
-      <param name="~initial_pose/x" value="1.8"/>
-      <param name="~initial_pose/y" value="-1.8"/>
-      <param name="~charge_station/x" value="1.5"/>
-      <param name="~charge_station/y" value="-0.0"/>
-      <param name="~charge_station/r" value="0.2"/>
-      <param name="~initialEnergy" value="4000"/>
+      <param name="markername" value="$(arg number)"/>
+      <param name="agentID" value="$(arg number)"/>
+      <param name="initial_pose/x" value="1.8"/>
+      <param name="initial_pose/y" value="-1.8"/>
+      <param name="charge_station/x" value="1.5"/>
+      <param name="charge_station/y" value="-0.0"/>
+      <param name="charge_station/r" value="0.2"/>
+      <param name="initialEnergy" value="4000"/>
       <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
       <include file="$(find task_switch)/launch/one.launch"/>
     </group>

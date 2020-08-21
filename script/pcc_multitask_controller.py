@@ -193,14 +193,19 @@ class coverageController():
 
 
         #get_ROSparam
-        self.agentID = rospy.get_param("~agentID",1)
-        self.agentNum = rospy.get_param("/agentNum",1)
-        mesh_acc = [rospy.get_param("/mesh_acc/x",100),rospy.get_param("/mesh_acc/y",150)]
-        xlimit = [rospy.get_param("/x_min",-1.0),rospy.get_param("/x_max",1.0)]
-        ylimit = [rospy.get_param("/y_min",-1.0),rospy.get_param("/y_max",1.0)]
+        # self.agentID = rospy.get_param("agentID",1)
+        # self.agentNum = rospy.get_param("agentNum",1)
+        # mesh_acc = [rospy.get_param("mesh_acc/x",100),rospy.get_param("mesh_acc/y",150)]
+        # xlimit = [rospy.get_param("x_min",-1.0),rospy.get_param("x_max",1.0)]
+        # ylimit = [rospy.get_param("y_min",-1.0),rospy.get_param("y_max",1.0)]
+        self.agentNum = rospy.get_param("/agentNum")
+        mesh_acc = [rospy.get_param("/mesh_acc/x"),rospy.get_param("/mesh_acc/y")]
+        xlimit = [rospy.get_param("/x_min"),rospy.get_param("/x_max")]
+        ylimit = [rospy.get_param("/y_min"),rospy.get_param("/y_max")]
+        self.agentID = rospy.get_param("agentID")
 
         # param initialize
-        self.clock = rospy.get_param("~clock",100)
+        self.clock = rospy.get_param("clock",100)
         self.rate = rospy.Rate(self.clock)
 
 
@@ -274,8 +279,8 @@ class coverageController():
         self.optimizer.setFieldArea(centPos,theta,norm,width,keepInside)
 
         # charging station position and radius
-        chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
-        radiusCharge = rospy.get_param("~charge_station/r",0.2) 
+        chargePos = [rospy.get_param("charge_station/x",0.),rospy.get_param("charge_station/y",0.)]
+        radiusCharge = rospy.get_param("charge_station/r",0.2) 
 
         # charging station configs.
         self.optimizer.setChargeStation(chargePos,radiusCharge)
