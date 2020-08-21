@@ -10,6 +10,7 @@
     <param name="/mesh_acc/y" value="100"/>
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
+      <!-- for specify /bebop10*/virtualdrone/posestamped -->
       <param name="posestampedTopic" value="/virtualdrone/posestamped"/>
     </node>
 

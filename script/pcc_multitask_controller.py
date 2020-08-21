@@ -337,11 +337,11 @@ class coverageController():
     def cbf_set_config_params(self):
         config = self.cbf_dycon_client.get_configuration()
         self.cbf_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure cbf Params SET in agent"+str(self.agentID))
+        rospy.loginfo("Dynamic Reconfigure PCCBF Params SET in agent"+str(self.agentID))
 
     def cbf_config_callback(self,config):
         self.cbf_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure cbf Params Update in agent"+str(self.agentID))
+        rospy.loginfo("Dynamic Reconfigure PCCBF Params Update in agent"+str(self.agentID))
         
 
 

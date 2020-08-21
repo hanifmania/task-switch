@@ -6,6 +6,7 @@
     </node>
 
     <node pkg="task_switch" name="controller" type="pcc_multitask_controller.py" output='screen'>
+      <!-- for specify /bebop10*/virtualdrone/command/cmd_vel-->
       <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
       <remap from="posestamped" to="virtualdrone/posestamped"/>
       <remap from="energy" to="virtualdrone/energy"/>
