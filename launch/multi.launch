@@ -9,7 +9,10 @@
     <param name="/mesh_acc/x" value="100"/>
     <param name="/mesh_acc/y" value="100"/>
 
-    <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen"/>
+    <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
+      <param name="/posestampedTopic" value="/virtualdrone/posestamped"/>
+    </node>
+
 
     <node name="pcc_parameter" pkg="task_switch" type="task_switch_pcc_param_server" output="screen"/>
     <node name="charge_parameter" pkg="task_switch" type="task_switch_charge_param_server" output="screen"/>
