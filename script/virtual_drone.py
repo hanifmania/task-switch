@@ -12,23 +12,6 @@ from task_switch.transformations import *
 from task_switch.se3_operations import *
 from task_switch.ros_utility import *
 
-class Energy(object):
-    def __init__(self,initialEnergy,drainRate,dt):
-        # drain rate is -Kd * stepsize
-        self.energy = initialEnergy
-        self.drainRate = drainRate
-        self.dt = dt
-
-    def updateEnergy(self):
-        self.energy = self.energy - self.drainRate*self.dt
-
-    def updateDrainRate(self,drainRate):
-        self.drainRate = drainRate
-
-    def getEnergy(self):
-        return self.energy
-
-
 class RigidBodyMotion(object):
     def __init__(self): 
 
@@ -40,38 +23,30 @@ class RigidBodyMotion(object):
 
         #getROSparam
 
-        self.tf_prefix = rospy.get_param("~tf_prefix","")
+        self.tf_prefix = rospy.get_param("tf_prefix","")
         clock = rospy.get_param("~clock",100)
         self.dt = 1.0/clock
         # pose_topic = rospy.get_param("~pose_topic","rigid_body_motion/pose")
         # self.my_frame = rospy.get_param("~my_frame","/rigid_body_motion")
         self.g = point_rpy_to_gmatrix(
-                rospy.get_param("~initial_pose/x",0),
-                rospy.get_param("~initial_pose/y",0),
-                rospy.get_param("~initial_pose/z",0),
-                rospy.get_param("~initial_pose/R",0) /180.0 * 3.14159265358979,
-                rospy.get_param("~initial_pose/P",0) /180.0 * 3.14159265358979,
-                rospy.get_param("~initial_pose/Y",0) /180.0 * 3.14159265358979,
+                rospy.get_param("initial_pose/x",0),
+                rospy.get_param("initial_pose/y",0),
+                rospy.get_param("initial_pose/z",0),
+                rospy.get_param("initial_pose/R",0) /180.0 * 3.14159265358979,
+                rospy.get_param("initial_pose/P",0) /180.0 * 3.14159265358979,
+                rospy.get_param("initial_pose/Y",0) /180.0 * 3.14159265358979,
                 axes="rxyz"
                 )
 
-        # create energy
 
-        initialEnergy = rospy.get_param("~initialEnergy",2000)
-        # Kd will be updated by subscriber
-        Kd = 0. # per seconds
-
-        self.energy = Energy(initialEnergy,Kd,self.dt) 
 
         #subscriber
         rospy.Subscriber(self.node_name + "/command/pose", Pose, self.pose_callback, queue_size=1)
         rospy.Subscriber(self.node_name + "/command/cmd_vel", Twist, self.twist_callback, queue_size=1)
-        rospy.Subscriber(self.node_name + "/drainRate", Float32, self.float_callback, queue_size=1)
 
         # publisher
         self.pose_pub = rospy.Publisher(self.node_name + "/posestamped", PoseStamped, queue_size=1)
         self.velocity_pub = rospy.Publisher(self.node_name + "/velocity", Twist, queue_size=1)
-        self.energy_pub = rospy.Publisher(self.node_name + "/energy", Float32, queue_size=1)
 
         #dynamic_reconfigure
         #   self.dycon_client = dynamic_reconfigure.client.Client("vfc_parameter", timeout=2, config_callback=self.config_callback)
@@ -112,9 +87,6 @@ class RigidBodyMotion(object):
         rospy.loginfo("Pose is commanded")
         return 0
 
-    def float_callback(self,msg_data):
-        self.energy.updateDrainRate(msg_data.data)
-
     def integrate_g(self):
         # tagged integrator(台形積分)
         self.g =  self.g + (self.g_dot + self.g_dot_old) * self.dt / 2.0
@@ -127,9 +99,6 @@ class RigidBodyMotion(object):
         self.pose_pub.publish(pub_msg)
         return 0
 
-    def publish_energy(self):
-        self.energy.updateEnergy()
-        self.energy_pub.publish(self.energy.getEnergy())
 
     def tf_broadcat(self):
         br = tf.TransformBroadcaster()
@@ -149,7 +118,6 @@ class RigidBodyMotion(object):
         while not rospy.is_shutdown():
            self.publish_pose()
            self.velocity_pub.publish(self.velocity)
-           self.publish_energy()
            self.tf_broadcat()
            self.g = g_reprojection(self.g)
            self.rate.sleep()

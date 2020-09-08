@@ -9,17 +9,17 @@ from geometry_msgs.msg import PoseStamped
 class BebopMarker:
     def __init__(self):
         rospy.init_node("pose2marker")
-        self.basename = rospy.get_param("~markername")
+        self.basename = rospy.get_param("markername")
         # self.pubtopic = str(self.basename)+"/marker"
         self.pubtopic = "/visualization/bebop2"
         # self.pubtopic = "/visualization/" + str(self.basename)
         self.markerpub = rospy.Publisher(self.pubtopic, Marker, queue_size=10)
         self.posestampedsub = rospy.Subscriber("posestamped", PoseStamped, self.poseCallback)
 
-        self.red = rospy.get_param("~red", default=.5)
-        self.green = rospy.get_param("~green", default=.5)
-        self.blue = rospy.get_param("~blue", default=.5)
-        self.alpha = rospy.get_param("~alpha", default=1)
+        self.red = rospy.get_param("red", default=.5)
+        self.green = rospy.get_param("green", default=.5)
+        self.blue = rospy.get_param("blue", default=.5)
+        self.alpha = rospy.get_param("alpha", default=1)
         
         self.marker = Marker()
         self.marker.ns = str(self.basename)

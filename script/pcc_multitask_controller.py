@@ -193,14 +193,19 @@ class coverageController():
 
 
         #get_ROSparam
-        self.agentID = rospy.get_param("~agentID",1)
-        self.agentNum = rospy.get_param("/agentNum",1)
-        mesh_acc = [rospy.get_param("/mesh_acc/x",100),rospy.get_param("/mesh_acc/y",150)]
-        xlimit = [rospy.get_param("/x_min",-1.0),rospy.get_param("/x_max",1.0)]
-        ylimit = [rospy.get_param("/y_min",-1.0),rospy.get_param("/y_max",1.0)]
+        # self.agentID = rospy.get_param("agentID",1)
+        # self.agentNum = rospy.get_param("agentNum",1)
+        # mesh_acc = [rospy.get_param("mesh_acc/x",100),rospy.get_param("mesh_acc/y",150)]
+        # xlimit = [rospy.get_param("x_min",-1.0),rospy.get_param("x_max",1.0)]
+        # ylimit = [rospy.get_param("y_min",-1.0),rospy.get_param("y_max",1.0)]
+        self.agentNum = rospy.get_param("/agentNum")
+        mesh_acc = [rospy.get_param("/mesh_acc/x"),rospy.get_param("/mesh_acc/y")]
+        xlimit = [rospy.get_param("/x_min"),rospy.get_param("/x_max")]
+        ylimit = [rospy.get_param("/y_min"),rospy.get_param("/y_max")]
+        self.agentID = rospy.get_param("agentID")
 
         # param initialize
-        self.clock = rospy.get_param("~clock",100)
+        self.clock = rospy.get_param("clock",100)
         self.rate = rospy.Rate(self.clock)
 
 
@@ -274,8 +279,8 @@ class coverageController():
         self.optimizer.setFieldArea(centPos,theta,norm,width,keepInside)
 
         # charging station position and radius
-        chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
-        radiusCharge = rospy.get_param("~charge_station/r",0.2) 
+        chargePos = [rospy.get_param("charge_station/x",0.),rospy.get_param("charge_station/y",0.)]
+        radiusCharge = rospy.get_param("charge_station/r",0.2) 
 
         # charging station configs.
         self.optimizer.setChargeStation(chargePos,radiusCharge)
@@ -304,11 +309,11 @@ class coverageController():
     def pcc_set_config_params(self):
         config = self.pcc_dycon_client.get_configuration()
         self.pcc_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Pcc Params SET")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params SET in agent"+str(self.agentID))
 
     def pcc_config_callback(self,config):
         self.pcc_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Pcc Params Update")
+        rospy.loginfo("Dynamic Reconfigure Pcc Params Update in agent"+str(self.agentID))
 
     ############## charge dycon ##########################################
     def charge_update_config_params(self, config):
@@ -318,11 +323,11 @@ class coverageController():
     def charge_set_config_params(self):
         config = self.charge_dycon_client.get_configuration()
         self.charge_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Charge Params SET")
+        rospy.loginfo("Dynamic Reconfigure Charge Params SET in agent"+str(self.agentID))
 
     def charge_config_callback(self,config):
         self.charge_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure Charge Params Update")
+        rospy.loginfo("Dynamic Reconfigure Charge Params Update in agent"+str(self.agentID))
 
     ############## cbf dycon ##########################################
     def cbf_update_config_params(self, config):
@@ -332,11 +337,11 @@ class coverageController():
     def cbf_set_config_params(self):
         config = self.cbf_dycon_client.get_configuration()
         self.cbf_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure cbf Params SET")
+        rospy.loginfo("Dynamic Reconfigure CBF Params SET in agent"+str(self.agentID))
 
     def cbf_config_callback(self,config):
         self.cbf_update_config_params(config)
-        rospy.loginfo("Dynamic Reconfigure cbf Params Update")
+        rospy.loginfo("Dynamic Reconfigure CBF Params Update in agent"+str(self.agentID))
         
 
 
@@ -468,10 +473,10 @@ class coverageController():
         # xi = [0.]
 
         #### cbf persistent coverage #####################################
-        # u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
-        # dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
-        # dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
-        # xi = [self.voronoi.getXi()]
+        u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
+        dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
+        dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
+        xi = [self.voronoi.getXi()]
 
         u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 
@@ -531,6 +536,7 @@ class coverageController():
     def spin(self):
         rospy.wait_for_message("/info", Float32MultiArray)
         rospy.wait_for_message("posestamped", PoseStamped)
+        rospy.loginfo("agent"+str(self.agentID)+" controller start!")
 
         self.pcc_set_config_params()
         self.charge_set_config_params()

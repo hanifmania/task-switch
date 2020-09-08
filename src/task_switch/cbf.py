@@ -155,7 +155,7 @@ class chargeCBF(CBF):
         <radiusCharge>:radius of charging station (scalar)
     Returns:
         <G>:constraint matrix(dh/dx)(list, 1x6)
-        <h>:constraint value(=alpha(h(x)))(list, 1x1)
+        <h>:constraint value(=alpha(h(x)-Kd))(list, 1x1)
     """
     def setChargeSettings(self, minEnergy, Kd, k_charge, chargePos, radiusCharge):
         self.minEnergy = minEnergy
@@ -176,7 +176,7 @@ class chargeCBF(CBF):
     def calcConstraintValue(self,AgentPos,energy):
         AgentPos2d = np.array((AgentPos[0],AgentPos[1]))
         norm = np.linalg.norm(AgentPos2d - self.chargePos)
-        self.h[0] = (energy - self.minEnergy - (self.Kd/self.k_charge) * (norm - self.radiusCharge) - self.Kd ) ** self.alpha
+        self.h[0] = (energy - self.minEnergy - (self.Kd/self.k_charge) * (norm - self.radiusCharge)) ** self.alpha - self.Kd 
 
     def calcConstraint(self,AgentPos,energy):
         self.calcConstraintMatrix(AgentPos,energy)
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     # print dhdp, h
 
     minEnergy = 1500
-    Kd = 50
+    Kd = 50.
     k_charge = 0.15
     chargePos = [2.0,2.0]
     radiusCharge = 0.2

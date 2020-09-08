@@ -24,7 +24,10 @@ class Collector():
 
     def __init__(self,agentName):
         self.ready = False
-        subTopic = agentName + "/virtualdrone/posestamped"
+        
+        topicName = rospy.get_param("~posestampedTopic")
+        subTopic = agentName + topicName
+        rospy.loginfo("topicName:"+subTopic)
         # subscriber for each agent's region
         rospy.Subscriber(subTopic, PoseStamped, self.poseStampedCallback, queue_size=1)
         # initialze with zeros
