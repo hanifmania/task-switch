@@ -31,6 +31,7 @@ matlab_plot = 0;
 rviz_info_plot = 1;
 crazyflie = 0;
 bebop = 1;
+nofigure = 1;
 
 
 %% field settings
@@ -398,38 +399,41 @@ disp('END!!!!!!!!!!!!')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Plot figure
-
-%%%% J value plot
-figure
-sumJ = sum(savefile.J,2);
-plot(savefile.time,sumJ)
-hold on
-grid on
-plot(savefile.time,goalJ*ones(size(savefile.time)))
-
-%%
-%%%% charging plot
-figure
-for i=1:AgentNum
-    plot(savefile.time,savefile.energy(:,i))
+if nofigure
+    
+else
+    %%%% J value plot
+    figure
+    sumJ = sum(savefile.J,2);
+    plot(savefile.time,sumJ)
     hold on
     grid on
-end
-plot(savefile.time,Emin*ones(size(savefile.time)))
-%%%% 
-%%
+    plot(savefile.time,goalJ*ones(size(savefile.time)))
 
-%%%% w value plot
-figure
-for i=1:AgentNum
-    plot(savefile.time,savefile.w(:,i))
-    hold on
-    grid on
-end
-%%
-figure
-for i=1:AgentNum
-    plot(savefile.time,savefile.collisionCBFvalue(:,i))
-    hold on
-    grid on
+    %%
+    %%%% charging plot
+    figure
+    for i=1:AgentNum
+        plot(savefile.time,savefile.energy(:,i))
+        hold on
+        grid on
+    end
+    plot(savefile.time,Emin*ones(size(savefile.time)))
+    %%%% 
+    %%
+
+    %%%% w value plot
+    figure
+    for i=1:AgentNum
+        plot(savefile.time,savefile.w(:,i))
+        hold on
+        grid on
+    end
+    %%
+    figure
+    for i=1:AgentNum
+        plot(savefile.time,savefile.collisionCBFvalue(:,i))
+        hold on
+        grid on
+    end
 end

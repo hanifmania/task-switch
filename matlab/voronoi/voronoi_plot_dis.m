@@ -31,7 +31,7 @@ Region = Voronoi.Region;
     
 %% charging station plot
 % plot(charge.plotx(:,:)', charge.ploty(:,:)', 'c', 'LineWidth', 5);
-% hold on
+hold on
 
 %% flag plot
 %     plot(flagInfo.plotX, flagInfo.plotY, 'r:', 'LineWidth', 3);    

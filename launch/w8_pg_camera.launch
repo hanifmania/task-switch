@@ -12,6 +12,7 @@
       <!-- options -->
       <arg name="proc" value="true"/>
       <arg name="view" value="false"/>
+      <arg name="white_balance" value="true"/>
     </include>
 
     <node if="$(arg view)"
