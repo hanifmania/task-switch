@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <param name="/agentNum" value="3"/>
+    <param name="/agentNum" value="2"/>
 
     <param name="/x_min" value="-2.0"/>
     <param name="/x_max" value="2.0"/>
@@ -27,61 +27,36 @@
     
 
     <!-- Run simulation -->
-    <group ns="bebop101">
-      <arg name="number" default="1"/>
-      <param name="markername" value="$(arg number)"/>
-      <param name="agentID" value="$(arg number)"/>
-      <param name="initial_pose/x" value="1.0"/>
-      <param name="charge_station/x" value="0.0"/>
-      <param name="charge_station/y" value="1.5"/>
-      <param name="charge_station/r" value="0.2"/>
-      <param name="initialEnergy" value="4000"/>
-      <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
-      <include file="$(find task_switch)/launch/one.launch"/>
-    </group>
+    <include file="$(find task_switch)/launch/one.launch">
+      <arg name="number" value="1"/>
+      <arg name="initial_pose_x" value="-1.0"/>
+      <arg name="initial_pose_y" value="0.0"/>
+      <arg name="charge_station_x" value="-1.0"/>
+      <arg name="charge_station_y" value="0.0"/>
+      <arg name="charge_station_r" value="0.2"/>
+      <arg name="initialEnergy" value="4000"/>
+    </include>
+    
+    <include file="$(find task_switch)/launch/one.launch">
+      <arg name="number" value="2"/>
+      <arg name="initial_pose_x" value="1.0"/>
+      <arg name="initial_pose_y" value="0.0"/>
+      <arg name="charge_station_x" value="1.0"/>
+      <arg name="charge_station_y" value="0.0"/>
+      <arg name="charge_station_r" value="0.2"/>
+      <arg name="initialEnergy" value="4000"/>
+    </include>
 
-    <group ns="bebop102">
-      <arg name="number" default="2"/>
-      <param name="markername" value="$(arg number)"/>
-      <param name="agentID" value="$(arg number)"/>
-      <param name="initial_pose/x" value="-1.8"/>
-      <param name="initial_pose/y" value="-1.8"/>
-      <param name="charge_station/x" value="0.0"/>
-      <param name="charge_station/y" value="-1.5"/>
-      <param name="charge_station/r" value="0.2"/>
-      <param name="initialEnergy" value="4000"/>
-      <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
-      <include file="$(find task_switch)/launch/one.launch"/>
-    </group>
+    <!-- <include file="$(find task_switch)/launch/one.launch">
+      <arg name="number" value="3"/>
+      <arg name="initial_pose_x" value="1.0"/>
+      <arg name="initial_pose_y" value="1.0"/>
+      <arg name="charge_station_x" value="1.0"/>
+      <arg name="charge_station_y" value="1.0"/>
+      <arg name="charge_station_r" value="0.2"/>
+      <arg name="initialEnergy" value="4000"/>
+    </include> -->
 
-    <group ns="bebop103">
-      <arg name="number" default="3"/>
-      <param name="markername" value="$(arg number)"/>
-      <param name="agentID" value="$(arg number)"/>
-      <param name="initial_pose/x" value="1.8"/>
-      <param name="initial_pose/y" value="-1.8"/>
-      <param name="charge_station/x" value="1.5"/>
-      <param name="charge_station/y" value="-0.0"/>
-      <param name="charge_station/r" value="0.2"/>
-      <param name="initialEnergy" value="4000"/>
-      <!-- <param name="~tf_prefix" value="bebop10$(arg number)"/> -->
-      <include file="$(find task_switch)/launch/one.launch"/>
-    </group>
-
-    <!-- <group ns="bebop103"> -->
-    <!--   <arg name="number" default="3"/> -->
-    <!--   <param name="~agentID" value="$(arg number)"/> -->
-    <!--   <param name="~initial_pose/y" value="-0.5"/> -->
-    <!--   <!-1- <param name="~tf_prefix" value="bebop10$(arg number)"/> -1-> -->
-    <!--   <include file="$(find task_switch)/launch/one.launch"/> -->
-    <!-- </group> -->
-
-    <!-- <group ns="bebop104"> -->
-    <!--   <arg name="number" default="4"/> -->
-    <!--   <param name="~agentID" value="$(arg number)"/> -->
-    <!--   <!-1- <param name="~tf_prefix" value="bebop10$(arg number)"/> -1-> -->
-    <!--   <include file="$(find task_switch)/launch/one.launch"/> -->
-    <!-- </group> -->
 
     <!-- <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen"> -->
     <!--   <remap from="surf_value" to="/info"/> -->

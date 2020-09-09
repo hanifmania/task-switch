@@ -302,8 +302,8 @@ class CBFOptimizer(object):
                 
             self.h_list = np.array(h_list)
             self.G_list = np.array(G_list)
-            print h_list 
-            print G_list 
+            # print h_list 
+            # print G_list 
 
             # resize G matrix for soft constraint elements
             # if len(self.G_list) > 0:
@@ -333,7 +333,7 @@ class CBFOptimizer(object):
             self.set_qp_problem()
             # u_optimal is optimized input, delta is slack variables value for soft constraints
             self.u_optimal, self.delta, self.status = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
-            print self.u_optimal, self.delta
+            # print self.u_optimal, self.delta
         else:
             self.status = "no optimization"
             self.u_optimal = u_nom
