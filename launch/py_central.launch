@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <param name="/agentNum" value="2"/>
+
+    <param name="/x_min" value="-2.0"/>
+    <param name="/x_max" value="2.0"/>
+    <param name="/y_min" value="-2.0"/>
+    <param name="/y_max" value="2.0"/>
+    <param name="/mesh_acc/x" value="100"/>
+    <param name="/mesh_acc/y" value="100"/>
+
+    <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
+      <!-- for specify /bebop10*/virtualdrone/posestamped -->
+      <!-- "preTopicName" + "bebop10*" + "posestampedTopic" will be subscribed-->
+      <param name="posestampedTopic" value="/pose"/>
+      <param name="preTopicName" value="/vrpn_client_node/"/>
+    </node>
+
+
+    <node name="pcc_parameter" pkg="task_switch" type="task_switch_pcc_param_server" output="screen"/>
+    <node name="charge_parameter" pkg="task_switch" type="task_switch_charge_param_server" output="screen"/>
+    <node name="cbf_parameter" pkg="task_switch" type="task_switch_cbf_param_server" output="screen"/>
+
+    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
+
+    <node pkg="task_switch" name="central" type="central.py" output="screen"/>
+
+
+    
+
+
+
+
+    <!-- <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen"> -->
+    <!--   <remap from="surf_value" to="/info"/> -->
+    <!-- </node> -->
+    <node pkg="task_switch" name="visualize_surf" type="visualize_surf_pointcloud.py" output="screen">
+      <remap from="surf_value" to="/info"/>
+    </node>
+
+    <!-- <node pkg="task_switch" name="plotter" type="plotter.py" output="screen"> -->
+    <!--   <remap from="surf_value" to="/info"/> -->
+    <!-- </node> -->
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find task_switch)/config/sim_python.rviz"/>   
+</launch>
