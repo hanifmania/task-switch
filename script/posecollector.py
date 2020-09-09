@@ -26,7 +26,8 @@ class Collector():
         self.ready = False
         
         topicName = rospy.get_param("~posestampedTopic")
-        subTopic = agentName + topicName
+        preTopicName = rospy.get_param("~preTopicName","/")
+        subTopic = preTopicName + agentName + topicName
         rospy.loginfo("topicName:"+subTopic)
         # subscriber for each agent's region
         rospy.Subscriber(subTopic, PoseStamped, self.poseStampedCallback, queue_size=1)
@@ -56,7 +57,7 @@ class poseCollector():
         self.Collectors = []
         # create [Agent's number] subscriber 
         for agentID in range(self.agentNum):
-            agentName = "/bebop10" + str(agentID+1)
+            agentName = "bebop10" + str(agentID+1)
             collector = Collector(agentName) 
             self.Collectors.append(collector)
 

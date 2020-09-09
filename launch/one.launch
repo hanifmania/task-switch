@@ -4,10 +4,6 @@
     <arg name="number" default="1"/>
     <arg name="initial_pose_x" default="0.0"/>
     <arg name="initial_pose_y" default="0.0"/>
-    <arg name="charge_station_x" default="0.0"/>
-    <arg name="charge_station_y" default="0.0"/>
-    <arg name="charge_station_r" default="0.2"/>
-    <arg name="initialEnergy" default="4000"/>
 
 
     <group ns="bebop10$(arg number)">
@@ -17,10 +13,32 @@
       <param name="agentID" value="$(arg number)"/>
       <param name="initial_pose/x" value="$(arg initial_pose_x)"/>
       <param name="initial_pose/y" value="$(arg initial_pose_y)"/>
-      <param name="charge_station/x" value="$(arg charge_station_x)"/>
+
+
+      <group if="$(eval number=='1')">
+        <param name="charge_station_x" value="0.0"/>
+        <param name="charge_station_y" value="1.0"/>
+        <param name="charge_station_r" value="0.2"/>
+        <param name="initialEnergy" value="4000"/>
+      </group>
+
+      <group if="$(eval number=='2')">
+        <param name="charge_station_x" value="0.0"/>
+        <param name="charge_station_y" value="-1.0"/>
+        <param name="charge_station_r" value="0.2"/>
+        <param name="initialEnergy" value="3500"/>
+      </group>
+      
+      <group if="$(eval number=='3')">
+        <param name="charge_station_x" value="1.0"/>
+        <param name="charge_station_y" value="0.0"/>
+        <param name="charge_station_r" value="0.2"/>
+        <param name="initialEnergy" value="3000"/>
+      </group>
+      <!-- <param name="charge_station/x" value="$(arg charge_station_x)"/>
       <param name="charge_station/y" value="$(arg charge_station_y)"/>
       <param name="charge_station/r" value="$(arg charge_station_r)"/>
-      <param name="initialEnergy" value="$(arg initialEnergy)"/>
+      <param name="initialEnergy" value="$(arg initialEnergy)"/> -->
 
 
       <node pkg="task_switch" name="virtualdrone" type="virtual_drone.py">
