@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <param name="/agentNum" value="2"/>
+    <param name="/agentNum" value="1"/>
 
     <param name="/x_min" value="-2.0"/>
     <param name="/x_max" value="2.0"/>
@@ -8,6 +8,9 @@
     <param name="/y_max" value="2.0"/>
     <param name="/mesh_acc/x" value="100"/>
     <param name="/mesh_acc/y" value="100"/>
+
+    <include file="$(find task_switch)/launch/vrpn_client.launch"/>
+    <include file="$(find task_switch)/launch/joy.launch"/>
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
       <!-- for specify /bebop10*/virtualdrone/posestamped -->
