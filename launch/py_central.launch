@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <param name="/agentNum" value="1"/>
+    <param name="/agentNum" value="2"/>
 
-    <param name="/x_min" value="-2.0"/>
-    <param name="/x_max" value="2.0"/>
-    <param name="/y_min" value="-2.0"/>
-    <param name="/y_max" value="2.0"/>
+    <param name="/x_min" value="-1.3"/>
+    <param name="/x_max" value="1.2"/>
+    <param name="/y_min" value="1.7"/>
+    <param name="/y_max" value="-1.4"/>
     <param name="/mesh_acc/x" value="100"/>
     <param name="/mesh_acc/y" value="100"/>
 
