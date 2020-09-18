@@ -11,9 +11,9 @@
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
       <!-- for specify /bebop10*/virtualdrone/posestamped -->
-      <!-- "preTopicName"bebop10*/"posestampedTopic" will be subscribed-->
-      <param name="posestampedTopic" value="/virtualdrone/posestamped"/>
-      <param name="preTopicName" value="/"/>
+      <!-- "preTopicName" + "bebop10*" + "posestampedTopic" will be subscribed-->
+      <param name="posestampedTopic" value="/pose"/>
+      <param name="preTopicName" value="/vrpn_client_node/"/>
     </node>
 
 
@@ -28,24 +28,7 @@
 
     
 
-    <!-- Run simulation -->
-    <include file="$(find task_switch)/launch/one.launch">
-      <arg name="number" value="1"/>
-      <arg name="initial_pose_x" value="-1.0"/>
-      <arg name="initial_pose_y" value="0.0"/>
-    </include>
-    
-    <include file="$(find task_switch)/launch/one.launch">
-      <arg name="number" value="2"/>
-      <arg name="initial_pose_x" value="1.0"/>
-      <arg name="initial_pose_y" value="0.0"/>
-    </include>
 
-    <!-- <include file="$(find task_switch)/launch/one.launch">
-      <arg name="number" value="3"/>
-      <arg name="initial_pose_x" value="1.0"/>
-      <arg name="initial_pose_y" value="1.0"/>
-    </include> -->
 
 
     <!-- <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen"> -->

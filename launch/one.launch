@@ -1,47 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <launch>
-
-    <node pkg="task_switch" name="virtualdrone" type="virtual_drone.py">
-    </node>
-    <node pkg="task_switch" name="virtualenergy" type="virtual_energy.py">
-    </node>
-
-    <node pkg="task_switch" name="controller" type="pcc_multitask_controller.py" output='screen'>
-      <!-- for specify /bebop10*/virtualdrone/command/cmd_vel-->
-      <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
-      <remap from="posestamped" to="virtualdrone/posestamped"/>
-      <remap from="energy" to="virtualenergy/energy"/>
-      <remap from="drainRate" to="virtualenergy/drainRate"/>
-    </node>
-
-    <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
-      <remap from="posestamped" to="virtualdrone/posestamped"/>
-    </node>
-    <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
-      <remap from="posestamped" to="virtualdrone/posestamped"/>
-    </node>
-    <node pkg="task_switch" name="charge_station_visualize" type="charge_station_visualize.py">
-    </node>
-
-    <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->
-    <!--   <param name = "bebop_number" value="$(arg number)"/> -->
-    <!-- </node> -->
-
-    <!-- <node pkg="task_switch" type="pose2tf.py" name="pose2tf_node"> -->
-    <!--   <param name="tfname" value="/visualize/agent$(arg number)"/> -->
-    <!--   <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/> -->
-    <!-- </node> -->
-
-    <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
-    <!--   <param name="agenttf" value="/visualize/agent$(arg number)"/> -->
-    <!--   <param name="cameratf" value="/visualize/down_camera$(arg number)"/> -->
-    <!-- </node> -->
+    <arg name="number" default="1"/>
+    <arg name="initial_pose_x" default="0.0"/>
+    <arg name="initial_pose_y" default="0.0"/>
 
 
-    <!-- <node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> --> 
-    <!--   <remap from='image' to='image_raw'/> -->
-    <!-- </node> -->
-  <!-- </group> -->
+    <group ns="bebop10$(arg number)">
+
+
+      <param name="markername" value="$(arg number)"/>
+      <param name="agentID" value="$(arg number)"/>
+      <param name="initial_pose/x" value="$(arg initial_pose_x)"/>
+      <param name="initial_pose/y" value="$(arg initial_pose_y)"/>
+
+
+      <group if="$(eval number=='1')">
+        <param name="charge_station_x" value="0.0"/>
+        <param name="charge_station_y" value="1.0"/>
+        <param name="charge_station_r" value="0.2"/>
+        <param name="initialEnergy" value="4000"/>
+      </group>
+
+      <group if="$(eval number=='2')">
+        <param name="charge_station_x" value="0.0"/>
+        <param name="charge_station_y" value="-1.0"/>
+        <param name="charge_station_r" value="0.2"/>
+        <param name="initialEnergy" value="3500"/>
+      </group>
+      
+      <group if="$(eval number=='3')">
+        <param name="charge_station_x" value="1.0"/>
+        <param name="charge_station_y" value="0.0"/>
+        <param name="charge_station_r" value="0.2"/>
+        <param name="initialEnergy" value="3000"/>
+      </group>
+      <!-- <param name="charge_station/x" value="$(arg charge_station_x)"/>
+      <param name="charge_station/y" value="$(arg charge_station_y)"/>
+      <param name="charge_station/r" value="$(arg charge_station_r)"/>
+      <param name="initialEnergy" value="$(arg initialEnergy)"/> -->
+
+
+      <node pkg="task_switch" name="virtualdrone" type="virtual_drone.py">
+      </node>
+      <node pkg="task_switch" name="virtualenergy" type="virtual_energy.py">
+      </node>
+
+      <node pkg="task_switch" name="controller" type="pcc_multitask_controller.py" output='screen'>
+        <!-- for specify /bebop10*/virtualdrone/command/cmd_vel-->
+        <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
+        <remap from="posestamped" to="virtualdrone/posestamped"/>
+        <remap from="energy" to="virtualenergy/energy"/>
+        <remap from="drainRate" to="virtualenergy/drainRate"/>
+      </node>
+
+      <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
+        <remap from="posestamped" to="virtualdrone/posestamped"/>
+      </node>
+      <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+        <remap from="posestamped" to="virtualdrone/posestamped"/>
+      </node>
+      <node pkg="task_switch" name="charge_station_visualize" type="charge_station_visualize.py">
+      </node>
+
+      <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->
+      <!--   <param name = "bebop_number" value="$(arg number)"/> -->
+      <!-- </node> -->
+
+      <!-- <node pkg="task_switch" type="pose2tf.py" name="pose2tf_node"> -->
+      <!--   <param name="tfname" value="/visualize/agent$(arg number)"/> -->
+      <!--   <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/> -->
+      <!-- </node> -->
+
+      <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
+      <!--   <param name="agenttf" value="/visualize/agent$(arg number)"/> -->
+      <!--   <param name="cameratf" value="/visualize/down_camera$(arg number)"/> -->
+      <!-- </node> -->
+
+
+      <!-- <node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> --> 
+      <!--   <remap from='image' to='image_raw'/> -->
+      <!-- </node> -->
+    </group>
 
 </launch>
