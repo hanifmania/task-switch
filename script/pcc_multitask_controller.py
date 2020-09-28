@@ -20,6 +20,7 @@ import tf
 
 
 import numpy as np
+import quaternion
 import cv2 as cv
 import os
 
@@ -264,6 +265,11 @@ class coverageController():
         self.energy = 0
         # current charging or not charged status
         self.charging = False
+
+        # ref for altitude
+        self.zRef = 1.2
+        # Threshold for altitude control
+        self.zThreshold = 0.7
         
         # collision avoidance radius
         # each agents keeps collisionR * 2 distance from other agents
@@ -451,7 +457,7 @@ class coverageController():
     ### velocity command calculation function 
     ###################################################################
 
-    def velCommandCalc(self):
+    def Vel2dCommandCalc(self):
         # calculate command for agent
 
         pos = self.position[0:2]
@@ -555,9 +561,23 @@ class coverageController():
                     twist.linear.x = 0.
                     twist.linear.y = 0.
                 else:
-                    ux, uy, opt_status = self.velCommandCalc()
-                    twist.linear.x = ux
-                    twist.linear.y = uy
+                    ux, uy, opt_status = self.Vel2dCommandCalc()
+
+                    # align quaternion [w,x,y,z]
+                    quat = np.array([self.orientation[3],self.orientation[0],self.orientation[1],self.orientation[2]])
+                    # transform to rotation matrix
+                    rotm = quaternion.as_rotation_matrix(quaternion.as_quat_array(quat))
+                    # cal body velocity
+                    body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
+
+                    twist.linear.x = body_vel[0]
+                    twist.linear.y = body_vel[1]
+                    twist.angular.z = -quat[3]
+
+                    if self.position[2] > self.zThreshold:
+                        twist.linear.z = self.zRef - self.position[2]
+                    else:
+                        twist.linear.z = 0.
 
 
 
