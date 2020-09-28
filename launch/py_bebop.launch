@@ -43,9 +43,9 @@
       <node pkg="task_switch" name="joy_to_twist" type="switch_input.py" args="" respawn='true' output='screen'>
       </node>
 
-      <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'>
-        <param name="bebop_number" value="$(arg number)"/>
-      </node>
+      <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->
+      <!--   <param name="bebop_number" value="$(arg number)"/> -->
+      <!-- </node> -->
 
       <node pkg="task_switch" name="virtualenergy" type="virtual_energy.py">
       </node>

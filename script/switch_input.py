@@ -4,7 +4,7 @@ import rospy
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, String
 import tf
 
 import numpy as np
@@ -19,6 +19,7 @@ class FromJoyToTwistPublisherForBebop(object):
         #subscriber
         rospy.Subscriber("/joy", Joy, self.joy_callback, queue_size=1)
         rospy.Subscriber("cmd_input",  Twist, self.twist_callback, queue_size=1)
+        rospy.Subscriber("cmd_takeoffland", String , self.string_callback, queue_size=1)
         # publisher
         self.pub_twist = rospy.Publisher('cmd_vel2', Twist, queue_size=1)
 
@@ -50,6 +51,7 @@ class FromJoyToTwistPublisherForBebop(object):
 
         self.twist_from_joy = Twist()
         self.twist_from_twist = Twist()
+        self.takeoffland = String()
 
         self.command_takeoff = 0
         self.command_land = 0
@@ -97,9 +99,18 @@ class FromJoyToTwistPublisherForBebop(object):
     def twist_callback(self, data):
         self.twist_from_twist = data
 
+    def string_callback(self, data):
+        self.takeoffland = data.data
+        print data.data
     
     def publish_empty(self):
         empty_msg = Empty()
+        if self.vel_command_mode == 1:
+            if self.takeoffland == 'takeoff':
+                self.pub_takeoff.publish(empty_msg)
+            if self.takeoffland == 'land':
+                self.pub_land.publish(empty_msg)
+
         if self.command_takeoff == 1:
             self.pub_takeoff.publish(empty_msg)
             # rospy.logwarn("send takeoff")

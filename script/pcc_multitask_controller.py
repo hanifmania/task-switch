@@ -223,7 +223,7 @@ class coverageController():
 
         # subscriber to get own pose
         rospy.Subscriber("posestamped", PoseStamped, self.poseStampedCallback, queue_size=1)
-        # subscriber to get own energy
+        # subscriber to get own energyel
         rospy.Subscriber("energy", Float32, self.energyCallback, queue_size=1)
         # subscriber to get field information density
         rospy.Subscriber("/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1)
@@ -231,8 +231,7 @@ class coverageController():
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
         # publisher for agent control
         self.pub_twist = rospy.Publisher('cmd_input', Twist, queue_size=1)
-        self.pub_takeoff = rospy.Publisher('takeoff', Empty, queue_size=1)
-        self.pub_land = rospy.Publisher('land', Empty, queue_size=1)
+        self.pub_takeoffland = rospy.Publisher('cmd_takeoffland', String, queue_size=1)
         self.pub_reset = rospy.Publisher('reset', Empty, queue_size=1)
         # publisher for own region
         self.pub_region = rospy.Publisher('region', Int8MultiArray, queue_size=1)
@@ -271,6 +270,10 @@ class coverageController():
         # Threshold for altitude control
         self.zThreshold = 0.7
         
+        # current state: ''/'takeoff'/'land'
+        # each means normal/ taking off / landing
+        self.takeofflandflag = ''
+
         # collision avoidance radius
         # each agents keeps collisionR * 2 distance from other agents
         self.collisionR = 0.5
@@ -430,6 +433,10 @@ class coverageController():
         # publish my current energy drain rate
         self.pub_twist.publish(twist)
 
+    def publishString(self,string):
+        pubString = String(string)
+        self.pub_takeoffland.publish(pubString)
+
     ###################################################################
     ### voronoi region calculation function 
     ###################################################################
@@ -508,15 +515,21 @@ class coverageController():
             if (currentEnergy>=self.maxEnergy):
                 self.charging = False
 
+
+        self.takeofflandflag = ''
         if self.charging:
             drainRate = -5*Kd # minus drainrate means battery is being charged
+            self.takeofflandflag = 'land'
             if lastChargeState == False:
                 rospy.loginfo("start charge")
         else:
             drainRate = Kd*self.optimizer.activate_chargecbf
+            if self.position[2] < self.zThreshold:
+                self.takeofflandflag = 'takeoff'
             if lastChargeState == True:
                 rospy.loginfo("end charge")
 
+        self.publishString(self.takeofflandflag)
         return drainRate
 
             
@@ -570,14 +583,16 @@ class coverageController():
                     # cal body velocity
                     body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
 
-                    twist.linear.x = body_vel[0]
-                    twist.linear.y = body_vel[1]
-                    twist.angular.z = -quat[3]
-
-                    if self.position[2] > self.zThreshold:
+                    if self.takeofflandflag == '':
+                        twist.linear.x = body_vel[0]
+                        twist.linear.y = body_vel[1]
                         twist.linear.z = self.zRef - self.position[2]
+                        twist.angular.z = -quat[3]
                     else:
-                        twist.linear.z = 0.
+                        twist.linear.x = 0.0
+                        twist.linear.y = 0.0
+                        twist.angular.z = 0.0
+
 
 
 
