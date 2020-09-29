@@ -579,6 +579,7 @@ class coverageController():
                     # align quaternion [w,x,y,z]
                     quat = np.array([self.orientation[3],self.orientation[0],self.orientation[1],self.orientation[2]])
                     # transform to rotation matrix
+                    # need numpy-quaternion==2017.10.14.11.11.56
                     rotm = quaternion.as_rotation_matrix(quaternion.as_quat_array(quat))
                     # cal body velocity
                     body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
