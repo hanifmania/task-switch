@@ -18,9 +18,9 @@ from task_switch.voronoi_main import Field
 from task_switch.cbf_qp_optimizer import CBFOptimizer
 import tf
 
+from task_switch.transformations import *
 
 import numpy as np
-import quaternion
 import cv2 as cv
 import os
 
@@ -576,11 +576,12 @@ class coverageController():
                 else:
                     ux, uy, opt_status = self.Vel2dCommandCalc()
 
-                    # align quaternion [w,x,y,z]
-                    quat = np.array([self.orientation[3],self.orientation[0],self.orientation[1],self.orientation[2]])
+                    # quaternion [x,y,z,w]
+                    quat = np.array(self.orientation)
                     # transform to rotation matrix
-                    # need numpy-quaternion==2017.10.14.11.11.56
-                    rotm = quaternion.as_rotation_matrix(quaternion.as_quat_array(quat))
+                    rotm_ = quaternion_matrix(quat)
+                    rotm = rotm_[0:3,0:3]
+
                     # cal body velocity
                     body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
 
@@ -588,7 +589,7 @@ class coverageController():
                         twist.linear.x = body_vel[0]
                         twist.linear.y = body_vel[1]
                         twist.linear.z = self.zRef - self.position[2]
-                        twist.angular.z = -quat[3]
+                        twist.angular.z = -self.orientation[2]
                     else:
                         twist.linear.x = 0.0
                         twist.linear.y = 0.0
