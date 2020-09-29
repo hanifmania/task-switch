@@ -84,6 +84,7 @@ class CBFOptimizer(object):
         width = [.5,.5]
         keepInside = True
         self.setStayArea(centPos,theta,norm,width,keepInside)
+        self.perception = False
 
 
     def setFieldArea(self,centPos,theta,norm,width,keepInside):
@@ -171,6 +172,11 @@ class CBFOptimizer(object):
         G, h = self.staycbf.getConstraint()
         return G, h
 
+    def setPerception(self,perception):
+        self.perception = perception
+
+    def getPerception(self):
+        return self.perception
 
     def updateInputRange(self,flag,umax,umin):
         self.activate_umax = flag
@@ -278,10 +284,12 @@ class CBFOptimizer(object):
                         = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
             if self.activate_staycbf == True:
-                dhdp, h = self.getStayConstraint()
-                weight = self.staycbf_slack_weight
-                G_list, h_list, slack_weight_list, slack_flag_list \
-                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                if self.getPerception():
+                    dhdp, h = self.getStayConstraint()
+                    weight = self.staycbf_slack_weight
+                    G_list, h_list, slack_weight_list, slack_flag_list \
+                            = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                    print "perception"
 
             if self.activate_umax == True:
                 # replace by np.eyes? 

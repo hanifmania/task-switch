@@ -9,6 +9,7 @@ from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty, String, ColorRGBA
 from std_msgs.msg import Int8MultiArray,MultiArrayLayout,MultiArrayDimension
 from std_msgs.msg import Bool,Float32,Float32MultiArray
+from vision_msgs.msg import Detection2DArray
 from jsk_rviz_plugins.msg import *
 
 import dynamic_reconfigure.client
@@ -225,10 +226,14 @@ class coverageController():
         rospy.Subscriber("posestamped", PoseStamped, self.poseStampedCallback, queue_size=1)
         # subscriber to get own energyel
         rospy.Subscriber("energy", Float32, self.energyCallback, queue_size=1)
+        # subscriber to get own energyel
+        rospy.Subscriber("objects", Detection2DArray, self.objectCallback, queue_size=1)
         # subscriber to get field information density
         rospy.Subscriber("/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1)
         # subscriber to other agent's position
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
+
+
         # publisher for agent control
         self.pub_twist = rospy.Publisher('cmd_input', Twist, queue_size=1)
         self.pub_takeoffland = rospy.Publisher('cmd_takeoffland', String, queue_size=1)
@@ -247,6 +252,9 @@ class coverageController():
         self.pcc_dycon_client = dynamic_reconfigure.client.Client("/pcc_parameter", timeout=2, config_callback=self.pcc_config_callback)
         self.charge_dycon_client = dynamic_reconfigure.client.Client("/charge_parameter", timeout=2, config_callback=self.charge_config_callback)
         self.cbf_dycon_client = dynamic_reconfigure.client.Client("/cbf_parameter", timeout=2, config_callback=self.cbf_config_callback)
+
+        # listener for object to detect
+        self.objectlistner = tf.TransformListener()
 
         # controller gain. any number is ok because it will be overwritten by dycon
         self.controllerGain = 0.1
@@ -297,6 +305,9 @@ class coverageController():
         # charging configs. any number is ok because it will be overwitten by dycon
         self.optimizer.setChargeSettings(minEnergy,Kd,k_charge)
 
+        # for object detection
+        self.object = Detection2DArray()
+        self.perception = False
 
         rospy.loginfo("starting node:agent"+str(self.agentID))
 
@@ -386,6 +397,10 @@ class coverageController():
             for i in range(arraynum):
                 pos = [msg.poses[i].position.x, msg.poses[i].position.y, msg.poses[i].position.z]
                 self.allPositions[i] = pos
+
+    def objectCallback(self, msg):
+        # subscriber to get own energy
+        self.object = msg
 
     ###################################################################
     ### publisher functions 
@@ -536,15 +551,38 @@ class coverageController():
     ###################################################################
     ### for the object detection, set detected object position
     ###################################################################
-    def setObjectPosition(self):
-        objectPos = [0.0]
+    def updateObject(self):
+        perception = False
+        if len(self.object.detections) > 0:
+            for detection in self.object.detections:
+                if detection.results[0].id == 3:
+                    perception = True
+                    objCenter = detection.bbox.center
+                    br = tf.TransformBroadcaster()
+                    br.sendTransform((1.0*(480.0/2-objCenter.y)/480.0, 1.8*(856.0/2-objCenter.x)/856.0, -self.position[2]),
+                                    tf.transformations.quaternion_from_euler(0,0,objCenter.theta),
+                                    rospy.Time.now(),
+                                    "object"+str(self.agentID),
+                                    "bebop10"+str(self.agentID))
 
-        centPos = objectPos
-        theta = 0
-        norm = 2.
-        width = [.5,.5]
-        keepInside = True
-        self.optimizer.setStayArea(centPos,theta,norm,width,keepInside)
+        self.setObjectPosition(perception)
+
+
+    def setObjectPosition(self,perception):
+        if perception:
+            try:
+                (position, orientation) = self.objectlistner.lookupTransform("/world", "object"+str(self.agentID), rospy.Time(0))
+                centPos = position[0:2]
+                theta = 0
+                norm = 2.
+                width = [.5,.5]
+                keepInside = True
+                self.optimizer.setPerception(True)
+                self.optimizer.setStayArea(centPos,theta,norm,width,keepInside)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):pass
+
+        else:
+            self.optimizer.setPerception(False)
         
     
     
@@ -582,7 +620,7 @@ class coverageController():
                     rotm_ = quaternion_matrix(quat)
                     rotm = rotm_[0:3,0:3]
 
-                    # cal body velocity
+                    # calc body velocity
                     body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
 
                     if self.takeofflandflag == '':
@@ -596,6 +634,7 @@ class coverageController():
                         twist.angular.z = 0.0
 
 
+                self.updateObject()
 
 
                 # publish drain rate
