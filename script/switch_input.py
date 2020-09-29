@@ -101,7 +101,6 @@ class FromJoyToTwistPublisherForBebop(object):
 
     def string_callback(self, data):
         self.takeoffland = data.data
-        print data.data
     
     def publish_empty(self):
         empty_msg = Empty()

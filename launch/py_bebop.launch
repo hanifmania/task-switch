@@ -2,6 +2,7 @@
 
 <launch>
     <arg name="number" default="1"/>
+    <arg name="view" default="true"/>
 
     <group ns="bebop10$(arg number)">
 
@@ -81,6 +82,10 @@
 
       <node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> 
         <remap from='image' to='image_raw'/>
+      </node>
+
+      <node if="$(arg view)"
+        pkg="image_view" type="image_view" name="image_viewer" args="image:=debug_image" output="log" respawn="false">
       </node>
     </group>
 
