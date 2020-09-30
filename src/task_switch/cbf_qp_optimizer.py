@@ -278,10 +278,11 @@ class CBFOptimizer(object):
 
 
             if self.activate_pcccbf == True:
-                dhdp, h = self.getPccConstraint()
-                weight = self.pcccbf_slack_weight
-                G_list, h_list, slack_weight_list, slack_flag_list \
-                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                if not self.getPerception():
+                    dhdp, h = self.getPccConstraint()
+                    weight = self.pcccbf_slack_weight
+                    G_list, h_list, slack_weight_list, slack_flag_list \
+                            = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
 
             if self.activate_staycbf == True:
                 if self.getPerception():

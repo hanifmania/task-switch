@@ -575,7 +575,7 @@ class coverageController():
                 centPos = position[0:2]
                 theta = 0
                 norm = 2.
-                width = [.5,.5]
+                width = [.1,.1]
                 keepInside = True
                 self.optimizer.setPerception(True)
                 self.optimizer.setStayArea(centPos,theta,norm,width,keepInside)
