@@ -10,22 +10,22 @@
       <param name="agentID" value="$(arg number)"/>
 
       <group if="$(eval number=='1')">
-        <param name="charge_station_x" value="0.0"/>
-        <param name="charge_station_y" value="1.0"/>
+        <param name="charge_station_x" value="0.7"/>
+        <param name="charge_station_y" value="1.2"/>
         <param name="charge_station_r" value="0.2"/>
         <param name="initialEnergy" value="4000"/>
       </group>
 
       <group if="$(eval number=='2')">
-        <param name="charge_station_x" value="0.0"/>
-        <param name="charge_station_y" value="-1.0"/>
+        <param name="charge_station_x" value="-0.8"/>
+        <param name="charge_station_y" value="1.2"/>
         <param name="charge_station_r" value="0.2"/>
         <param name="initialEnergy" value="3500"/>
       </group>
       
       <group if="$(eval number=='3')">
-        <param name="charge_station_x" value="1.0"/>
-        <param name="charge_station_y" value="0.0"/>
+        <param name="charge_station_x" value="-0.8"/>
+        <param name="charge_station_y" value="-1.2"/>
         <param name="charge_station_r" value="0.2"/>
         <param name="initialEnergy" value="3000"/>
       </group>
