@@ -1,0 +1,4 @@
+charge_station/x: -0.7
+charge_station/y: 1.1
+charge_station/r: 0.2
+initialEnergy: 3500

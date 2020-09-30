@@ -14,27 +14,8 @@
       <param name="initial_pose/x" value="$(arg initial_pose_x)"/>
       <param name="initial_pose/y" value="$(arg initial_pose_y)"/>
 
+      <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml"/>
 
-      <group if="$(eval number=='1')">
-        <param name="charge_station_x" value="0.0"/>
-        <param name="charge_station_y" value="1.0"/>
-        <param name="charge_station_r" value="0.2"/>
-        <param name="initialEnergy" value="4000"/>
-      </group>
-
-      <group if="$(eval number=='2')">
-        <param name="charge_station_x" value="0.0"/>
-        <param name="charge_station_y" value="-1.0"/>
-        <param name="charge_station_r" value="0.2"/>
-        <param name="initialEnergy" value="3500"/>
-      </group>
-      
-      <group if="$(eval number=='3')">
-        <param name="charge_station_x" value="1.0"/>
-        <param name="charge_station_y" value="0.0"/>
-        <param name="charge_station_r" value="0.2"/>
-        <param name="initialEnergy" value="3000"/>
-      </group>
       <!-- <param name="charge_station/x" value="$(arg charge_station_x)"/>
       <param name="charge_station/y" value="$(arg charge_station_y)"/>
       <param name="charge_station/r" value="$(arg charge_station_r)"/>
