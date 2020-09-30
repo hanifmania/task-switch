@@ -63,6 +63,8 @@ Visualization Manager:
           Value: true
         bebop102:
           Value: true
+        bebop103:
+          Value: true
         odom:
           Value: true
         pg_18549320:
@@ -71,7 +73,15 @@ Visualization Manager:
           Value: false
         visualize/agent1:
           Value: true
+        visualize/agent2:
+          Value: true
+        visualize/agent3:
+          Value: true
         visualize/down_camera1:
+          Value: true
+        visualize/down_camera2:
+          Value: true
+        visualize/down_camera3:
           Value: true
         world:
           Value: true
@@ -86,11 +96,19 @@ Visualization Manager:
             {}
           bebop102:
             {}
+          bebop103:
+            {}
           pg_camera:
             pg_18549320:
               {}
           visualize/agent1:
             visualize/down_camera1:
+              {}
+          visualize/agent2:
+            visualize/down_camera2:
+              {}
+          visualize/agent3:
+            visualize/down_camera3:
               {}
       Update Interval: 0
       Value: true
@@ -202,13 +220,15 @@ Visualization Manager:
       update interval: 0.0399999991
       width: 128
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /visualization/chargeStation
       Name: Marker
       Namespaces:
-        {}
+        charge_station1: true
+        charge_station2: true
+        charge_station3: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Align Bottom: false
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
@@ -310,6 +330,8 @@ Visualization Manager:
       Name: Marker
       Namespaces:
         1: true
+        2: true
+        3: true
       Queue Size: 100
       Value: true
     - Class: rviz/Camera
@@ -351,6 +373,16 @@ Visualization Manager:
       Name: Range
       Queue Size: 100
       Topic: /bebop102/range
+      Unreliable: false
+      Value: true
+    - Alpha: 0.5
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 101; 255; 5
+      Enabled: true
+      Name: Range
+      Queue Size: 100
+      Topic: /bebop103/range
       Unreliable: false
       Value: true
   Enabled: true
