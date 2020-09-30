@@ -427,10 +427,10 @@ class coverageController():
         # publish my coverage performance
         self.pub_JintSPlusb.publish(Float32(data=JintSPlusb))
 
-    def publishOptStatus(self,optStatus):
+    def publishOptStatus(self,optStatus,task):
         # publish my CBF optimization status
         showText = OverlayText()
-        showText.text = "agent" + str(self.agentID) + "'s optimization: " + optStatus 
+        showText.text = "agent" + str(self.agentID) + "'s optimization: " + optStatus + "| task: " + task
         if optStatus == "optimal":
             showText.fg_color = ColorRGBA(25/255.0, 1.0, 240.0/255.0, 1.0)
         elif optStatus == "error":
@@ -506,9 +506,9 @@ class coverageController():
         dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
         xi = [self.voronoi.getXi()]
 
-        u, opt_status = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
+        u, opt_status, task = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 
-        return u[0], u[1], opt_status
+        return u[0], u[1], opt_status, task
 
 
     ###################################################################
@@ -612,7 +612,7 @@ class coverageController():
                     twist.linear.x = 0.
                     twist.linear.y = 0.
                 else:
-                    ux, uy, opt_status = self.Vel2dCommandCalc()
+                    ux, uy, opt_status, task = self.Vel2dCommandCalc()
 
                     # quaternion [x,y,z,w]
                     quat = np.array(self.orientation)
@@ -642,7 +642,7 @@ class coverageController():
                 self.publishDrainRate(drainRate)
 
                 # publish optimization status
-                self.publishOptStatus(opt_status)
+                self.publishOptStatus(opt_status,task)
 
                 # publish my region
                 self.publishRegion(self.voronoi.getRegion())

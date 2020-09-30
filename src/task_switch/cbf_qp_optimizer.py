@@ -86,6 +86,7 @@ class CBFOptimizer(object):
         self.setStayArea(centPos,theta,norm,width,keepInside)
         self.perception = False
 
+        self.task = "init..."
 
     def setFieldArea(self,centPos,theta,norm,width,keepInside):
         """
@@ -278,11 +279,12 @@ class CBFOptimizer(object):
 
 
             if self.activate_pcccbf == True:
-                if not self.getPerception():
+                if not self.getPerception() or not self.activate_staycbf:
                     dhdp, h = self.getPccConstraint()
                     weight = self.pcccbf_slack_weight
                     G_list, h_list, slack_weight_list, slack_flag_list \
                             = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                    self.task = "search"
 
             if self.activate_staycbf == True:
                 if self.getPerception():
@@ -290,7 +292,7 @@ class CBFOptimizer(object):
                     weight = self.staycbf_slack_weight
                     G_list, h_list, slack_weight_list, slack_flag_list \
                             = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
-                    print "perception"
+                    self.task = "monitor"
 
             if self.activate_umax == True:
                 # replace by np.eyes? 
@@ -341,13 +343,13 @@ class CBFOptimizer(object):
 
             self.set_qp_problem()
             # u_optimal is optimized input, delta is slack variables value for soft constraints
-            self.u_optimal, self.delta, self.status = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
+            self.u_optimal, self.delta, self.optstatus = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
             # print self.u_optimal, self.delta
         else:
-            self.status = "no optimization"
+            self.optstatus = "no optimization"
             self.u_optimal = u_nom
 
-        return self.u_optimal, self.status
+        return self.u_optimal, self.optstatus, self.task
 
 if __name__ == '__main__':
     optimizer = CBFOptimizer()
