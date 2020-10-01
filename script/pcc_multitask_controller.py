@@ -246,6 +246,8 @@ class coverageController():
         self.pub_drainRate = rospy.Publisher('drainRate', Float32, queue_size=1)
         # publisher to display current CBF optimization status
         self.pub_optStatus = rospy.Publisher('optStatus', OverlayText, queue_size=1)
+        # publisher to display object position
+        self.pub_object = rospy.Publisher('object', PoseStamped, queue_size=1)
 
 
         #dynamic_reconfigure
@@ -253,8 +255,6 @@ class coverageController():
         self.charge_dycon_client = dynamic_reconfigure.client.Client("/charge_parameter", timeout=2, config_callback=self.charge_config_callback)
         self.cbf_dycon_client = dynamic_reconfigure.client.Client("/cbf_parameter", timeout=2, config_callback=self.cbf_config_callback)
 
-        # listener for object to detect
-        self.objectlistner = tf.TransformListener()
 
         # controller gain. any number is ok because it will be overwritten by dycon
         self.controllerGain = 0.1
@@ -307,7 +307,8 @@ class coverageController():
 
         # for object detection
         self.object = Detection2DArray()
-        self.perception = False
+        self.pubObjectMsg = PoseStamped()
+        self.pubObjectMsg.header.frame_id = '/world'
 
         rospy.loginfo("starting node:agent"+str(self.agentID))
 
@@ -452,6 +453,9 @@ class coverageController():
         pubString = String(string)
         self.pub_takeoffland.publish(pubString)
 
+    def publishObject(self,posestamped):
+        self.pub_object.publish(posestamped)
+
     ###################################################################
     ### voronoi region calculation function 
     ###################################################################
@@ -552,37 +556,43 @@ class coverageController():
     ### for the object detection, set detected object position
     ###################################################################
     def updateObject(self):
-        perception = False
+        objGrobalPos = []
         if len(self.object.detections) > 0:
             for detection in self.object.detections:
                 if detection.results[0].id == 3:
                     perception = True
                     objCenter = detection.bbox.center
-                    br = tf.TransformBroadcaster()
-                    br.sendTransform((1.0*(480.0/2-objCenter.y)/480.0, 1.8*(856.0/2-objCenter.x)/856.0, -self.position[2]),
-                                    tf.transformations.quaternion_from_euler(0,0,objCenter.theta),
-                                    rospy.Time.now(),
-                                    "object"+str(self.agentID),
-                                    "bebop10"+str(self.agentID))
+                    objVector = np.array(
+                            [1.0*(480.0/2-objCenter.y)/480.0, 1.8*(856.0/2-objCenter.x)/856.0, -self.position[2]]
+                            )
+                    quat = np.array(self.orientation)
+                    # transform to rotation matrix
+                    rotm_ = quaternion_matrix(quat)
+                    rotm = rotm_[0:3,0:3]
+                    rotObjVector = np.dot(rotm,objVector)
+                    objGrobalPos = np.array([self.position[0],self.position[1],0]) + rotObjVector - [0., 0., 0.]
+                    self.pubObjectMsg.header.stamp = rospy.Time.now()
+                    self.pubObjectMsg.pose.position.x = objGrobalPos[0]
+                    self.pubObjectMsg.pose.position.y = objGrobalPos[1]
+                    self.publishObject(self.pubObjectMsg)
 
-        self.setObjectPosition(perception)
+                    
+
+        self.setObjectPosition(objGrobalPos)
 
 
-    def setObjectPosition(self,perception):
-        if perception:
-            try:
-                (position, orientation) = self.objectlistner.lookupTransform("/world", "object"+str(self.agentID), rospy.Time(0))
-                centPos = position[0:2]
-                theta = 0
-                norm = 2.
-                width = [.1,.1]
-                keepInside = True
-                self.optimizer.setPerception(True)
-                self.optimizer.setStayArea(centPos,theta,norm,width,keepInside)
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):pass
+    def setObjectPosition(self,objGrobalPos):
+        if objGrobalPos==[]:
+            self.optimizer.setPerception(False)
 
         else:
-            self.optimizer.setPerception(False)
+            centPos = objGrobalPos[0:2]
+            theta = 0
+            norm = 2.
+            width = [.1,.1]
+            keepInside = True
+            self.optimizer.setPerception(True)
+            self.optimizer.setStayArea(centPos,theta,norm,width,keepInside)
         
     
     
