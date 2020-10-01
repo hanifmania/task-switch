@@ -636,7 +636,7 @@ class coverageController():
                     if self.takeofflandflag == '':
                         twist.linear.x = body_vel[0]
                         twist.linear.y = body_vel[1]
-                        twist.linear.z = 1.0*(self.zRef - self.position[2])
+                        twist.linear.z = 0.7*(self.zRef - self.position[2])
                         twist.angular.z = -self.orientation[2]
                     else:
                         twist.linear.x = 0.0
