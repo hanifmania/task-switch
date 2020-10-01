@@ -543,7 +543,7 @@ class coverageController():
                 rospy.loginfo("start charge")
         else:
             drainRate = Kd*self.optimizer.activate_chargecbf
-            if self.position[2] < self.zThreshold:
+            if self.position[2] < self.zThreshold+0.1: # margin for threshold
                 self.takeofflandflag = 'takeoff'
             if lastChargeState == True:
                 rospy.loginfo("end charge")
