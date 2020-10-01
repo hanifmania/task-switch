@@ -9,7 +9,7 @@
       <param name="markername" value="$(arg number)"/>
       <param name="agentID" value="$(arg number)"/>
       
-      <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml"/>
+      <!-- <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml"/> -->
 
 
       <node pkg="bebop_driver" name="bebop_driver" type="bebop_driver_node" output="screen" respawn="false">
