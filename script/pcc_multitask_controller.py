@@ -276,7 +276,7 @@ class coverageController():
         # ref for altitude
         self.zRef = 1.2
         # Threshold for altitude control
-        self.zThreshold = 0.7
+        self.zThreshold = 0.6
         
         # current state: ''/'takeoff'/'land'
         # each means normal/ taking off / landing
@@ -543,7 +543,7 @@ class coverageController():
                 rospy.loginfo("start charge")
         else:
             drainRate = Kd*self.optimizer.activate_chargecbf
-            if self.position[2] < self.zThreshold+0.1: # margin for threshold
+            if self.position[2] < self.zThreshold: # margin for threshold
                 self.takeofflandflag = 'takeoff'
             if lastChargeState == True:
                 rospy.loginfo("end charge")
@@ -636,7 +636,7 @@ class coverageController():
                     if self.takeofflandflag == '':
                         twist.linear.x = body_vel[0]
                         twist.linear.y = body_vel[1]
-                        twist.linear.z = self.zRef - self.position[2]
+                        twist.linear.z = 1.0*(self.zRef - self.position[2])
                         twist.angular.z = -self.orientation[2]
                     else:
                         twist.linear.x = 0.0

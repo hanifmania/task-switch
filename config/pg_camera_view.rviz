@@ -351,6 +351,7 @@ Visualization Manager:
         PieChart: true
         Plotter2D: true
         PointCloud2: true
+        Pose: true
         Range: true
         TF: true
         Value: true
@@ -385,6 +386,51 @@ Visualization Manager:
       Topic: /bebop103/range
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Axes Length: 0.25
+      Axes Radius: 0.0250000004
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: false
+      Head Length: 0.300000012
+      Head Radius: 0.100000001
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.0500000007
+      Shape: Axes
+      Topic: /bebop101/object
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Axes Length: 0.25
+      Axes Radius: 0.0250000004
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: false
+      Head Length: 0.300000012
+      Head Radius: 0.100000001
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.0500000007
+      Shape: Axes
+      Topic: /bebop102/object
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Axes Length: 0.25
+      Axes Radius: 0.0250000004
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: false
+      Head Length: 0.300000012
+      Head Radius: 0.100000001
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.0500000007
+      Shape: Axes
+      Topic: /bebop103/object
+      Unreliable: false
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
