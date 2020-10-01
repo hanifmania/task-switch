@@ -276,7 +276,7 @@ class coverageController():
         # ref for altitude
         self.zRef = 1.2
         # Threshold for altitude control
-        self.zThreshold = 0.6
+        self.zThreshold = 0.35
         
         # current state: ''/'takeoff'/'land'
         # each means normal/ taking off / landing
