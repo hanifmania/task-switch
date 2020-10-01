@@ -10,6 +10,8 @@
     <param name="/mesh_acc/x" value="100"/>
     <param name="/mesh_acc/y" value="100"/>
 
+    <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop_all.yaml"/>
+
     <include file="$(find task_switch)/launch/vrpn_client.launch"/>
     <include file="$(find task_switch)/launch/joy.launch"/>
 
