@@ -1,6 +1,13 @@
 # task switch
 bebop2で充電＋フィールド内stay、持続的被覆制御、物体検知＋監視の動作を
 切り替えつつ行う実験およびシミュレーション用ROSパッケージ。
+
+# branchについて
+- master branch
+  - pythonオンリーで書かれた実験＋シミュレーション
+- matlab branch
+  - pythonとmatlabで書かれた実験＋シミュレーション（2020年9月までmasterだったもの）
+  
 # Description
 CBFの制約として書かれた各タスクをフラグに応じて切り替え実行する実験。
 - 必ず守りたい制約
