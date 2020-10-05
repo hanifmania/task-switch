@@ -26,25 +26,6 @@ bebop2 の urdf モデルは rotors_simulator のモデルを使っている。�
 	```
 
 
-- mqtt_bridge  
-https://qiita.com/ledmonster/items/1b46fabf0415d7c0abae  
-を参照に入れる。ただし
-ただし、ビルド、もしくは launch しようとするといろいろ Import Error で怒られる（inject 等）ため、pipで色々入れる必要がある。  
-
-
-  ```
-  sudo pip install bson==0.5.2 inject==3.3.1 paho-mqtt==1.2 msgpack-python==0.4.8
-  ```
-  ↑だとエラーを吐く。bson だけ
-  `pip uninstall bson`
-  でアンインストールしておくととりあえずは動く？（要検証）
-
-  <!-- つまったら -->
-  <!-- ` -->
-  <!-- sudo pip install --upgrade pip setuptools -->
-  <!-- ` -->
-  <!-- で解決するかも。 -->
-
 
 - vrpn_client  
 ROS wiki に vrpn_client についてのページがあるためそちらを参照。
@@ -81,28 +62,44 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
   rosdep install task_switch
   ```
   してみる。
+
+
 # Usage
 
 - シミュレーション
-	1. task_switchをlaunch. joyコンが刺さっていることを確認すること。
-		``` 
-		$ roslaunch task_switch task_switch.launch
-		```
-	2. matlabでmain.m内でreel = 0に設定したうえで実行。
-
+  1. multi_sim.launchをlaunch. joyコンが刺さっていることを確認すること。
+      niwaya上で
+      ```
+      $ roslaunch task_switch multi_sim.launch
+      ```
+      numpyのバージョンが新しいとエラーになる場合がある．動作確認はnumpy==1.13.1でしか行っていないので注意．
 
 - 実験
   - 注意  
   モーションキャプチャ上でのbebopの名前は、「bebop10*」を想定している。
-  *部分の番号は、bebop.launchの引数numberとmatlab内のagent numberと連動している。
-  もし名前を変える場合は、bebop.launch内のgroup nsの部分を変更、更にはmqtt関連の設定を見なおす必要がある。
+  この名前は、vrpnを通して配信されるトピック名に影響する．
+  bebop10*という名前を想定して，controller等もベタ書きしているので，名前を変える際は注意する．
 
   - 手順
-  1. `` roslaunch task_switch task_switch.launch real:="true"``
+  1. niwayaにjoyコンが刺さっていることを確認すること。
+      niwaya上で
+      ```
+      $ roslaunch task_switch py_central.launch agentNum:="3"
+      ```
+      agentNumは使用するbebopの台数を指定
   2. 同じROSネットワーク上に接続された各PCでbebopにwifi接続
-  3. 各PC上で``bebop.launch number:="*"`` 
-  4. matlabでmain.m内でreal = 1に設定したうえで実行
-- 共通
-  - matlab内のパラメータmatlab_plot=1とすると、matlab上で情報信頼度やエージェントの位置がプロットされる。重い場合は0にしてプロットを切る。
-  - rviz_info_plot = 1でrviz上に情報信頼度をプロットする。重かったら切る。
+  3. 各PC上で
+      ```
+      $ roslaunch task_switch py_bebop.launch number:="1"
+      ``` 
+      ``number:="*"``はそれぞれのPCで接続しているbebopの，モーションキャプチャ上での番号と一致させること．
+      （例：モーキャプ上で「bebop102」としているならnumber:="2"）
+  4. configureウィンドウがniwayaに表示されているはずなので，調整する．  
+  5. joyコンの×ボタンを押して，入力ソースを切り替えると実験が動く．
+
+  - configについて
+    - umaxを大きくし過ぎるとドローンがとんでもない速さで飛んでしまうので気を付ける．具体的には0.3程度にしておくと安心．また，umaxのチェックボックスを外さないこと．
+    - 各cbfはチェックボックスで入/切できる．soft制約にしたときのslack変数の重さをフェーダーで調節することで，動きの微調整が可能
+      hard制約にしたいときはこの重さを0にすればhardとして扱われる．
+    - field cbfを切ると，ネットにぶつからないようにするcbfが切れてしまうので，基本はチェックを外さないこと．
 
