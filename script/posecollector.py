@@ -24,7 +24,11 @@ class Collector():
 
     def __init__(self,agentName):
         self.ready = False
-        subTopic = agentName + "/virtualdrone/posestamped"
+        
+        topicName = rospy.get_param("~posestampedTopic")
+        preTopicName = rospy.get_param("~preTopicName","/")
+        subTopic = preTopicName + agentName + topicName
+        rospy.loginfo("topicName:"+subTopic)
         # subscriber for each agent's region
         rospy.Subscriber(subTopic, PoseStamped, self.poseStampedCallback, queue_size=1)
         # initialze with zeros
@@ -53,7 +57,7 @@ class poseCollector():
         self.Collectors = []
         # create [Agent's number] subscriber 
         for agentID in range(self.agentNum):
-            agentName = "/bebop10" + str(agentID+1)
+            agentName = "bebop10" + str(agentID+1)
             collector = Collector(agentName) 
             self.Collectors.append(collector)
 

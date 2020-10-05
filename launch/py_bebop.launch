@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+    <arg name="number" default="1"/>
+    <arg name="view" default="true"/>
+
+    <group ns="bebop10$(arg number)">
+
+      <param name="markername" value="$(arg number)"/>
+      <param name="agentID" value="$(arg number)"/>
+      
+      <!-- <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml"/> -->
+
+
+      <node pkg="bebop_driver" name="bebop_driver" type="bebop_driver_node" output="screen" respawn="false">
+        <param name="camera_info_url" value="package://bebop_driver/data/bebop2_camera_calib.yaml" />
+        <!-- <param name="bebop_ip" value="192.168.208.10$(arg number)" /> -->
+        <param name="bebop_ip" value="192.168.42.1" />
+        <rosparam command="load" file="$(find bebop_driver)/config/defaults.yaml" />
+      </node>
+
+      <node pkg="bebop_sokudoseigyo" name="bebop_sokudoseigyo" type="bebop_sokudoseigyo_node" output="screen">
+      </node>
+
+      <node pkg="task_switch" name="joy_to_twist" type="switch_input.py" args="" respawn='true' output='screen'>
+      </node>
+
+      <!-- <node pkg="task_switch" name="takeoff_land" type="takeoff_land.py" args="" respawn='true' output='screen'> -->
+      <!--   <param name="bebop_number" value="$(arg number)"/> -->
+      <!-- </node> -->
+
+      <node pkg="task_switch" name="virtualenergy" type="virtual_energy.py">
+      </node>
+
+      <node pkg="task_switch" name="controller" type="pcc_multitask_controller.py" output='screen'>
+        <remap from="cmd_input" to="cmd_input"/>
+        <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/>
+        <remap from="energy" to="virtualenergy/energy"/>
+        <remap from="drainRate" to="virtualenergy/drainRate"/>
+      </node>
+
+      <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
+        <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/>
+      </node>
+      <node pkg="task_switch" name="pose2marker_bebop" type="pose2marker_bebop.py">
+        <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/>
+      </node>
+      <node pkg="task_switch" name="charge_station_visualize" type="charge_station_visualize.py">
+      </node>
+
+
+      <node pkg="task_switch" type="pose2tf.py" name="pose2tf_node">
+        <param name="tfname" value="/visualize/agent$(arg number)"/>
+        <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/>
+      </node>
+      <node pkg="task_switch" name="down_camera" type="down_range.py">
+        <param name="agenttf" value="/visualize/agent$(arg number)"/>
+        <param name="cameratf" value="/visualize/down_camera$(arg number)"/>
+      </node>
+
+      <!-- just let bebop2 camera face downward -->
+      <node pkg="rostopic" type="rostopic" name="camera_control" args="pub -r 10 camera_control geometry_msgs/Twist -- '[0.0, 0.0, 0.0]' '[0.0, -90, 0.0]'"/>
+
+      <node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> 
+        <remap from='image' to='image_raw'/>
+      </node>
+
+      <node if="$(arg view)"
+        pkg="image_view" type="image_view" name="image_viewer" args="image:=debug_image" output="log" respawn="false">
+      </node>
+    </group>
+
+</launch>

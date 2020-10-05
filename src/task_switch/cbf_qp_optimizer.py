@@ -84,7 +84,9 @@ class CBFOptimizer(object):
         width = [.5,.5]
         keepInside = True
         self.setStayArea(centPos,theta,norm,width,keepInside)
+        self.perception = False
 
+        self.task = "init..."
 
     def setFieldArea(self,centPos,theta,norm,width,keepInside):
         """
@@ -171,6 +173,11 @@ class CBFOptimizer(object):
         G, h = self.staycbf.getConstraint()
         return G, h
 
+    def setPerception(self,perception):
+        self.perception = perception
+
+    def getPerception(self):
+        return self.perception
 
     def updateInputRange(self,flag,umax,umin):
         self.activate_umax = flag
@@ -272,16 +279,20 @@ class CBFOptimizer(object):
 
 
             if self.activate_pcccbf == True:
-                dhdp, h = self.getPccConstraint()
-                weight = self.pcccbf_slack_weight
-                G_list, h_list, slack_weight_list, slack_flag_list \
-                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                if not self.getPerception() or not self.activate_staycbf:
+                    dhdp, h = self.getPccConstraint()
+                    weight = self.pcccbf_slack_weight
+                    G_list, h_list, slack_weight_list, slack_flag_list \
+                            = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                    self.task = "search"
 
             if self.activate_staycbf == True:
-                dhdp, h = self.getStayConstraint()
-                weight = self.staycbf_slack_weight
-                G_list, h_list, slack_weight_list, slack_flag_list \
-                        = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                if self.getPerception():
+                    dhdp, h = self.getStayConstraint()
+                    weight = self.staycbf_slack_weight
+                    G_list, h_list, slack_weight_list, slack_flag_list \
+                            = self.listAppend(G_list, h_list, slack_weight_list, slack_flag_list, dhdp, h, weight)
+                    self.task = "monitor"
 
             if self.activate_umax == True:
                 # replace by np.eyes? 
@@ -302,6 +313,8 @@ class CBFOptimizer(object):
                 
             self.h_list = np.array(h_list)
             self.G_list = np.array(G_list)
+            # print h_list 
+            # print G_list 
 
             # resize G matrix for soft constraint elements
             # if len(self.G_list) > 0:
@@ -313,7 +326,7 @@ class CBFOptimizer(object):
 
             self.Q = self.get_weight_matrix(slack_weight_list)
             self.R = self.get_weight_matrix(slack_flag_list)
-            # print m, self.Q
+            # print m, self.Q,self.R
 
 
     def optimize(self,u_nom, AgentPos, energy, dJdp, xi, neighborPosOnly, collisionR):
@@ -330,12 +343,13 @@ class CBFOptimizer(object):
 
             self.set_qp_problem()
             # u_optimal is optimized input, delta is slack variables value for soft constraints
-            self.u_optimal, self.delta, self.status = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
+            self.u_optimal, self.delta, self.optstatus = self.slack_qp_solver.optimize(u_nom, self.P, self.Q, self.G_list, self.h_list, self.R)
+            # print self.u_optimal, self.delta
         else:
-            self.status = "no optimization"
+            self.optstatus = "no optimization"
             self.u_optimal = u_nom
 
-        return self.u_optimal, self.status
+        return self.u_optimal, self.optstatus, self.task
 
 if __name__ == '__main__':
     optimizer = CBFOptimizer()

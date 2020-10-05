@@ -20,6 +20,6 @@
     </node>
 
     <!-- static tf -->  
-    <node pkg="tf" type="static_transform_publisher" name="pg_camera_tf_publisher" args="0 0 0 -1.571 0 -1.571 pg_camera pg_18549320 100" />
+    <node pkg="tf" type="static_transform_publisher" name="pg_camera_tf_publisher" args="0.1 0 0.1 -1.571 0 -1.571 pg_camera pg_18549320 100" />
 
 </launch>

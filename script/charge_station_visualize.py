@@ -9,9 +9,9 @@ from geometry_msgs.msg import PoseStamped
 class BebopMarker:
     def __init__(self):
         rospy.init_node("charge_station_visualize")
-        chargePos = [rospy.get_param("~charge_station/x",0.),rospy.get_param("~charge_station/y",0.)]
-        chargeR = rospy.get_param("~charge_station/r",0.)
-        agentID = rospy.get_param("~agentID",1)
+        chargePos = [rospy.get_param("charge_station/x",0.),rospy.get_param("charge_station/y",0.)]
+        chargeR = rospy.get_param("charge_station/r",0.)
+        agentID = rospy.get_param("agentID",1)
         # self.pubtopic = str(self.basename)+"/marker"
         self.pubtopic = "/visualization/chargeStation"
 
