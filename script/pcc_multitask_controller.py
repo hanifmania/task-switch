@@ -536,7 +536,7 @@ class coverageController():
 
 
         self.takeofflandflag = ''
-        if self.charging:
+        if self.charging and self.optimizer.activate_chargecbf:
             drainRate = -5*Kd # minus drainrate means battery is being charged
             self.takeofflandflag = 'land'
             if lastChargeState == False:
@@ -614,36 +614,31 @@ class coverageController():
 
         while not rospy.is_shutdown():
             if self.checkNeighborStart:# wait for all neighbor start
+                twist.linear.x = 0.0
+                twist.linear.y = 0.0
+                twist.linear.z = 0.0
+                twist.angular.z = 0.0
 
                 # calculate voronoi region
                 self.calcVoronoiRegion()
-                # calculate voronoi region and input velocity
-                if self.charging and self.optimizer.activate_chargecbf:
-                    twist.linear.x = 0.
-                    twist.linear.y = 0.
-                else:
-                    ux, uy, opt_status, task = self.Vel2dCommandCalc()
 
-                    # quaternion [x,y,z,w]
-                    quat = np.array(self.orientation)
-                    # transform to rotation matrix
-                    rotm_ = quaternion_matrix(quat)
-                    rotm = rotm_[0:3,0:3]
+                if self.takeofflandflag == '':
+                    twist.linear.z = 0.6*(self.zRef - self.position[2]) # altitude control
 
-                    # calc body velocity
-                    body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
+                    if self.position[2] > 0.7:# enough altitude--> input pcc command
+                        ux, uy, opt_status, task = self.Vel2dCommandCalc()
+                        # quaternion [x,y,z,w]
+                        quat = np.array(self.orientation)
+                        # transform to rotation matrix
+                        rotm_ = quaternion_matrix(quat)
+                        rotm = rotm_[0:3,0:3]
 
-                    if self.takeofflandflag == '':
+                        # calc body velocity
+                        body_vel = np.dot(rotm.transpose(),np.vstack([ux, uy, 0]))
                         twist.linear.x = body_vel[0]
                         twist.linear.y = body_vel[1]
-                        twist.linear.z = 0.7*(self.zRef - self.position[2])
                         twist.angular.z = -self.orientation[2]
-                    else:
-                        twist.linear.x = 0.0
-                        twist.linear.y = 0.0
-                        twist.angular.z = 0.0
-
-
+                
                 self.updateObject()
 
 
