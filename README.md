@@ -111,7 +111,7 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
     - field cbfを切ると，ネットにぶつからないようにするcbfが切れてしまうので，基本はチェックを外さないこと．
 
 
-# 各configureの設定
+# 各configの設定
 
 ## cbf_param_server
 CBFのオンオフを司る．
