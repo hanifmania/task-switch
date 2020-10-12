@@ -110,3 +110,66 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
       hard制約にしたいときはこの重さを0にすればhardとして扱われる．
     - field cbfを切ると，ネットにぶつからないようにするcbfが切れてしまうので，基本はチェックを外さないこと．
 
+
+# 各configureの設定
+
+## cbf_param_server
+CBFのオンオフを司る．
+- activate_cbf
+  オフにするとすべてのCBFが解除される
+- activate_fieldcbf
+  フィールドから逸脱しない用CBFのオンオフ
+- activate_chargecbf
+  充電基地へ戻るCBFのオンオフ．オフにするとバッテリーの値が固定値になる．
+- activate_pcccbf
+  persistent coverage control用CBFのオンオフ
+- activate_staycbf
+  物体を見つけた際に留まるCBFのオンオフ
+- activate_collisioncbf
+  ドローン同士の衝突を回避するCBFのオンオフ
+- activate_umax
+  速度制限をオンオフ
+- fieldcbf_slack_weight
+  フィールドから離脱しない用のCBFについて，soft constraintとしたときのスラック変数に対する最適化問題におけるweight．
+  大きくするほど制約を破りにくくなる．**0にするとhard constraint**
+- chargecbf_slack_weight
+  充電基地に戻るCBFについて，soft constraintとしたときのスラック変数に対する最適化問題におけるweight．
+  大きくするほど制約を破りにくくなる．**0にするとhard constraint**
+- pcccbf_slack_weight
+  persistent coverage control用CBFについて，soft constraintとしたときのスラック変数に対する最適化問題におけるweight．
+  大きくするほど制約を破りにくくなる．**0にするとhard constraint**
+- staycbf_slack_weight
+  物体を見つけた際に留まるCBFについて，soft constraintとしたときのスラック変数に対する最適化問題におけるweight．
+  大きくするほど制約を破りにくくなる．**0にするとhard constraint**
+- gamma
+  persistent coverage controlにおける，目標被覆性能値
+- pcc_CBF_h_gain_k
+  pccでCBFとしているh = J - k*J_goalのkの値
+- umax
+  速度制限値
+
+
+## charge_param_server
+- maxEnergy
+  仮想バッテリーの最大容量（一度充電基地に戻ったらこの値まで充電される）
+- minEnergy
+  仮想バッテリーが下回ってはいけない値（この値になる前に充電基地に戻ってくる）
+- Kd
+  バッテリーの減少速度（per second）
+  0にするとバッテリーは減らない．
+- k_charge
+  充電基地に戻ってくる際のドローンの速度
+  
+## pcc_param_server
+- controller_gain
+  普通のcoverage(非CBF)の際の制御器のゲイン．pcccbfを実験の際は特に気にしなくて良い
+- agent_R
+  エージェントの被覆できる最大半径
+- collisionR
+  エージェントの衝突半径．この半径内に他のドローンが入らないようにCBFが働く
+- agent_b_
+  被覆制御用のパラメータ（CCTAや杉本さん論文参照）
+- delta_decrease
+  情報信頼度が低下していくスピード
+- delta_increase
+  監視によって情報信頼度が上昇していくスピード
