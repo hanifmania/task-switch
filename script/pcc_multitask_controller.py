@@ -611,6 +611,8 @@ class coverageController():
         
         # initialize message
         twist = Twist()
+        opt_status = 'init...'
+        task = 'init...'
 
         while not rospy.is_shutdown():
             if self.checkNeighborStart:# wait for all neighbor start
