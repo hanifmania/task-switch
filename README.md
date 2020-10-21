@@ -64,11 +64,14 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
   pipを入れなおす必要がある．（ぶっ壊れたら入れなおせばOK）  
   手順は https://qiita.com/Suzukaze31/items/e6d15ddd9ffcd5e6c246 を参照
 
+  **tensor flow object detectorのdetect_ros.pyは，cloneしたままの状態だと，物体検出結果のxy座標が逆転してしまっているバグがあるため直すこと．具体的にはdetect_ros.pyの145,146行目のimage_heightとimage_width変数を入れ替ればOK．**
+
   依存関係で怒られたら、
   ```
   rosdep install task_switch
   ```
   してみる。
+
 
 
 # Usage
@@ -173,3 +176,9 @@ CBFのオンオフを司る．
   情報信頼度が低下していくスピード
 - delta_increase
   監視によって情報信頼度が上昇していくスピード
+
+
+# その他
+- フィールドの大きさはpy_central.launchのx_min～y_maxで設定する．ドローンがネットにぶつかってしまう場合はここを狭くすることも検討する
+- ボロノイのメッシュの細かさもpy_central.launch内で設定できる．
+- 実験におけるcharging stationの位置や大きさ，各ドローンの初期充電値の設定は，config/bebop_all.yaml内を変更する．bebop_all.yamlはpy_central.launch内で呼ばれているので，変更後に一々各PCでプルしたりしなくても良い，（bebop101.yamlとかはシミュレーション用で残ってしまっていますが，実験では使いません．）
