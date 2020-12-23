@@ -37,6 +37,9 @@
         <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/>
         <remap from="energy" to="virtualenergy/energy"/>
         <remap from="drainRate" to="virtualenergy/drainRate"/>
+
+        <!-- if you set too large "clock" value, then the process will delay badly -->
+        <param name="clock" value="2"/>
       </node>
 
       <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
