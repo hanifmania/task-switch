@@ -207,7 +207,7 @@ class coverageController():
         self.agentID = rospy.get_param("agentID")
 
         # param initialize
-        self.clock = rospy.get_param("clock",100)
+        self.clock = rospy.get_param("~clock",100)
         self.rate = rospy.Rate(self.clock)
 
 
