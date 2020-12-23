@@ -76,7 +76,7 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
 
 # Usage
 
-- シミュレーション
+## シミュレーション
   1. multi_sim.launchをlaunch. joyコンが刺さっていることを確認すること。
       niwaya上で
       ```
@@ -84,7 +84,7 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
       ```
       numpyのバージョンが新しいとエラーになる場合がある．動作確認はnumpy==1.13.1でしか行っていないので注意．
 
-- 実験
+## 実験
   - 注意  
   モーションキャプチャ上でのbebopの名前は、「bebop10*」を想定している。
   この名前は、vrpnを通して配信されるトピック名に影響する．
@@ -105,7 +105,7 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
       ``number:="*"``はそれぞれのPCで接続しているbebopの，モーションキャプチャ上での番号と一致させること．
       （例：モーキャプ上で「bebop102」としているならnumber:="2"）
   4. configureウィンドウがniwayaに表示されているはずなので，調整する．  
-  5. joyコンの×ボタンを押して，入力ソースを切り替えると実験が動く．
+  5. joyコンのAボタンを押して，入力ソースを切り替えると実験が動く．
 
   - configについて
     - umaxを大きくし過ぎるとドローンがとんでもない速さで飛んでしまうので気を付ける．具体的には0.3程度にしておくと安心．また，umaxのチェックボックスを外さないこと．
