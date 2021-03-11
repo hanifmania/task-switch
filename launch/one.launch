@@ -4,6 +4,7 @@
     <arg name="number" default="1"/>
     <arg name="initial_pose_x" default="0.0"/>
     <arg name="initial_pose_y" default="0.0"/>
+    <arg name="initial_pose_z" default="1.0"/>
 
 
     <group ns="bebop10$(arg number)">
@@ -13,6 +14,7 @@
       <param name="agentID" value="$(arg number)"/>
       <param name="initial_pose/x" value="$(arg initial_pose_x)"/>
       <param name="initial_pose/y" value="$(arg initial_pose_y)"/>
+      <param name="initial_pose/z" value="$(arg initial_pose_z)"/>
 
       <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml"/>
 
@@ -53,10 +55,11 @@
       <!--   <remap from="posestamped" to="/vrpn_client_node/bebop10$(arg number)/pose"/> -->
       <!-- </node> -->
 
-      <!-- <node pkg="task_switch" name="down_camera" type="down_range.py"> -->
-      <!--   <param name="agenttf" value="/visualize/agent$(arg number)"/> -->
-      <!--   <param name="cameratf" value="/visualize/down_camera$(arg number)"/> -->
-      <!-- </node> -->
+      <node pkg="task_switch" name="down_camera" type="down_range.py">
+        <!-- <param name="agenttf" value="/visualize/agent$(arg number)"/> -->
+        <param name="agenttf" value="/bebop10$(arg number)/virtualdrone"/>
+        <param name="cameratf" value="/visualize/down_camera$(arg number)"/>
+      </node>
 
 
       <!-- <node pkg= "tensorflow_object_detector" name="detect_ros" type="detect_ros.py"  output="screen"> --> 

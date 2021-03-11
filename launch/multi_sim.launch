@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <param name="/agentNum" value="2"/>
+    <param name="/agentNum" value="3"/>
 
     <param name="/x_min" value="-2.0"/>
     <param name="/x_max" value="2.0"/>
@@ -41,11 +41,11 @@
       <arg name="initial_pose_y" value="0.0"/>
     </include>
 
-    <!-- <include file="$(find task_switch)/launch/one.launch">
+    <include file="$(find task_switch)/launch/one.launch">
       <arg name="number" value="3"/>
       <arg name="initial_pose_x" value="1.0"/>
       <arg name="initial_pose_y" value="1.0"/>
-    </include> -->
+    </include>
 
 
     <!-- <node pkg="task_switch" name="visualize_surf" type="visualize_surf_python.py" output="screen"> -->
