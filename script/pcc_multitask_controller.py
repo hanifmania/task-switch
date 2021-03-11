@@ -613,6 +613,7 @@ class coverageController():
         twist = Twist()
         opt_status = 'init...'
         task = 'init...'
+        # raw_input('PRESS ENTER')
 
         while not rospy.is_shutdown():
             if self.checkNeighborStart:# wait for all neighbor start

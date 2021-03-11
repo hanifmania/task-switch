@@ -27,6 +27,7 @@ class Field(Field):
         self.xlimit = xlimit
         self.ylimit = ylimit
         # dimension is inverse to X,Y
+        # self.phi = 0.05*np.ones((self.mesh_acc[1],self.mesh_acc[0]))
         self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
     def setb(self,b):
