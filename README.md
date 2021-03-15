@@ -82,7 +82,11 @@ https://github.com/osrf/tensorflow_object_detector このリポジトリのREADM
       ```
       $ roslaunch task_switch multi_sim.launch
       ```
-      numpyのバージョンが新しいとエラーになる場合がある．動作確認はnumpy==1.13.1でしか行っていないので注意．
+      その後、ジョイスティックのXボタンを押すとシミュレーションが動き出す。
+
+      ~~numpyのバージョンが新しいとエラーになる場合がある．動作確認はnumpy==1.13.1でしか行っていないので注意．~~
+      numpyのバージョンによっては、virtual_drone.py内のspin関数内のコメントアウトを切り替える必要があるので注意
+      
 
 ## 実験
   - 注意  
