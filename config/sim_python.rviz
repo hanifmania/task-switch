@@ -89,10 +89,10 @@ Visualization Manager:
       Update Interval: 0
       Value: true
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop101/virtualenergy/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -108,10 +108,10 @@ Visualization Manager:
       text size: 14
       top: 100
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop102/virtualenergy/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -127,10 +127,10 @@ Visualization Manager:
       text size: 14
       top: 100
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop103/virtualenergy/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -207,14 +207,14 @@ Visualization Manager:
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
       Class: jsk_rviz_plugin/OverlayText
-      Enabled: true
+      Enabled: false
       Foreground Alpha: 0.800000012
       Foreground Color: 25; 255; 240
       Name: OverlayText
       Overtake Color Properties: false
       Overtake Position Properties: true
       Topic: /bebop101/optStatus
-      Value: true
+      Value: false
       font: Liberation Mono
       height: 20
       left: 10
@@ -226,14 +226,14 @@ Visualization Manager:
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
       Class: jsk_rviz_plugin/OverlayText
-      Enabled: true
+      Enabled: false
       Foreground Alpha: 0.800000012
       Foreground Color: 25; 255; 240
       Name: OverlayText
       Overtake Color Properties: false
       Overtake Position Properties: true
       Topic: /bebop102/optStatus
-      Value: true
+      Value: false
       font: Liberation Mono
       height: 20
       left: 10
@@ -245,14 +245,14 @@ Visualization Manager:
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
       Class: jsk_rviz_plugin/OverlayText
-      Enabled: true
+      Enabled: false
       Foreground Alpha: 0.800000012
       Foreground Color: 25; 255; 240
       Name: OverlayText
       Overtake Color Properties: false
       Overtake Position Properties: true
       Topic: /bebop103/optStatus
-      Value: true
+      Value: false
       font: Liberation Mono
       height: 20
       left: 10
@@ -370,9 +370,9 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.011097935
+        Y: -0.00306394929
+        Z: -0.00474879006
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
@@ -399,5 +399,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1578
-  X: 65
-  Y: 24
+  X: 2112
+  Y: 40
