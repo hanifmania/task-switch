@@ -41,8 +41,8 @@ class FromJoyToTwistPublisherForBebop(object):
         self.buttons_land = rospy.get_param("~buttons_land",6)
         self.buttons_reset = rospy.get_param("~buttons_reset",8)
 
-        self.buttons_destroy_window = rospy.get_param("~buttons_reset",3)
-        self.buttons_change_mode = rospy.get_param("~buttons_reset",0)
+        self.buttons_destroy_window = rospy.get_param("~buttons_destroy_window",3)
+        self.buttons_change_mode = rospy.get_param("~buttons_change_mode",0)
 
         # param initialize
         self.rate = rospy.Rate(self.clock)

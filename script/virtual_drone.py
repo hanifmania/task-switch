@@ -119,7 +119,10 @@ class RigidBodyMotion(object):
            self.publish_pose()
            self.velocity_pub.publish(self.velocity)
            self.tf_broadcat()
-           self.g = g_reprojection(self.g)
+           # if numpy == 1.13.1
+           # self.g = g_reprojection(self.g)
+           # otherwise
+           self.g = g_reprojection(self.g.astype(np.float64))
            self.rate.sleep()
            # print self.g
         return 0

@@ -6,8 +6,11 @@
     <param name="/x_max" value="2.0"/>
     <param name="/y_min" value="-2.0"/>
     <param name="/y_max" value="2.0"/>
-    <param name="/mesh_acc/x" value="100"/>
-    <param name="/mesh_acc/y" value="100"/>
+    <param name="/mesh_acc/x" value="120"/>
+    <param name="/mesh_acc/y" value="120"/>
+
+      
+    <include file="$(find task_switch)/launch/joy.launch"/>
 
     <node name="poseCollector" pkg="task_switch" type="posecollector.py" output="screen">
       <!-- for specify /bebop10*/virtualdrone/posestamped -->
@@ -23,7 +26,9 @@
 
     <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
 
-    <node pkg="task_switch" name="central" type="central.py" output="screen"/>
+    <node pkg="task_switch" name="central" type="central.py" output="screen">
+        <param name="clock" value="20"/>
+    </node>
 
 
     

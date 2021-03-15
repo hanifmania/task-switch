@@ -27,8 +27,8 @@ class Field(Field):
         self.xlimit = xlimit
         self.ylimit = ylimit
         # dimension is inverse to X,Y
-        # self.phi = 0.05*np.ones((self.mesh_acc[1],self.mesh_acc[0]))
-        self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
+        self.phi = 0.05*np.ones((self.mesh_acc[1],self.mesh_acc[0]))
+        # self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
     def setb(self,b):
         self.b = b
@@ -100,6 +100,9 @@ class central():
             rospy.loginfo(agentName)
             collector = Collector(agentName,mesh_acc) 
             self.Collectors.append(collector)
+
+        self.buttons_enable_info_update = rospy.get_param("~buttons_enable_info_update",2)
+        rospy.Subscriber("/joy", Joy, self.joy_callback, queue_size=1)
             
         # publisher for information density
         self.pub_info = rospy.Publisher('/info', Float32MultiArray, queue_size=1)
@@ -124,13 +127,27 @@ class central():
         
         self.previousInfoUpdateTime = rospy.Time.now().to_sec()
 
+        self.info_update = False
         
         rospy.loginfo("starting central node")
 
     def update_param(self, R, b_):
         self.b = -(R**2)-b_
         self.field.setb(self.b)
+
+    def enable_info_update(self, arg):
+        self.info_update = arg
         
+    ###################################################################
+    ### subscriber callback
+    ###################################################################
+    def joy_callback(self,data):
+        button_is_pushed = data.buttons[self.buttons_enable_info_update] 
+        if button_is_pushed:
+            self.enable_info_update(True)
+            self.previousInfoUpdateTime = rospy.Time.now().to_sec()
+            
+
 
     ###################################################################
     ### dycon update functions 
@@ -203,11 +220,12 @@ class central():
         currentTime = rospy.Time.now().to_sec()
         dt = currentTime - self.previousInfoUpdateTime
         self.previousInfoUpdateTime = currentTime
-
+        
         Z = Z-self.delta_decrease*dt*region
         Z = np.where(Z<0.01,0.01,Z) 
         Z = Z + self.delta_increase*(1-Z)*dt*~region
         Z = np.where(Z>1.,1.,Z) 
+
         return Z
 
 
@@ -249,7 +267,8 @@ class central():
                 self.field.updatePhi(self.infoUpdate(phi,region))
 
             # publish updated information density
-            self.publishInfo(self.field.getPhi())
+            if self.info_update:
+                self.publishInfo(self.field.getPhi())
 
 
             self.rate.sleep()

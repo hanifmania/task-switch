@@ -35,6 +35,8 @@
         <remap from="posestamped" to="virtualdrone/posestamped"/>
         <remap from="energy" to="virtualenergy/energy"/>
         <remap from="drainRate" to="virtualenergy/drainRate"/>
+
+        <param name="clock" value="20"/>
       </node>
 
       <node pkg="task_switch" name="pose2marker_sphere" type="pose2marker_sphere.py">
