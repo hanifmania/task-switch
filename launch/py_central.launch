@@ -4,7 +4,7 @@
 
     <param name="/agentNum" value="$(arg agentNum)"/>
     <param name="/x_min" value="-1.3"/>
-    <param name="/x_max" value="1.2"/>
+    <param name="/x_max" value="1.3"/>
     <param name="/y_min" value="-1.4"/>
     <param name="/y_max" value="1.7"/>
     <param name="/mesh_acc/x" value="100"/>
