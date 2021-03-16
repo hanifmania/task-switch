@@ -499,16 +499,16 @@ class coverageController():
         #### normal persistent coverage ##################################
         # calculate command for agent
         # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)
-        u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
-        u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
-        dJdp = [0., 0., 0., 0., 0., 0.]
-        xi = [0.]
+        # u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
+        # u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
+        # dJdp = [0., 0., 0., 0., 0., 0.]
+        # xi = [0.]
 
         #### cbf persistent coverage #####################################
-        # u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
-        # dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
-        # dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
-        # xi = [self.voronoi.getXi()]
+        u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
+        dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
+        dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
+        xi = [self.voronoi.getXi()]
 
         u, opt_status, task = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 

@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1
         - /TF1/Frames1
         - /Marker3
       Splitter Ratio: 0.461095095
@@ -28,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: Camera
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -57,32 +58,16 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: true
         bebop101:
           Value: true
         bebop102:
           Value: true
         bebop103:
           Value: true
-        odom:
-          Value: true
         pg_18549320:
-          Value: true
+          Value: false
         pg_camera:
           Value: false
-        visualize/agent1:
-          Value: true
-        visualize/agent2:
-          Value: true
-        visualize/agent3:
-          Value: true
-        visualize/down_camera1:
-          Value: true
-        visualize/down_camera2:
-          Value: true
-        visualize/down_camera3:
-          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -100,15 +85,6 @@ Visualization Manager:
             {}
           pg_camera:
             pg_18549320:
-              {}
-          visualize/agent1:
-            visualize/down_camera1:
-              {}
-          visualize/agent2:
-            visualize/down_camera2:
-              {}
-          visualize/agent3:
-            visualize/down_camera3:
               {}
       Update Interval: 0
       Value: true
@@ -224,9 +200,7 @@ Visualization Manager:
       Marker Topic: /visualization/chargeStation
       Name: Marker
       Namespaces:
-        charge_station1: true
-        charge_station2: true
-        charge_station3: true
+        {}
       Queue Size: 100
       Value: true
     - Align Bottom: false
@@ -329,9 +303,7 @@ Visualization Manager:
       Marker Topic: /visualization/bebop2
       Name: Marker
       Namespaces:
-        1: true
-        2: true
-        3: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Camera
