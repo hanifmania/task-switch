@@ -25,34 +25,6 @@ import cv2 as cv
 import os
 
 
-class Field(Field):
-    # override
-    def __init__(self, mesh_acc, xlimit, ylimit):
-        self.mesh_acc = mesh_acc
-        self.xlimit = xlimit
-        self.ylimit = ylimit
-        # dimension is inverse to X,Y
-        self.phi = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
-        self.phi1 = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
-        self.phi2 = 0.5 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
-        # self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
-
-    def setb(self, b):
-        self.b = b
-
-    def getJintQ(self):
-        # calc J = - \sum \int_{S_i} \|q-p_i\|^2\phi(q,t)dq + b\int_{Q...} \phi(q,t)dq
-        #        = - \sum \int_{S_i} (\|q-p_i\|^2 + b) \phi(q,t)dq + b\int_{Q} \phi(q,t)dq
-        #                                    here calc this term -> ~~~~~~~~~~~~~~~~~~~~
-        pointDense = (
-            (self.xlimit[1] - self.xlimit[0])
-            * (self.ylimit[1] - self.ylimit[0])
-            / (self.mesh_acc[0] * self.mesh_acc[1])
-        )
-        JintQ = self.b * np.sum(self.phi) * pointDense
-        return JintQ
-
-
 class Collector:
     # collect each agent's sensing region and coverage performance(JintSPlusb)
 
@@ -119,19 +91,13 @@ class Collector:
         return self.ready
 
 
-class central:
-    def __init__(self):
+class CentralBase:
+    def __init__(self, FieldClass):
         # ROS Initialize
         rospy.init_node("central", anonymous=True)
-
-        # field mesh accuracy
-        mesh_acc = [
-            rospy.get_param("/mesh_acc/x", 100),
-            rospy.get_param("/mesh_acc/y", 150),
-        ]
-        xlimit = [rospy.get_param("/x_min", -1.0), rospy.get_param("/x_max", 1.0)]
-        ylimit = [rospy.get_param("/y_min", -1.0), rospy.get_param("/y_max", 1.0)]
-        self.field = Field(mesh_acc, xlimit, ylimit)
+        field_param = rospy.get_param("/field")
+        self.field = FieldClass(field_param)
+        mesh_acc = field_param["mesh_acc"]
 
         # Number of Agents
         self.agentNum = rospy.get_param("/agentNum", 1)
@@ -182,7 +148,7 @@ class central:
 
     def update_param(self, R, b_):
         self.b = -(R ** 2) - b_
-        self.field.setb(self.b)
+        # self.field.setb(self.b)
 
     def enable_info_update(self, arg):
         self.info_update = arg
@@ -191,8 +157,8 @@ class central:
     ### subscriber callback
     ###################################################################
     def joy_callback(self, data):
-        button_is_pushed = data.buttons[self.buttons_enable_info_update]
-        # button_is_pushed=True
+        # button_is_pushed = data.buttons[self.buttons_enable_info_update]
+        button_is_pushed = True
         if button_is_pushed:
             self.enable_info_update(True)
             self.previousInfoUpdateTime = rospy.Time.now().to_sec()
@@ -308,7 +274,8 @@ class central:
             phi = self.field.getPhi()
 
             # publish current coverage performance
-            J = -JintSPlusb_all + self.field.getJintQ()
+            # J = - JintSPlusb_all + self.field.getJintQ()
+            J = np.sum(phi * self.field.getPointDense())
             self.publishJ(J)
 
             # if any collector does not get region message from agent,
@@ -316,24 +283,11 @@ class central:
             if ready:
 
                 ### add by shimizu
-                self.field.phi1 = self.infoUpdate(self.field.phi1, region)
-                # self.field.phi2 = self.field.phi2*center_region*0 + self.field.phi2*~center_region
-                phi = self.field.phi1  # +self.field.phi2
-                # update information density phi according to region
-                # phi = self.infoUpdate(phi,region)
-                self.field.updatePhi(phi)
+                phi = self.infoUpdate(phi, region)
+                self.field.setPhi(phi)
 
             # publish updated information density
             if self.info_update:
-                self.publishInfo(self.field.getPhi())
+                self.publishInfo(phi)
 
             self.rate.sleep()
-
-
-if __name__ == "__main__":
-    try:
-        central = central()
-        central.spin()
-
-    except rospy.ROSInterruptException:
-        pass

@@ -2,30 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import rospy
-from visualization_msgs.msg import Marker
 from std_msgs.msg import Float32MultiArray, ColorRGBA
-from std_msgs.msg import Header
-from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, PointField
-from geometry_msgs.msg import Point
-import tf
-import time
 import numpy as np
-import cv2
-import Image
 import matplotlib.pyplot as plt
-from task_switch.voronoi_main import Field
-
-
-class Field(Field):
-
-    # override
-    def __init__(self, mesh_acc, xlimit, ylimit):
-        self.mesh_acc = mesh_acc
-        self.xlimit = xlimit
-        self.ylimit = ylimit
-        # dimension is inverse to X,Y
-        self.phi = np.ones((self.mesh_acc[1], self.mesh_acc[0]))
+from task_switch.field import Field2d
 
 
 class SurfVisualize:
@@ -47,17 +28,11 @@ class SurfVisualize:
 
     def __init__(self, Hz=100):
         rospy.init_node("create_cloud_xyzrgb")
-
-        mesh_acc = [
-            rospy.get_param("/mesh_acc/x", 100),
-            rospy.get_param("/mesh_acc/y", 150),
-        ]
-        xlimit = [rospy.get_param("/x_min", -1.0), rospy.get_param("/x_max", 1.0)]
-        ylimit = [rospy.get_param("/y_min", -1.0), rospy.get_param("/y_max", 1.0)]
+        field_param = rospy.get_param("/field")
+        self.field = Field2d(field_param)
         self.max_value = rospy.get_param("~max", default=1)
         self.min_value = rospy.get_param("~min", default=0)
 
-        self.field = Field(mesh_acc, xlimit, ylimit)
         self.X, self.Y = self.field.getGrid()
         # the height to be aligned for pointcloud2
         self.Z = -0.1 * np.ones((self.X.size, 1))
@@ -90,7 +65,7 @@ class SurfVisualize:
         info = np.array(msg_data.data).reshape(
             (msg_data.layout.dim[0].size, msg_data.layout.dim[1].size)
         )
-        self.field.updatePhi(info)
+        self.field.setPhi(info)
 
     def xyzrgb_array_to_pointcloud2(
         self, points, colors, stamp=None, frame_id=None, seq=None

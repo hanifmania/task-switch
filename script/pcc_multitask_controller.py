@@ -188,7 +188,7 @@ class coverageController():
 
     def __init__(self):
         # ROS Initialize
-        rospy.init_node('coverageController', anonymous=True)
+        rospy.init_node('coverageControFieldller', anonymous=True)
 
         # wait for pose array to get neighbor position
         self.checkNeighborStart = False
@@ -248,6 +248,9 @@ class coverageController():
         self.pub_optStatus = rospy.Publisher('optStatus', OverlayText, queue_size=1)
         # publisher to display object position
         self.pub_object = rospy.Publisher('object', PoseStamped, queue_size=1)
+        
+        ### add by shimizu
+        self.publish_center_region = rospy.Publisher("center_region", Int8MultiArray, queue_size=1)
 
 
         #dynamic_reconfigure
@@ -407,7 +410,7 @@ class coverageController():
     ### publisher functions 
     ###################################################################
 
-    def publishRegion(self,region):
+    def publishRegion(self,region, target=None):
         # publish my sensing region
         # make multiarraydimension
         dim_ = []
@@ -422,7 +425,10 @@ class coverageController():
         # make Int8multiarray. numpy to list convert
         region_for_pub = Int8MultiArray(data=region_vec.tolist(),layout=layout_)
         # publish
-        self.pub_region.publish(region_for_pub) 
+        if target is None:
+            self.pub_region.publish(region_for_pub) 
+        else:
+            target.publish(region_for_pub)
 
     def publishJintSPlusb(self,JintSPlusb):
         # publish my coverage performance
@@ -477,6 +483,7 @@ class coverageController():
 
         # set information density 
         self.voronoi.setPhi(self.field.getPhi())
+        # self.voronoi.setPhi(1)
         self.voronoi.calcVoronoi()
 
     ###################################################################
@@ -499,7 +506,7 @@ class coverageController():
         #### normal persistent coverage ##################################
         # calculate command for agent
         # different from sugimoto san paper at divided 2mass.(probably dividing 2mass is true)
-        # u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
+        u_nom2d = (-pos+self.voronoi.getCent()-self.voronoi.getExpand()/(2*self.voronoi.getMass()))*self.controllerGain
         # u_nom = np.array( [ [u_nom2d[0]], [u_nom2d[1]], [0.], [0.], [0.], [0.] ]  )
         # dJdp = [0., 0., 0., 0., 0., 0.]
         # xi = [0.]
@@ -513,6 +520,7 @@ class coverageController():
         u, opt_status, task = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 
         return u[0], u[1], opt_status, task
+        # return u_nom2d[0], u_nom2d[1], opt_status, task
 
 
     ###################################################################
@@ -651,6 +659,17 @@ class coverageController():
 
                 # publish optimization status
                 self.publishOptStatus(opt_status,task)
+
+                #add by shimizu 
+                ### sensing region (smaller than voronoi region)
+                grid = self.field.getGrid()
+                X = grid[0]
+                Y = grid[1]
+                Pos = self.position[0:2]
+                sensor_R = 0.1
+                region = (X-Pos[0])**2 + (Y-Pos[1])**2 < sensor_R**2
+                self.publishRegion(region, self.publish_center_region)
+
 
                 # publish my region
                 self.publishRegion(self.voronoi.getRegion())

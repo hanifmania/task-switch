@@ -33,9 +33,14 @@ class Field(Field):
         self.ylimit = ylimit
         # dimension is inverse to X,Y
         self.phi = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
-        self.phi1 = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
+        self.phi1 = np.ones((self.mesh_acc[1], self.mesh_acc[0]))
         self.phi2 = 0.5 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
         # self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
+        self.pointDense = (
+            (self.xlimit[1] - self.xlimit[0])
+            * (self.ylimit[1] - self.ylimit[0])
+            / (self.mesh_acc[0] * self.mesh_acc[1])
+        )
 
     def setb(self, b):
         self.b = b
@@ -191,8 +196,8 @@ class central:
     ### subscriber callback
     ###################################################################
     def joy_callback(self, data):
-        button_is_pushed = data.buttons[self.buttons_enable_info_update]
-        # button_is_pushed=True
+        # button_is_pushed = data.buttons[self.buttons_enable_info_update]
+        button_is_pushed = True
         if button_is_pushed:
             self.enable_info_update(True)
             self.previousInfoUpdateTime = rospy.Time.now().to_sec()
@@ -275,7 +280,7 @@ class central:
 
         Z = Z - self.delta_decrease * dt * region
         Z = np.where(Z < 0.01, 0.01, Z)
-        Z = Z + self.delta_increase * (1 - Z) * dt * ~region
+        # Z = Z + self.delta_increase * (1 - Z) * dt * ~region
         Z = np.where(Z > 1.0, 1.0, Z)
 
         return Z
@@ -308,7 +313,8 @@ class central:
             phi = self.field.getPhi()
 
             # publish current coverage performance
-            J = -JintSPlusb_all + self.field.getJintQ()
+            # J = - JintSPlusb_all + self.field.getJintQ()
+            J = np.sum(phi * ~region * self.field.pointDense)
             self.publishJ(J)
 
             # if any collector does not get region message from agent,

@@ -2,6 +2,15 @@
 bebop2で充電＋フィールド内stay、持続的被覆制御、物体検知＋監視の動作を
 切り替えつつ行う実験およびシミュレーション用ROSパッケージ。
 
+## memo
+- src
+  - field.py
+  - coverage_area.py
+  - agent_manager_base.py
+
+- script
+  - agent_manager.py
+
 # branchについて
 - master branch
   - pythonオンリーで書かれた実験＋シミュレーション
