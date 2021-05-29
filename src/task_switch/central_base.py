@@ -91,7 +91,7 @@ class Collector:
         return self.ready
 
 
-class CentralBase:
+class CentralBase(object):
     def __init__(self, FieldClass):
         # ROS Initialize
         rospy.init_node("central", anonymous=True)

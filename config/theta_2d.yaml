@@ -1,13 +1,13 @@
-field:
-  mech_acc: [200,200,100] #x,y,theta
-  limit: [[-2,2], [-2,2],[-0.785398163, 0.785398163]] #[x[min,max], y[min,max], theta[min,max]]
 bebop101:
   initial_pose:
-    x: -1
+    x: -1.7
     y: 0
     z: 1
 bebop102:
   initial_pose:
-    x: 1
+    x: 1.7
     y: 0
     z: 1
+field:
+  mesh_acc: [200,200] #x,tan(theta)
+  limit: [[-2,2],[-2,2]] #[x[min,max], tan(theta)[min,max]]

@@ -9,5 +9,5 @@ bebop102:
     y: 0
     z: 1
 field:
-  mesh_acc: [40,20] #x,tan(theta)
-  limit: [[-2,2],[-1,1]] #[x[min,max], tan(theta)[min,max]]
+  mesh_acc: [200,100] #x,tan(theta)
+  limit: [[-2,2],[-0.8,0.8]] #[x[min,max], tan(theta)[min,max]]

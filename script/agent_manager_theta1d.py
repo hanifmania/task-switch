@@ -37,7 +37,7 @@ class AgentManagerTheta1d(AgentManagerBase):
         self.voronoi.calcdJdp()
         dJdp_x, dJdp_y = self.voronoi.getdJdp()
         # xi = [-0.1]
-        u_0 = 0.5 / dJdp_x if dJdp_x != 0 else 0
+        u_0 = 4 / dJdp_x if dJdp_x != 0 else 0
         u_nom = np.array(
             [
                 [u_0],
@@ -71,8 +71,8 @@ class AgentManagerTheta1d(AgentManagerBase):
             u_nom, AgentPos, currentEnergy, dJdp, xi, neighborPosOnly, self.collisionR
         )
         rospy.loginfo(
-            "ID, dJdp, u : {}, {:.5f},{:.5f},{:.5f}".format(
-                self.agentID, dJdp_x, u[0][0], np.count_nonzero(self.voronoi._tmp)
+            "ID,p, dJdp, u : {}, {:.5f},{:.5f},{:.5f}".format(
+                self.agentID, pos[0], dJdp_x, u[0][0]
             )
         )
         # self._log.append(

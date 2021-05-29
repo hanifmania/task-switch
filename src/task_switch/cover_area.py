@@ -148,7 +148,7 @@ class VoronoiTheta1d(CoverAreaTheta1d):
     # print("self._A[1]", self._A[1])
 
     def getDist(self, p_x, q_x, q_theta):
-        return p_x - q_x - q_theta * self._A[1]
+        return p_x - q_x - np.tan(q_theta) * self._A[1]
 
     def _calcVoronoiRegion(self):
         x_grid, y_grid = self._field.getGrid()
@@ -186,9 +186,9 @@ class VoronoiTheta1d(CoverAreaTheta1d):
         scale = 0.1
         temp = (
             -norm.pdf(dist, scale=scale)
-            * (math.sqrt(2 * math.pi) * scale)
-            * dist
             / (scale ** 2)
+            # * (math.sqrt(2 * math.pi) * scale)
+            * dist
             * self._field.getPhi(region)
         )
 
