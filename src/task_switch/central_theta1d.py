@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from matplotlib.pyplot import axis
 import rospy
 import numpy as np
-import math
 from scipy.stats import norm
 
 from std_msgs.msg import Float32MultiArray, MultiArrayLayout, MultiArrayDimension
-from task_switch.central_base import CentralBase
-from task_switch.field import Field2d
 from geometry_msgs.msg import PoseArray
+
+from task_switch.central_base import CentralBase
+from task_switch.voronoi import VoronoiTheta1d
 
 
 class CentralTheta1d(CentralBase):
-    def __init__(self, FieldClass):
-        super(CentralTheta1d, self).__init__(FieldClass)
+    def __init__(self, get_dist_method):
+        super(CentralTheta1d, self).__init__()
         self.allPositions = np.zeros((self.agentNum, 3))
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
+        self._sigma = rospy.get_param("/sigma")
+        self._get_dist_method = get_dist_method
 
     def publishInfo(self, info):
         # publish information density
@@ -78,17 +79,17 @@ class CentralTheta1d(CentralBase):
         self.previousInfoUpdateTime = currentTime
         Z_min = 0.0000001
 
-        x_grid, y_grid = self.field.getGrid()
-        dists = [
-            np.abs(self.getDist(pos[0], x_grid, y_grid)) for pos in self.allPositions
-        ]
+        # x_grid, y_grid = self.field.getGrid()
+        grid = self.field.getGrid()
+        dists = [self._get_dist_method(pos, grid) for pos in self.allPositions]
 
         dist2 = np.stack(dists)
 
         min_dist = dist2.min(axis=0)
         # print(min_dist)
-        scale = 0.1
-        J = norm.pdf(min_dist, scale=scale) * Z  # * (math.sqrt(2 * math.pi) * scale)
+        J = (
+            norm.pdf(min_dist, scale=self._sigma) * Z
+        )  # * (math.sqrt(2 * math.pi) * scale)
         # print(J)
         # print(self.allPositions[0][0], self.allPositions[1][0])
         Z = Z - self.delta_decrease * J * dt
@@ -115,5 +116,5 @@ class CentralTheta1d(CentralBase):
 
 
 if __name__ == "__main__":
-    central = CentralTheta1d(Field2d)
+    central = CentralTheta1d()
     central.spin()

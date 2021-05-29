@@ -6,7 +6,7 @@ from std_msgs.msg import Float32MultiArray, ColorRGBA
 from sensor_msgs.msg import PointCloud2, PointField
 import numpy as np
 import matplotlib.pyplot as plt
-from task_switch.field import Field2d
+from task_switch.field import Field
 
 
 class SurfVisualize:
@@ -29,7 +29,7 @@ class SurfVisualize:
     def __init__(self, Hz=100):
         rospy.init_node("create_cloud_xyzrgb")
         field_param = rospy.get_param("/field")
-        self.field = Field2d(field_param)
+        self.field = Field(field_param)
         self.max_value = rospy.get_param("~max", default=1)
         self.min_value = rospy.get_param("~min", default=0)
 

@@ -4,11 +4,16 @@ import rospy
 import numpy as np
 from std_msgs.msg import Int8MultiArray, MultiArrayLayout, MultiArrayDimension
 from task_switch.agent_manager_base import AgentManagerBase
-from task_switch.field import Field2d
-from task_switch.cover_area import CoverAreaTheta1d, VoronoiTheta1d
+
+from task_switch.voronoi import VoronoiTheta1d
 
 
 class AgentManagerTheta1d(AgentManagerBase):
+    def __init__(self, VoronoiClass):
+        super(AgentManagerTheta1d, self).__init__(VoronoiClass)
+        sigma = rospy.get_param("/sigma")
+        self.voronoi.setSigma(sigma)
+
     def Vel2dCommandCalc(self):
         # calculate command for agent
 
@@ -37,11 +42,13 @@ class AgentManagerTheta1d(AgentManagerBase):
         self.voronoi.calcdJdp()
         dJdp_x, dJdp_y = self.voronoi.getdJdp()
         # xi = [-0.1]
-        u_0 = 4 / dJdp_x if dJdp_x != 0 else 0
+        gamma = 2
+        u_0x = gamma / dJdp_x if dJdp_x != 0 else 0
+        u_0y = gamma / dJdp_y if dJdp_y != 0 else 0
         u_nom = np.array(
             [
-                [u_0],
-                [0.0],
+                [u_0x],
+                [u_0y],
                 [0.0],
                 [0.0],
                 [0.0],
@@ -118,5 +125,5 @@ class AgentManagerTheta1d(AgentManagerBase):
 
 
 if __name__ == "__main__":
-    agent = AgentManagerTheta1d(Field2d, VoronoiTheta1d)
+    agent = AgentManagerTheta1d(VoronoiTheta1d)
     agent.spin()

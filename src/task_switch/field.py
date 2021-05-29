@@ -3,9 +3,26 @@
 import numpy as np
 
 
-class FieldBase:
+class Field:
     def __init__(self, param):
         self._param = param
+        dim = param["dim"]
+        mesh_acc = self._param["mesh_acc"]
+        # dimension is inverse to X,Y
+        rev = list(reversed(mesh_acc))
+        self._phi = np.ones(rev)
+        linspace = [
+            np.linspace(
+                self._param["limit"][i][0], self._param["limit"][i][1], mesh_acc[i]
+            )
+            for i in range(dim)
+        ]
+        # self._grid = np.meshgrid(linspace[0], linspace[1])
+        self._grid = np.meshgrid(*linspace)
+
+        self._point_dense = 1
+        for i in range(dim):
+            self._point_dense *= self.getGridSpan(i)
 
     def setPhi(self, phi):
         self._phi = phi
@@ -36,42 +53,5 @@ class FieldBase:
     def getPointDense(self):
         return self._point_dense
 
-
-class Field2d(FieldBase):
-    def __init__(self, param):
-        dim = 2
-        self._param = param
-        mesh_acc = self._param["mesh_acc"]
-        # dimension is inverse to X,Y
-        self._phi = np.ones((mesh_acc[1], mesh_acc[0]))
-        linspace = [
-            np.linspace(
-                self._param["limit"][i][0], self._param["limit"][i][1], mesh_acc[i]
-            )
-            for i in range(dim)
-        ]
-        self._grid = np.meshgrid(linspace[0], linspace[1])
-
-        self._point_dense = 1
-        for i in range(dim):
-            self._point_dense *= self.getGridSpan(i)
-
-
-class Field3d(FieldBase):
-    def __init__(self, param):
-        dim = 3
-        self._param = param
-        mesh_acc = self._param["mesh_acc"]
-        # dimension is inverse to X,Y
-        self._phi = np.ones((mesh_acc[2], mesh_acc[1], mesh_acc[0]))
-        linspace = [
-            np.linspace(
-                self._param["limit"][i][0], self._param["limit"][i][1], mesh_acc[i]
-            )
-            for i in range(dim)
-        ]
-        self._grid = np.meshgrid(linspace[0], linspace[1], linspace[2])
-
-        self._point_dense = 1
-        for i in range(dim):
-            self._point_dense *= self.getGridSpan(i)
+    def getShape(self):
+        return self._param["mesh_acc"]

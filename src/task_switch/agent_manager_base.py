@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import datetime
 
+from task_switch.field import Field
+
 from task_switch.cbf_optimizer_ros import CBFOptimizerROS
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseStamped
@@ -19,16 +21,15 @@ import dynamic_reconfigure.client
 
 from task_switch.transformations import *
 
-import numpy as np
 import os
 
 
-class AgentManagerBase:
-    def __init__(self, FieldClass, VoronoiClass):
+class AgentManagerBase(object):
+    def __init__(self, VoronoiClass):
         # ROS Initialize
         rospy.init_node("ThetaAgentManager", anonymous=True)
         field_param = rospy.get_param("/field")
-        self.field = FieldClass(field_param)
+        self.field = Field(field_param)
         self.voronoi = VoronoiClass(self.field)
 
         # wait for pose array to get neighbor position
@@ -201,7 +202,7 @@ class AgentManagerBase:
     ############## cbf dycon ##########################################
     def cbf_update_config_params(self, config):
         self.optimizer.updateCbfConfig(config)
-        self._pcc_CBF_h_gain_k =  config.pcc_CBF_h_gain_k
+        self._pcc_CBF_h_gain_k = config.pcc_CBF_h_gain_k
         # self.voronoi.update_PccCBFParam(config.gamma, config.pcc_CBF_h_gain_k)
 
     def cbf_set_config_params(self):

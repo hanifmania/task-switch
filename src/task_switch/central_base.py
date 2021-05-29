@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import rospy
+import numpy as np
 from sensor_msgs.msg import Joy
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import TwistStamped
-from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import PoseArray
-from task_switch.voronoi_main import Voronoi
-from task_switch.voronoi_main import Field
 from std_msgs.msg import Empty, Float32
 from std_msgs.msg import (
     Float32MultiArray,
@@ -15,14 +10,12 @@ from std_msgs.msg import (
     MultiArrayLayout,
     MultiArrayDimension,
 )
-import tf
 
 
 import dynamic_reconfigure.client
 
-import numpy as np
-import cv2 as cv
-import os
+
+from task_switch.field import Field
 
 
 class Collector:
@@ -92,11 +85,11 @@ class Collector:
 
 
 class CentralBase(object):
-    def __init__(self, FieldClass):
+    def __init__(self):
         # ROS Initialize
         rospy.init_node("central", anonymous=True)
         field_param = rospy.get_param("/field")
-        self.field = FieldClass(field_param)
+        self.field = Field(field_param)
         mesh_acc = field_param["mesh_acc"]
 
         # Number of Agents

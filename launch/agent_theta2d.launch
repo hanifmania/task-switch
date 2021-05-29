@@ -6,7 +6,7 @@
     <arg name="number" value="$(arg number)" />
   </include>
   <group ns="bebop10$(arg number)">
-    <node pkg="task_switch" name="controller" type="agent_manager_theta1d_node.py" output='screen'>
+    <node pkg="task_switch" name="controller" type="agent_manager_theta2d_node.py" output='screen'>
       <!-- for specify /bebop10*/virtualdrone/command/cmd_vel-->
       <remap from="cmd_input" to="virtualdrone/command/cmd_vel" />
       <remap from="posestamped" to="virtualdrone/posestamped" />
