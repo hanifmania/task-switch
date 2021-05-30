@@ -13,6 +13,7 @@ class AgentManagerTheta1d(AgentManagerBase):
         super(AgentManagerTheta1d, self).__init__(VoronoiClass)
         sigma = rospy.get_param("/sigma")
         self.voronoi.setSigma(sigma)
+        self._u_old = [[0], [0]]
 
     def Vel2dCommandCalc(self):
         # calculate command for agent
@@ -45,32 +46,32 @@ class AgentManagerTheta1d(AgentManagerBase):
         gamma = 2
         u_0x = gamma / dJdp_x if dJdp_x != 0 else 0
         u_0y = gamma / dJdp_y if dJdp_y != 0 else 0
-        u_nom = np.array(
-            [
-                [u_0x],
-                [u_0y],
-                [0.0],
-                [0.0],
-                [0.0],
-                [0.0],
-            ]
-        )
         # u_nom = np.array(
         #     [
-        #         [dJdp_x],
-        #         [dJdp_y],
+        #         [u_0x],
+        #         [u_0y],
         #         [0.0],
         #         [0.0],
         #         [0.0],
         #         [0.0],
         #     ]
         # )
+        u_nom = np.array(
+            [
+                [self._u_old[0][0]],
+                [self._u_old[1][0]],
+                [0.0],
+                [0.0],
+                [0.0],
+                [0.0],
+            ]
+        )
         # dJdp2d = 2*self.voronoi.getMass()*(self.voronoi.getCent()-pos)-self.voronoi.getExpand()
         # dJdp = [dJdp2d[0], dJdp2d[1], 0., 0., 0., 0.]
         # dJdp = [1, 0, 0.0, 0.0, 0.0, 0.0]
 
-        # dJdp = [dJdp_x, dJdp_y, 0, 0, 0, 0]
-        # xi = [self.voronoi.getXi()]
+        dJdp = [dJdp_x, dJdp_y, 0, 0, 0, 0]
+        xi = [-gamma]
         # xi = [self.voronoi.getXi() / self.agentNum]
         # xi = [(self.voronoi.k * (self.voronoi.gamma - 2 * self.J))]
 
@@ -91,6 +92,7 @@ class AgentManagerTheta1d(AgentManagerBase):
         #     ]
         # )
         # self.J_tilde_log.append(self.J - self.voronoi.gamma)
+        self._u_old = u
         return u[0], u[1], opt_status, task
         # return u_nom2d[0], u_nom2d[1], opt_status, task
         # return dJdp_x * 10, dJdp_y, None, None

@@ -8,8 +8,14 @@ bebop102:
     x: 1.7
     y: 0
     z: 1
+bebop103:
+  initial_pose:
+    x: 0
+    y: 0.5
+    z: 1
+
 field:
   dim: 2
   mesh_acc: [200,100] #x,theta
   limit: [[-2,2],[-0.8,0.8]] #[x[min,max], theta[min,max]]
-sigma: 0.05
+sigma: 0.2

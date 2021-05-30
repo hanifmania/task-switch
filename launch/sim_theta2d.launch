@@ -42,7 +42,9 @@
   <include file="$(find task_switch)/launch/agent_theta2d.launch">
     <arg name="number" value="2" />
   </include>
-
+  <!-- <include file="$(find task_switch)/launch/agent_theta2d.launch">
+    <arg name="number" value="3" />
+  </include> -->
   <!-- <include file="$(find task_switch)/launch/theta_1d_agent.launch">
       <arg name="number" value="3"/>
       <arg name="initial_pose_x" value="0"/>

@@ -9,8 +9,8 @@ class Field:
         dim = param["dim"]
         mesh_acc = self._param["mesh_acc"]
         # dimension is inverse to X,Y
-        rev = list(reversed(mesh_acc))
-        self._phi = np.ones(rev)
+        self._grid_shape = list(reversed(mesh_acc))
+        self._phi = np.ones(self._grid_shape)
         linspace = [
             np.linspace(
                 self._param["limit"][i][0], self._param["limit"][i][1], mesh_acc[i]
@@ -52,6 +52,3 @@ class Field:
 
     def getPointDense(self):
         return self._point_dense
-
-    def getShape(self):
-        return self._param["mesh_acc"]

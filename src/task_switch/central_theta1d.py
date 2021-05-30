@@ -9,7 +9,6 @@ from std_msgs.msg import Float32MultiArray, MultiArrayLayout, MultiArrayDimensio
 from geometry_msgs.msg import PoseArray
 
 from task_switch.central_base import CentralBase
-from task_switch.voronoi import VoronoiTheta1d
 
 
 class CentralTheta1d(CentralBase):
@@ -53,33 +52,14 @@ class CentralTheta1d(CentralBase):
             self.enable_info_update(True)
             self.previousInfoUpdateTime = rospy.Time.now().to_sec()
 
-    # def infoUpdate(self, Z, region):
-    #     # information reliability update
-
-    #     # delta_decrease = 0.01
-    #     # delta_increase = 0.0001
-    #     currentTime = rospy.Time.now().to_sec()
-    #     dt = currentTime - self.previousInfoUpdateTime
-    #     self.previousInfoUpdateTime = currentTime
-    #     Z_min = 0.0000001
-    #     Z = Z - self.delta_decrease * Z * dt * region
-    #     # Z = Z * ~region
-    #     Z = np.where(Z < Z_min, Z_min, Z)
-    #     # Z = Z + self.delta_increase * (1 - Z) * dt * ~region
-    #     Z = np.where(Z > 1.0, 1.0, Z)
-
-    #     return Z
     def infoUpdate(self, Z, region):
         # information reliability update
 
-        # delta_decrease = 0.01
-        # delta_increase = 0.0001
         currentTime = rospy.Time.now().to_sec()
         dt = currentTime - self.previousInfoUpdateTime
         self.previousInfoUpdateTime = currentTime
         Z_min = 0.0000001
 
-        # x_grid, y_grid = self.field.getGrid()
         grid = self.field.getGrid()
         dists = [self._get_dist_method(pos, grid) for pos in self.allPositions]
 
@@ -87,13 +67,8 @@ class CentralTheta1d(CentralBase):
 
         min_dist = dist2.min(axis=0)
         # print(min_dist)
-        J = (
-            norm.pdf(min_dist, scale=self._sigma) * Z
-        )  # * (math.sqrt(2 * math.pi) * scale)
-        # print(J)
-        # print(self.allPositions[0][0], self.allPositions[1][0])
+        J = norm.pdf(min_dist, scale=self._sigma) * Z
         Z = Z - self.delta_decrease * J * dt
-        # Z = Z * ~region
         Z = np.where(Z < Z_min, Z_min, Z)
         # Z = Z + self.delta_increase * (1 - Z) * dt * ~region
         Z = np.where(Z > 1.0, 1.0, Z)
@@ -113,8 +88,3 @@ class CentralTheta1d(CentralBase):
                 msg.poses[i].position.z,
             ]
             self.allPositions[i] = pos
-
-
-if __name__ == "__main__":
-    central = CentralTheta1d()
-    central.spin()

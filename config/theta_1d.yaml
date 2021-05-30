@@ -12,4 +12,6 @@ field:
   dim: 2
   mesh_acc: [200,100] #x,theta
   limit: [[-2,2],[-0.8,0.8]] #[x[min,max], theta[min,max]]
-sigma: 0.1
+
+
+  sigma: 0.1
