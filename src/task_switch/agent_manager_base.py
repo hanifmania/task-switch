@@ -45,7 +45,7 @@ class AgentManagerBase(object):
         self.agentID = rospy.get_param("agentID")
 
         # param initialize
-        self.clock = rospy.get_param("~clock", 100)
+        self.clock = rospy.get_param("clock")
         self.rate = rospy.Rate(self.clock)
 
         # allPositions includes myself position
@@ -167,6 +167,7 @@ class AgentManagerBase(object):
         agent_b_ = config.agent_b_
         delta_decrease = config.delta_decrease
         delta_increase = config.delta_increase
+        self.voronoi.setDelta(delta_decrease)
         # self.voronoi.update_agentParam(agent_R, agent_b_)
         # self.voronoi.update_fieldParam(delta_decrease, delta_increase)
 
@@ -203,6 +204,7 @@ class AgentManagerBase(object):
     def cbf_update_config_params(self, config):
         self.optimizer.updateCbfConfig(config)
         self._pcc_CBF_h_gain_k = config.pcc_CBF_h_gain_k
+        self.voronoi.setGamma(config.gamma)
         # self.voronoi.update_PccCBFParam(config.gamma, config.pcc_CBF_h_gain_k)
 
     def cbf_set_config_params(self):
@@ -608,11 +610,11 @@ class AgentManagerBase(object):
 
             self.rate.sleep()
 
-        # self.savelog("_agent" + str(self.agentID))
+        self.savelog("_agent" + str(self.agentID))
 
     def savelog(self, other_str):
         CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-        data_dir = CURRENT_DIR + "/../data/"
+        data_dir = CURRENT_DIR + "/../../data/"
         now = datetime.datetime.now()
         filename = data_dir + now.strftime("%Y%m%d_%H%M%S") + other_str
         # df = pd.DataFrame(
@@ -624,7 +626,7 @@ class AgentManagerBase(object):
         # )
         df = pd.DataFrame(
             data=self._log,
-            columns=["dJ1dp", "dJ2dp", "u", "J~"],
+            columns=["H", "u", "dJdp", "delta"],
         )
         df.to_csv(filename + ".csv", index=False)
         rospy.loginfo("save " + filename)

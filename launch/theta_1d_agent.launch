@@ -12,9 +12,8 @@
       <remap from="posestamped" to="virtualdrone/posestamped" />
       <remap from="energy" to="virtualenergy/energy" />
       <remap from="drainRate" to="virtualenergy/drainRate" />
-
-      <param name="clock" value="20" />
     </node>
+    <param name="clock" value="20" />
   </group>
 
 </launch>

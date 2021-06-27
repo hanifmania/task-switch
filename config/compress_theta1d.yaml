@@ -1,0 +1,20 @@
+bebop101:
+  initial_pose:
+    x: -1.7
+    y: 0
+    z: 1
+bebop102:
+  initial_pose:
+    x: 1.7
+    y: 0
+    z: 1
+observe:
+  dim: 3
+  mesh_acc: [200,100,100] #x,z, theta
+  limit: [[-2,2],[0,0.5],[-0.7,0.7]] #[x[min,max], theta[min,max]]
+field:
+  dim: 1
+  mesh_acc: [300] #x,theta
+  limit: [[-3,3]] #[x[min,max], theta[min,max]]
+
+sigma: 0.1

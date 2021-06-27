@@ -52,3 +52,17 @@ class Field:
 
     def getPointDense(self):
         return self._point_dense
+
+
+class ObserveField(Field):
+    def __init__(self, param):
+        super(ObserveField, self).__init__(param)
+        q = self.getGrid()
+        self._projected = self.projection(q)
+
+    def projection(self, q):
+        z = 1  # [TODO]
+        return q[0] - (z - q[1]) * np.tan(q[2])
+
+    def getProjected(self):
+        return self._projected

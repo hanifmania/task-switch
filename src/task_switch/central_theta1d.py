@@ -3,6 +3,7 @@
 
 import rospy
 import numpy as np
+import math
 from scipy.stats import norm
 
 from std_msgs.msg import Float32MultiArray, MultiArrayLayout, MultiArrayDimension
@@ -58,7 +59,7 @@ class CentralTheta1d(CentralBase):
         currentTime = rospy.Time.now().to_sec()
         dt = currentTime - self.previousInfoUpdateTime
         self.previousInfoUpdateTime = currentTime
-        Z_min = 0.0000001
+        Z_min = 0
 
         grid = self.field.getGrid()
         dists = [self._get_dist_method(pos, grid) for pos in self.allPositions]
@@ -67,7 +68,16 @@ class CentralTheta1d(CentralBase):
 
         min_dist = dist2.min(axis=0)
         # print(min_dist)
-        J = norm.pdf(min_dist, scale=self._sigma) * Z
+        ##### h = norm
+        J = (
+            norm.pdf(min_dist, scale=self._sigma)
+            * Z
+            * math.sqrt(2 * math.pi)
+            * self._sigma
+        )
+        ##### h = 1 or 0
+        # J = min_dist < self._sigma
+
         Z = Z - self.delta_decrease * J * dt
         Z = np.where(Z < Z_min, Z_min, Z)
         # Z = Z + self.delta_increase * (1 - Z) * dt * ~region

@@ -26,6 +26,9 @@ class VoronoiBase(object):
     def getdJdp(self):
         return self._dJdp
 
+    def getXi(self):
+        return self._xi
+
     def calcdJdp(self):
         pass
 
@@ -77,15 +80,30 @@ class VoronoiBase(object):
 
 
 class VoronoiTheta1d(VoronoiBase):
+    def __init__(self, field):
+        super(VoronoiTheta1d, self).__init__(field)
+        self._dHdt = 0
+        self._temp2 = 0
+        self._u = [1, 0]
+
     def setSigma(self, sigma):
         self._sigma = sigma
 
-    @classmethod
-    def getDist(self, p, q):
-        return np.abs(p[0] - self.profection(q))
+    def setGamma(self, gamma):
+        self._gamma = gamma
+
+    def getGamma(self):
+        return self._gamma
+
+    def setDelta(self, delta):
+        self._delta = delta
 
     @classmethod
-    def profection(self, q):
+    def getDist(self, p, q):
+        return np.abs(p[0] - self.projection(q))
+
+    @classmethod
+    def projection(self, q):
         return q[0] - np.tan(q[1])
 
     def calcRegion(self):
@@ -101,21 +119,53 @@ class VoronoiTheta1d(VoronoiBase):
     def calcdJdp(self):
         region = self._region
         grid = self._field.getGrid(region)
+        phi = self._field.getPhi(region)
         # dist = self.getDist(self._pos, grid)
-        p_q = self._pos[0] - self.profection(grid)
+        p_q = self._pos[0] - self.projection(grid)
+        h_i = norm.pdf(p_q, scale=self._sigma) * math.sqrt(2 * math.pi) * self._sigma
+        temp = -p_q * h_i * phi / (self._sigma ** 2)
 
-        temp = (
-            -norm.pdf(p_q, scale=self._sigma)
-            / (self._sigma ** 2)
-            * p_q
-            * self._field.getPhi(region)
+        ####### h = 1 or 0
+        # epsilon = 0.01
+        # temp_minus = self.getDist(self._pos - epsilon, grid) < self._sigma
+        # temp_plus = self.getDist(self._pos + epsilon, grid) < self._sigma
+        # temp = np.sum(temp_plus * self._field.getPhi(region)) - np.sum(
+        #     temp_minus * self._field.getPhi(region)
+        # )
+        # temp = temp / (2 * epsilon)
+        ########
+
+        dJdp = self._delta * np.sum(temp) * self._field.getPointDense()
+        self._dJdp = [dJdp, 0]
+        dHdt = -self._delta * np.sum(h_i * phi) * self._field.getPointDense()
+
+        self._temp2 = (
+            (self._delta ** 2) * np.sum(h_i * h_i * phi) * self._field.getPointDense()
         )
 
-        self._dJdp = [np.sum(temp) * self._field.getPointDense(), 0]
-        # print(temp)
-        # print(self.getDist(self._pos[0], x_grid, y_grid))
-        # print("self._dJdp", self._dJdp[0])
-        # print(np.sum(self._field.getPhi(region) > 0))
+        H = np.sum(phi) * self._field.getPointDense()
+        ### dHdt<=-gamma*H CBF
+        # self._xi = (
+        #     -self._temp2 + self._delta * (-self._gamma * H - dHdt) - self._gamma * dHdt
+        # )
+        ###dHdt <= -gamma CBF
+        self._xi = -self._temp2 + self._delta * (-self._gamma - dHdt)
+        # self._xi = -self._temp2 - 2 * self._delta * dHdt - self._delta * self._delta * H # H<=0 HOCBF
+
+        clock = 20
+        self._d2Hdt2 = (dHdt - self._dHdt) * clock
+        self._dHdt = dHdt
+
+    def getdHdt(self):
+        return self._dHdt, self._d2Hdt2
+
+    def getH(self):
+        phi = self._field.getPhi()
+        ret = np.sum(phi) * self._field.getPointDense()
+        return ret
+
+    def setU(self, u):
+        self._u = u
 
 
 class VoronoiTheta2d(VoronoiTheta1d):
@@ -124,7 +174,7 @@ class VoronoiTheta2d(VoronoiTheta1d):
         return np.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2)
 
     @classmethod
-    def profection(self, q):
+    def projection(self, q):
         return q
 
     def calcdJdp(self):
@@ -138,7 +188,7 @@ class VoronoiTheta2d(VoronoiTheta1d):
             * self._field.getPhi(region)
             * self._field.getPointDense()
         )
-        q = self.profection(grid)
+        q = self.projection(grid)
 
         self._dJdp = [
             np.sum(temp * (self._pos[0] - q[0])),
