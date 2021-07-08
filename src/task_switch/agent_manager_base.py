@@ -44,7 +44,7 @@ class AgentManagerBase(object):
         self.agentID = rospy.get_param("agentID")
 
         # param initialize
-        self.clock = rospy.get_param("clock")
+        self.clock = rospy.get_param("/clock/agent")
         self.rate = rospy.Rate(self.clock)
 
         # allPositions includes myself position
@@ -102,7 +102,7 @@ class AgentManagerBase(object):
         self.charging = False
 
         # ref for altitude
-        self.zRef = 1.2
+        self.zRef = 1.0
         # Threshold for altitude control
         self.zThreshold = 0.35
 

@@ -58,16 +58,20 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_link:
+          Value: true
         bebop101:
           Value: true
-        bebop102:
-          Value: true
-        bebop103:
+        odom:
           Value: true
         pg_18549320:
           Value: false
         pg_camera:
           Value: false
+        visualize/agent1:
+          Value: true
+        visualize/down_camera1:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -79,20 +83,19 @@ Visualization Manager:
         world:
           bebop101:
             {}
-          bebop102:
-            {}
-          bebop103:
-            {}
           pg_camera:
             pg_18549320:
+              {}
+          visualize/agent1:
+            visualize/down_camera1:
               {}
       Update Interval: 0
       Value: true
     - Class: jsk_rviz_plugin/PieChart
-      Enabled: true
+      Enabled: false
       Name: PieChart
       Topic: /bebop101/virtualenergy/energy
-      Value: true
+      Value: false
       auto color change: true
       background color: 0; 0; 0
       backround alpha: 0
@@ -196,13 +199,13 @@ Visualization Manager:
       update interval: 0.0399999991
       width: 128
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /visualization/chargeStation
       Name: Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Align Bottom: false
       Background Alpha: 0.800000012
       Background Color: 0; 0; 0
@@ -303,7 +306,7 @@ Visualization Manager:
       Marker Topic: /visualization/bebop2
       Name: Marker
       Namespaces:
-        {}
+        1: true
       Queue Size: 100
       Value: true
     - Class: rviz/Camera

@@ -63,7 +63,7 @@ class poseCollector:
 
         self.pub_allPose = rospy.Publisher("/allPose", PoseArray, queue_size=1)
         # node freq
-        self.clock = rospy.get_param("/clock")
+        self.clock = rospy.get_param("/clock/posecollector")
         self.rate = rospy.Rate(self.clock)
 
     def spin(self):

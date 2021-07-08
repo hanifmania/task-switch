@@ -104,7 +104,8 @@ class VoronoiTheta1d(VoronoiBase):
 
     @classmethod
     def projection(self, q):
-        return q[0] - np.tan(q[1])
+        z = 1.0
+        return q[0] - z*np.tan(q[1])
 
     def calcRegion(self):
         grid = self._field.getGrid()

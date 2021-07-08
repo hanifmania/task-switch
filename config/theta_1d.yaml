@@ -11,5 +11,9 @@ bebop102:
 field:
   dim: 2
   mesh_acc: [200,100] #x,theta
-  limit: [[-1.3, 1.3],[-0.8,0.8]] #[x[min,max], theta[min,max]]
+  limit: [[-0.1, 0.1],[-0.78539,0.78539]] #[x[min,max], theta[min,max]]
 sigma: 0.1
+clock:
+  central: 20
+  posecollector: 100
+  agent: 2

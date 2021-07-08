@@ -117,7 +117,7 @@ class CentralBase(object):
         self.pub_targetJ = rospy.Publisher("/targetJ", Float32, queue_size=1)
 
         # node freq
-        self.clock = rospy.get_param("~clock", 100)
+        self.clock = rospy.get_param("/clock/central")
         self.rate = rospy.Rate(self.clock)
 
         # information decay, acquisition parmeters. any numbers are ok because it will be overwritten by dycon
