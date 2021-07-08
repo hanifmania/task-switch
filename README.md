@@ -1,6 +1,16 @@
 # task switch
 bebop2で充電＋フィールド内stay、持続的被覆制御、物体検知＋監視の動作を
-切り替えつつ行う実験およびシミュレーション用ROSパッケージ。
+切り替えつつ行う実験およびシミュレーション用ROSパッケージ。角度付き被覆を追加した
+
+## experiment
+### x theta
+1. roslaunch task_switch theta_1d_real.launch 
+1. roslaunch task_switch theta_1d_agent_real.launch
+1. use joy controller
+    1. start button for flying
+    1. A button for automatic mode
+    1. B button for height control
+    1. X button for start demo
 
 ## memo
 - src

@@ -14,6 +14,7 @@ from std_msgs.msg import Empty, String, ColorRGBA
 from std_msgs.msg import Int8MultiArray, MultiArrayLayout, MultiArrayDimension
 from std_msgs.msg import Bool, Float32, Float32MultiArray
 from vision_msgs.msg import Detection2DArray
+from sensor_msgs.msg import Joy
 from jsk_rviz_plugins.msg import *
 
 import dynamic_reconfigure.client
@@ -64,7 +65,7 @@ class AgentManagerBase(object):
         # subscriber to other agent's position
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
         rospy.Subscriber("/J", Float32, self.jCallback, queue_size=1)
-
+        rospy.Subscriber("/joy", Joy, self.joy_callback, queue_size=1)
         # publisher for agent control
         self.pub_twist = rospy.Publisher("cmd_input", Twist, queue_size=1)
         self.pub_takeoffland = rospy.Publisher("cmd_takeoffland", String, queue_size=1)
@@ -149,8 +150,8 @@ class AgentManagerBase(object):
         rospy.loginfo("starting node:agent" + str(self.agentID))
 
         self._log = []
-        self._start = True
-
+        self._start = False
+        self._take_off_start = False
     ###################################################################
     ### dycon update functions
     ###################################################################
@@ -538,10 +539,9 @@ class AgentManagerBase(object):
     ###################################################################
 
     def spin(self):
-        rospy.wait_for_message("/info", Float32MultiArray)
+        
         rospy.wait_for_message("posestamped", PoseStamped)
         rospy.loginfo("agent" + str(self.agentID) + " controller start!")
-
         self.pcc_set_config_params()
         self.charge_set_config_params()
         self.cbf_set_config_params()
@@ -557,6 +557,17 @@ class AgentManagerBase(object):
         # twist.angular.z = 0.0
         # self.publishTwist(twist)
         # rospy.sleep(0.1)
+        while not rospy.is_shutdown() and not self._take_off_start:
+            self.rate.sleep()
+        while not rospy.is_shutdown() and not self._start:
+            twist.linear.z = 0.6 * (
+                        self.zRef - self.position[2]
+                    ) 
+            twist.angular.z = -self.orientation[2]
+            self.publishTwist(twist)
+            self.rate.sleep()
+        rospy.wait_for_message("/info", Float32MultiArray)
+        twist = Twist()
         while not rospy.is_shutdown():
             if self.checkNeighborStart and self._start:  # wait for all neighbor start
                 twist.linear.x = 0.0
@@ -627,6 +638,15 @@ class AgentManagerBase(object):
         df.to_csv(filename + ".csv", index=False)
         rospy.loginfo("save " + filename)
 
+    def joy_callback(self, data):
+        # button_is_pushed = data.buttons[1] #B button
+        if data.buttons[1]: #B button
+            rospy.loginfo("take off")
+            self._start = False
+            self._take_off_start = True
+        if data.buttons[2]: #A button
+            rospy.loginfo("start")
+            self._start = True
 
 if __name__ == "__main__":
     agent = Theta1dAgentManager()
