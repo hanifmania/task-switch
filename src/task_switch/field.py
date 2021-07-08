@@ -6,23 +6,41 @@ import numpy as np
 class Field:
     def __init__(self, param):
         self._param = param
-        dim = param["dim"]
-        mesh_acc = self._param["mesh_acc"]
+        mesh_acc = np.array(self._param["mesh_acc"])
+        dim = len(mesh_acc)
+        self._mesh_acc = mesh_acc
+        self._limit = np.array(self._param["limit"])
         # dimension is inverse to X,Y
         self._grid_shape = list(reversed(mesh_acc))
         self._phi = np.ones(self._grid_shape)
+
+        ### make mesh
         linspace = [
             np.linspace(
                 self._param["limit"][i][0], self._param["limit"][i][1], mesh_acc[i]
             )
             for i in range(dim)
         ]
-        # self._grid = np.meshgrid(linspace[0], linspace[1])
-        self._grid = np.meshgrid(*linspace)
+        temp = dim - 2
+        linspace_sorted = linspace[temp:] + list(reversed(linspace[:temp]))
 
-        self._point_dense = 1
-        for i in range(dim):
-            self._point_dense *= self.getGridSpan(i)
+        # if dim == 3:
+        #     linspace = linspace[1:] + linspace[:1]
+        # elif dim == 4:
+        #     linspace = linspace[2:] + linspace[1:2] + linspace[:1]
+        # elif dim == 5:
+        #     linspace = linspace[2:] + linspace[1:2] + linspace[:1]
+        self._grid = np.meshgrid(*linspace_sorted)
+        self._grid = list(reversed(self._grid[2:])) + self._grid[:2]
+        # if dim == 3:
+        #     self._grid = self._grid[2:] + self._grid[:2]
+        # elif dim == 4:
+        #     self._grid = self._grid[3:] + self._grid[2:3] +  self._grid[:2]
+
+        self._zero_index = [np.where(linspace[i] == 0) for i in range(dim)]
+        # print(self._zero_index)
+        # self._zero_index = np.stack(self._zero_index)
+        self._point_dense = self.getGridSpan().prod()
 
     def setPhi(self, phi):
         self._phi = phi
@@ -38,31 +56,17 @@ class Field:
         if region is None:
             ret = self._grid
         else:
-            ret = self._grid[0] * region, self._grid[1] * region
+            ret = self._grid * region
         return ret
 
-    def getGridSpan(self, i):
-        return (
-            float(self._param["limit"][i][1] - self._param["limit"][i][0])
-            / self._param["mesh_acc"][i]
-        )
+    def getGridSpan(self):
+        return (self._limit[:, 1] - self._limit[:, 0]) / (self._mesh_acc - 1)
 
     def getLimit(self, axes):
-        return self._param["limit"][axes]
+        return self._limit[axes]
 
     def getPointDense(self):
         return self._point_dense
 
-
-class ObserveField(Field):
-    def __init__(self, param):
-        super(ObserveField, self).__init__(param)
-        q = self.getGrid()
-        self._projected = self.projection(q)
-
-    def projection(self, q):
-        z = 1  # [TODO]
-        return q[0] - (z - q[1]) * np.tan(q[2])
-
-    def getProjected(self):
-        return self._projected
+    def getZeroIndex(self):
+        return self._zero_index

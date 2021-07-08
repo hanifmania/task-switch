@@ -4,10 +4,9 @@ import rospy
 import numpy as np
 import pandas as pd
 import datetime
+import os
 
-from task_switch.field import Field
 
-from task_switch.cbf_optimizer_ros import CBFOptimizerROS
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseArray
@@ -20,8 +19,8 @@ from jsk_rviz_plugins.msg import *
 import dynamic_reconfigure.client
 
 from task_switch.transformations import *
-
-import os
+from task_switch.field import Field
+from task_switch.cbf_optimizer_ros import CBFOptimizerROS
 
 
 class AgentManagerBase(object):
@@ -62,10 +61,6 @@ class AgentManagerBase(object):
         rospy.Subscriber("energy", Float32, self.energyCallback, queue_size=1)
         # subscriber to get own energyel
         rospy.Subscriber("objects", Detection2DArray, self.objectCallback, queue_size=1)
-        # subscriber to get field information density
-        rospy.Subscriber(
-            "/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1
-        )
         # subscriber to other agent's position
         rospy.Subscriber("/allPose", PoseArray, self.poseArrayCallback, queue_size=1)
         rospy.Subscriber("/J", Float32, self.jCallback, queue_size=1)
@@ -154,6 +149,7 @@ class AgentManagerBase(object):
         rospy.loginfo("starting node:agent" + str(self.agentID))
 
         self._log = []
+        self._start = True
 
     ###################################################################
     ### dycon update functions
@@ -562,7 +558,7 @@ class AgentManagerBase(object):
         # self.publishTwist(twist)
         # rospy.sleep(0.1)
         while not rospy.is_shutdown():
-            if self.checkNeighborStart:  # wait for all neighbor start
+            if self.checkNeighborStart and self._start:  # wait for all neighbor start
                 twist.linear.x = 0.0
                 twist.linear.y = 0.0
                 twist.linear.z = 0.0

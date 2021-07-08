@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from task_switch.field import Field
 
 
-class SurfVisualize:
+class PointCloudXTheta(object):
     """
     Visualization class of surf plot in rviz(only colored 2D plot using CubeList).
     It's used for visualization of importance density function in coverage control.
@@ -41,7 +41,7 @@ class SurfVisualize:
             [
                 self.X.reshape([-1, 1]),
                 self.Y.reshape([-1, 1]),
-                np.zeros((self.X.size, 1)),
+                self.Z.reshape([-1, 1]),
             ]
         )
 
@@ -117,7 +117,7 @@ class SurfVisualize:
         colorrgb = colorrgb_.squeeze()
 
         self.points = np.hstack(
-            [self.X.reshape([-1, 1]), self.Y.reshape([-1, 1]), self.Z]
+            [self.X.reshape([-1, 1]), self.Y.reshape([-1, 1]), self.Z.reshape([-1, 1])]
         )
         # colorrgb = np.hstack([r,g,b])
         msg = self.xyzrgb_array_to_pointcloud2(
@@ -138,5 +138,5 @@ class SurfVisualize:
 
 if __name__ == "__main__":
 
-    surf = SurfVisualize(20)
+    surf = PointCloudXTheta(20)
     surf.spin()

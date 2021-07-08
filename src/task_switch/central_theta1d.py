@@ -24,6 +24,7 @@ class CentralTheta1d(CentralBase):
         # publish information density
 
         # make multiarraydimension
+        print("info.shape", info.shape)
         dim_ = []
         dim_.append(
             MultiArrayDimension(

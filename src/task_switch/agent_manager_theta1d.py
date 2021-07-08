@@ -5,15 +5,25 @@ import numpy as np
 import os
 import pandas as pd
 import datetime
-from std_msgs.msg import Int8MultiArray, MultiArrayLayout, MultiArrayDimension
+from std_msgs.msg import (
+    Int8MultiArray,
+    MultiArrayLayout,
+    MultiArrayDimension,
+    Float32MultiArray,
+)
 from task_switch.agent_manager_base import AgentManagerBase
 
 from task_switch.voronoi import VoronoiTheta1d
+
+from task_switch.field import Field
 
 
 class AgentManagerTheta1d(AgentManagerBase):
     def __init__(self, VoronoiClass):
         super(AgentManagerTheta1d, self).__init__(VoronoiClass)
+        rospy.Subscriber(
+            "/info", Float32MultiArray, self.Float32MultiArrayCallback, queue_size=1
+        )
         sigma = rospy.get_param("/sigma")
         self.voronoi.setSigma(sigma)
         self._u_old = [[0], [0]]

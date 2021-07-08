@@ -20,21 +20,21 @@ import warnings
 
 from cv_bridge import CvBridge
 
-class Collector():
 
-    def __init__(self,agentName):
+class Collector:
+    def __init__(self, agentName):
         self.ready = False
-        
+
         topicName = rospy.get_param("~posestampedTopic")
-        preTopicName = rospy.get_param("~preTopicName","/")
+        preTopicName = rospy.get_param("~preTopicName", "/")
         subTopic = preTopicName + agentName + topicName
-        rospy.loginfo("topicName:"+subTopic)
+        rospy.loginfo("topicName:" + subTopic)
         # subscriber for each agent's region
         rospy.Subscriber(subTopic, PoseStamped, self.poseStampedCallback, queue_size=1)
         # initialze with zeros
         self.pose = Pose()
 
-    def poseStampedCallback(self,msg_data):
+    def poseStampedCallback(self, msg_data):
         if self.ready == False:
             self.ready = True
         self.pose = msg_data.pose
@@ -45,30 +45,26 @@ class Collector():
     def getReady(self):
         return self.ready
 
-class poseCollector():
+
+class poseCollector:
     def __init__(self):
         # ROS Initialize
-        rospy.init_node('poseCollector', anonymous=True)
-
+        rospy.init_node("poseCollector", anonymous=True)
 
         # Number of Agents
-        self.agentNum = rospy.get_param("/agentNum",1)
+        self.agentNum = rospy.get_param("/agentNum", 1)
 
         self.Collectors = []
-        # create [Agent's number] subscriber 
+        # create [Agent's number] subscriber
         for agentID in range(self.agentNum):
-            agentName = "bebop10" + str(agentID+1)
-            collector = Collector(agentName) 
+            agentName = "bebop10" + str(agentID + 1)
+            collector = Collector(agentName)
             self.Collectors.append(collector)
-
 
         self.pub_allPose = rospy.Publisher("/allPose", PoseArray, queue_size=1)
         # node freq
-        self.clock = rospy.get_param("~clock",100)
+        self.clock = rospy.get_param("/clock")
         self.rate = rospy.Rate(self.clock)
-
-
-
 
     def spin(self):
 
@@ -85,11 +81,11 @@ class poseCollector():
 
             self.rate.sleep()
 
-    
 
-if __name__=="__main__":
+if __name__ == "__main__":
     try:
         posecollector = poseCollector()
         posecollector.spin()
 
-    except rospy.ROSInterruptException: pass
+    except rospy.ROSInterruptException:
+        pass
