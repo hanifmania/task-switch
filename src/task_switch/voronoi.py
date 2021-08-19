@@ -98,6 +98,9 @@ class VoronoiTheta1d(VoronoiBase):
     def setDelta(self, delta):
         self._delta = delta
 
+    def setAgentNum(self, num):
+        self._agent_num = num
+
     @classmethod
     def getDist(self, p, q):
         return np.abs(p[0] - self.projection(q))
@@ -105,7 +108,7 @@ class VoronoiTheta1d(VoronoiBase):
     @classmethod
     def projection(self, q):
         z = 1.0
-        return q[0] - z*np.tan(q[1])
+        return q[0] - z * np.tan(q[1])
 
     def calcRegion(self):
         grid = self._field.getGrid()

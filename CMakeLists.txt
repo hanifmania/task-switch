@@ -101,7 +101,8 @@ generate_dynamic_reconfigure_options(
   cfg/pcc_params.cfg
   cfg/charge_params.cfg
   # cfg/cbf_params.cfg
-  cfg/theta_1d_cbf_params.cfg
+  # cfg/theta_1d_cbf_params.cfg
+  cfg/xyztheta_cbf_params.cfg
 )
 
 ###################################

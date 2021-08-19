@@ -15,7 +15,7 @@
       <param name="initial_pose/y" value="$(arg initial_pose_y)"/>
       <param name="initial_pose/z" value="$(arg initial_pose_z)"/> -->
 
-    <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml" />
+    <!-- <rosparam command="load" file="$(find task_switch)/config/chargeset/bebop10$(arg number).yaml" /> -->
 
     <!-- <param name="charge_station/x" value="$(arg charge_station_x)"/>
       <param name="charge_station/y" value="$(arg charge_station_y)"/>

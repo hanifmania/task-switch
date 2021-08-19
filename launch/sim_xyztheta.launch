@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-  <param name="/agentNum" value="1" />
+  <param name="/agentNum" value="4" />
   <rosparam command="load" file="$(find task_switch)/config/xyztheta.yaml" />
 
   <include file="$(find task_switch)/launch/joy.launch" />
@@ -24,9 +24,16 @@
     <arg name="number" value="1" />
   </include>
 
-  <!-- <include file="$(find task_switch)/launch/agent_xyztheta.launch">
+  <include file="$(find task_switch)/launch/agent_xyztheta.launch">
     <arg name="number" value="2" />
-  </include> -->
+  </include>
+  <include file="$(find task_switch)/launch/agent_xyztheta.launch">
+    <arg name="number" value="3" />
+  </include>
+  <include file="$(find task_switch)/launch/agent_xyztheta.launch">
+    <arg name="number" value="4" />
+  </include>
+
 
   <!-- <include file="$(find task_switch)/launch/theta_1d_agent.launch">
       <arg name="number" value="3"/>

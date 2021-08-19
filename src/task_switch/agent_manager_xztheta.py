@@ -1,37 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import rospy
+
 import numpy as np
 import os
 import pandas as pd
 import datetime
+
+import rospy
 from std_msgs.msg import Float32MultiArray, MultiArrayDimension, MultiArrayLayout
-
-from task_switch.agent_manager_base import AgentManagerBase
-from task_switch.voronoi_xztheta import VoronoiXThetaCompressed
-from task_switch.field import Field
-
-import rospy
-import numpy as np
-import pandas as pd
-import datetime
-import os
-
-
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty, String, ColorRGBA
 from std_msgs.msg import Int8MultiArray, MultiArrayLayout, MultiArrayDimension
 from std_msgs.msg import Bool, Float32, Float32MultiArray
+from sensor_msgs.msg import Joy
 from vision_msgs.msg import Detection2DArray
 from jsk_rviz_plugins.msg import *
 
 import dynamic_reconfigure.client
 
 from task_switch.transformations import *
-from task_switch.field import Field
 from task_switch.cbf_optimizer_ros import CBFOptimizerROS
+
+from task_switch.agent_manager_base import AgentManagerBase
+from task_switch.voronoi_xztheta import VoronoiXThetaCompressed
+from task_switch.field import Field
 
 
 class AgentManagerXTheta(AgentManagerBase):
@@ -53,6 +47,9 @@ class AgentManagerXTheta(AgentManagerBase):
             self.Float32MultiArrayCallback,
             queue_size=1,
         )
+        rospy.Subscriber("/joy", Joy, self.joy_callback, queue_size=1)
+        self._take_off_start = False
+        self._start = False
 
     def init(self):
         # wait for pose array to get neighbor position
@@ -168,6 +165,8 @@ class AgentManagerXTheta(AgentManagerBase):
         self._log = []
         self._start = True
 
+        self.voronoi.setAgentNum(self.agentNum)
+
     def Float32MultiArrayCallback(self, msg_data):
         # subscriber to get information density
         # msg_data is information density, which is vectorized.
@@ -219,21 +218,26 @@ class AgentManagerXTheta(AgentManagerBase):
         u, opt_status, task = self.optimizer.optimize(
             u_nom, AgentPos, currentEnergy, dJdp, xi, neighborPosOnly, self.collisionR
         )
-        rospy.loginfo(
-            "ID,p, dJdp, u : {}, {:.4f},{:.4f},{:.4f}, {:.4f}".format(
-                self.agentID, pos[0], dJdp_x, u[0][0], self.clock
-            )
-        )
+        # rospy.loginfo(
+        #     "ID,p, dJdp, u : {}, {:.4f},{:.4f},{:.4f}, {:.4f}".format(
+        #         self.agentID, pos[0], dJdp_x, u[0][0], self.clock
+        #     )
+        # )
         H = self.voronoi.getH()  # calc H by drone
 
         dHdt = (H - self._H_old) * self.clock
         d2Hdt2 = (dHdt - self._dHdt_old) * self.clock
+        # v_x = (pos[0] - self._p_old[0]) * self.clock
+
+        # v_y = (pos[1] - self._p_old[1]) * self.clock
+        # v = np.sqrt(v_x ** 2 + v_y ** 2)
+        # print(self.optimizer.delta)
         self._log.append(
             [
                 H,
-                u[0][0],
+                # u[0][0],
                 dJdp_x,
-                self.optimizer.delta[0][0],
+                self.optimizer.delta[1][0],
                 dHdt,
                 -self.voronoi.getGamma(),
                 xi[0],
@@ -241,7 +245,10 @@ class AgentManagerXTheta(AgentManagerBase):
                 self.voronoi.getdHdt()[0],
                 d2Hdt2,
                 -dJdp_x * u[0][0] + self.voronoi._temp2,
-                (pos[0] - self._p_old[0]) * self.clock,
+                u[0][0],
+                u[1][0],
+                np.sqrt(u[0][0] ** 2 + u[1][0] ** 2),
+                self.voronoi._near_psi_sum,
             ]
         )
         self._p_old = pos
@@ -260,7 +267,7 @@ class AgentManagerXTheta(AgentManagerBase):
             data=self._log,
             columns=[
                 "H",
-                "u",
+                # "u",
                 "dJdp",
                 "slack",
                 "dHdt",
@@ -270,7 +277,10 @@ class AgentManagerXTheta(AgentManagerBase):
                 "dHdt_predict",
                 "d2Hdt2",
                 "d2Hdt2_predict",
-                "dpdt",
+                "u_x",
+                "u_y",
+                "u",
+                "near_psi_sum",
             ],
         )
         df.to_csv(filename + ".csv", index=True)

@@ -49,6 +49,8 @@ class CentralBase(object):
         rospy.Subscriber("/joy", Joy, self.joy_callback, queue_size=1)
 
         self.pub_J = rospy.Publisher("/J", Float32, queue_size=1)
+        self._log = []
+        rospy.on_shutdown(self.savelog)
 
     def init(self):
         # second init after __init__
@@ -83,12 +85,13 @@ class CentralBase(object):
             self.allPositions[i] = pos
 
     def joy_callback(self, data):
-        # button_is_pushed = data.buttons[2]
-        button_is_pushed = True
+        button_is_pushed = data.buttons[2]
+        # button_is_pushed = True
         if button_is_pushed:
             rospy.loginfo("start")
             self._start = True
             self.previousInfoUpdateTime = rospy.Time.now().to_sec()
+            self._start_time = self.previousInfoUpdateTime
 
     def updatePhi(self):
         # information reliability update
@@ -136,6 +139,9 @@ class CentralBase(object):
 
     @abstractmethod
     def publishPhi2Rviz(self):
+        pass
+
+    def savelog(self):
         pass
 
 

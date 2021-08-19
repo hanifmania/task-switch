@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import rospy
+
 import numpy as np
 import math
+import pandas as pd
+import datetime
 from scipy.stats import norm
 
+import rospy
+import rospkg
 from std_msgs.msg import (
     Float32MultiArray,
     MultiArrayLayout,
     MultiArrayDimension,
     Float32,
 )
+
 from task_switch.central_xtheta import CentralXTheta
 from task_switch.field import Field
 
@@ -153,6 +158,7 @@ class CentralXYZThetaCompress(CentralXYZTheta):
         print(
             self._observe_field.getPointDense() * np.sum(self._observe_field.getPhi())
         )
+        self._old_J = 0
         rospy.loginfo("compress finish")
 
     def init(self):
@@ -191,6 +197,11 @@ class CentralXYZThetaCompress(CentralXYZTheta):
         # Z = np.where(Z > 1.0, 1.0, Z)
         self._drone_field.setPhi(Z)
 
+        J_sum = np.sum(Z)
+        dJdt = (J_sum - self._old_J) / dt
+        self._log.append([currentTime - self._start_time, J_sum, dJdt])
+        self._old_J = J_sum
+
     def compress2drone_only_first(self):
         zero_index = self._drone_field.getZeroIndex()
         grid_span = self._drone_field.getGridSpan()
@@ -221,6 +232,25 @@ class CentralXYZThetaCompress(CentralXYZTheta):
     def publishJ(self):
         J = np.sum(self._drone_field.getPhi())
         self.pub_J.publish(Float32(data=J))
+
+    def savelog(self, other_str="_central"):
+        rospack = rospkg.RosPack()
+        # get the file path for rospy_tutorials
+        pkg_path = rospack.get_path("task_switch")
+
+        data_dir = pkg_path + "/data/"
+        now = datetime.datetime.now()
+        filename = data_dir + now.strftime("%Y%m%d_%H%M%S") + other_str
+        df = pd.DataFrame(
+            data=self._log,
+            columns=[
+                "t",
+                "J",
+                "dJdt",
+            ],
+        )
+        df.to_csv(filename + ".csv", index=False)
+        rospy.loginfo("save " + filename)
 
 
 class CentralXYZThetaShowTheta(CentralXYZThetaCompress):

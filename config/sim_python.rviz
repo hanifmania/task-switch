@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -62,9 +62,17 @@ Visualization Manager:
           Value: true
         bebop102/virtualdrone:
           Value: true
+        bebop103/virtualdrone:
+          Value: true
+        bebop104/virtualdrone:
+          Value: true
         visualize/down_camera1:
           Value: true
         visualize/down_camera2:
+          Value: true
+        visualize/down_camera3:
+          Value: true
+        visualize/down_camera4:
           Value: true
         world:
           Value: true
@@ -80,6 +88,12 @@ Visualization Manager:
               {}
           bebop102/virtualdrone:
             visualize/down_camera2:
+              {}
+          bebop103/virtualdrone:
+            visualize/down_camera3:
+              {}
+          bebop104/virtualdrone:
+            visualize/down_camera4:
               {}
       Update Interval: 0
       Value: true
@@ -309,6 +323,8 @@ Visualization Manager:
       Namespaces:
         1: true
         2: true
+        3: true
+        4: true
       Queue Size: 100
       Value: true
     - Alpha: 0.300000012
@@ -339,6 +355,16 @@ Visualization Manager:
       Name: Range
       Queue Size: 100
       Topic: /bebop103/range
+      Unreliable: false
+      Value: true
+    - Alpha: 0.300000012
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 0; 0
+      Enabled: true
+      Name: Range
+      Queue Size: 100
+      Topic: /bebop104/range
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -411,10 +437,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.42479646
+      Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.74356651
+      Yaw: 4.71356583
     Saved: ~
 Window Geometry:
   Displays:

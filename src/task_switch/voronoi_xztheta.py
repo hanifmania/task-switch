@@ -50,9 +50,12 @@ class VoronoiXYZTheta(VoronoiTheta1d):
         #     -self._temp2 + self._delta * (-self._gamma * H - dHdt) - self._gamma * dHdt
         # )
         ###dHdt <= -gamma CBF
-        self._xi = -self._temp2 + self._delta * (-self._gamma - dHdt)
+        self._xi = -self._temp2 + self._delta * (-self._gamma / self._agent_num - dHdt)
         # self._xi = -self._temp2 - 2 * self._delta * dHdt - self._delta * self._delta * H # H<=0 HOCBF
 
         clock = 20
         self._d2Hdt2 = (dHdt - self._dHdt) * clock
         self._dHdt = dHdt
+
+        near_field = dist < 2 * self._sigma
+        self._near_psi_sum = np.sum(near_field * phi) * self._field.getPointDense()

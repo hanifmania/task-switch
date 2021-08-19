@@ -2,27 +2,41 @@ clock: 20
 bebop101:
   initial_pose:
     x: 1.0
-    y: 0
+    y: 0.0001
     z: 1
 bebop102:
   initial_pose:
     x: -1.0
-    y: 0
+    y: -0.0001
+    z: 1
+bebop103:
+  initial_pose:
+    x: 0.0001
+    y: 0.5
+    z: 1
+bebop104:
+  initial_pose:
+    x: -0.0001
+    y: -0.5
     z: 1
 observe_field:
-  mesh_acc: [105,105,5, 5,11] #x,y,z, yaw, pitch (should be 0 in linspace for compress)
-  limit: [[-1.5, 1.5],[-1.5,1.5],[0.0,0.5],[0.1,0.8], [-3.14,3.14]] #[x[min,max], theta[min,max], z[min,max]] 
+  mesh_acc: [100,100,5, 10,10] #x,y,z, yaw, pitch
+  limit: [[-1.0, 1.0],[-1.0,1.0],[0.0,0.5],[0.0,0.78], [-3.14159265358979,3.14159265358979]] #[x[min,max], theta[min,max], z[min,max]] 
 drone_field:
-  mesh_acc: [105, 105] #x (should contain 0 in linspace for compress)
+  mesh_acc: [101, 101] #x (should contain 0 in linspace for compress)
   limit: [[-1.5, 1.5], [-1.5, 1.5]] #[x[min,max]] 
 rviz_field:
-  mesh_acc: [105, 105] #x (should contain 0 in linspace for compress)
+  mesh_acc: [101, 101] #x (should contain 0 in linspace for compress)
   limit: [[-1.5, 1.5], [-1.5, 1.5]] #[x[min,max]] 
 
 theta_field:
-  mesh_acc: [5, 11] #x (should contain 0 in linspace for compress)
-  limit: [[0.1,0.8], [-3.14,3.14]] #[x[min,max]] 
+  mesh_acc: [100, 100] #x (should contain 0 in linspace for compress)
+  limit: [[0.0,0.78], [-3.14,3.14]] #[x[min,max]] 
 rviz_theta_field:
-  mesh_acc: [5, 11] #x (should contain 0 in linspace for compress)
-  limit: [[0.1,0.8], [2.0,3.0]] #[x[min,max]] 
+  mesh_acc: [100, 100] #x (should contain 0 in linspace for compress)
+  limit: [[-1.39,-1], [2.0,3.0]] #[x[min,max]] 
 sigma: 0.1
+clock:
+  central: 20
+  posecollector: 20
+  agent: 20
