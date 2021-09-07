@@ -32,9 +32,9 @@ class Field(Field):
         self.xlimit = xlimit
         self.ylimit = ylimit
         # dimension is inverse to X,Y
-        self.phi = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
-        self.phi1 = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
-        self.phi2 = 0.5 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
+        self.phi = np.ones((self.mesh_acc[1], self.mesh_acc[0]))
+        # self.phi1 = 0.05 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
+        # self.phi2 = 0.5 * np.ones((self.mesh_acc[1], self.mesh_acc[0]))
         # self.phi = np.ones((self.mesh_acc[1],self.mesh_acc[0]))
 
     def setb(self, b):
@@ -315,12 +315,9 @@ class central:
             # do not update field density
             if ready:
 
-                ### add by shimizu
-                self.field.phi1 = self.infoUpdate(self.field.phi1, region)
-                # self.field.phi2 = self.field.phi2*center_region*0 + self.field.phi2*~center_region
-                phi = self.field.phi1  # +self.field.phi2
+                
                 # update information density phi according to region
-                # phi = self.infoUpdate(phi,region)
+                phi = self.infoUpdate(phi,region)
                 self.field.updatePhi(phi)
 
             # publish updated information density

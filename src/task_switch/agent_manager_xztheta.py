@@ -116,7 +116,7 @@ class AgentManagerXTheta(AgentManagerBase):
         self.charging = False
 
         # ref for altitude
-        self.zRef = 1.2
+        self.zRef = 1.0
         # Threshold for altitude control
         self.zThreshold = 0.35
 
@@ -218,11 +218,11 @@ class AgentManagerXTheta(AgentManagerBase):
         u, opt_status, task = self.optimizer.optimize(
             u_nom, AgentPos, currentEnergy, dJdp, xi, neighborPosOnly, self.collisionR
         )
-        # rospy.loginfo(
-        #     "ID,p, dJdp, u : {}, {:.4f},{:.4f},{:.4f}, {:.4f}".format(
-        #         self.agentID, pos[0], dJdp_x, u[0][0], self.clock
-        #     )
-        # )
+        rospy.loginfo(
+            "ID,p, dJdp, u : {}, {:.4f},{:.4f},{:.4f}, {:.4f}".format(
+                self.agentID, pos[0], dJdp_x, u[0][0], self.clock
+            )
+        )
         H = self.voronoi.getH()  # calc H by drone
 
         dHdt = (H - self._H_old) * self.clock

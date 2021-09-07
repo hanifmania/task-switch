@@ -5,7 +5,6 @@ import rospy
 import numpy as np
 import math
 from scipy.stats import norm
-from abc import ABCMeta, abstractmethod
 
 import dynamic_reconfigure.client
 from std_msgs.msg import (
@@ -20,8 +19,6 @@ from task_switch.field import Field
 
 
 class CentralBase(object):
-    __metaclass__ = ABCMeta
-
     def __init__(self):
         rospy.init_node("central", anonymous=True)
 
@@ -40,8 +37,6 @@ class CentralBase(object):
         self.pcc_dycon_client = dynamic_reconfigure.client.Client(
             "/pcc_parameter", timeout=2, config_callback=self.pccConfigCallback
         )
-        q = self._observe_field.getGrid()
-        self._projected_field = self.q2p(q)
 
         # print("phi shape", q)
         # print("_projected_field shape", self._projected_field.shape)
@@ -51,6 +46,8 @@ class CentralBase(object):
         self.pub_J = rospy.Publisher("/J", Float32, queue_size=1)
         self._log = []
         rospy.on_shutdown(self.savelog)
+        q = self._observe_field.getGrid()
+        self._projected_field = self.q2p(q)
 
     def init(self):
         # second init after __init__
@@ -121,23 +118,18 @@ class CentralBase(object):
     def pccConfigCallback(self, config):
         self._delta_decrease = config.delta_decrease
 
-    @abstractmethod
     def q2p(self, q):
         pass
 
-    @abstractmethod
     def compress2drone(self):
         pass
 
-    @abstractmethod
     def compress2rviz(self):
         pass
 
-    @abstractmethod
     def publishCompressedPhi(self):
         pass
 
-    @abstractmethod
     def publishPhi2Rviz(self):
         pass
 

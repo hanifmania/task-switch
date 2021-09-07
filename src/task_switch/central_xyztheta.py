@@ -29,7 +29,7 @@ class CentralXYZTheta(CentralXTheta):
 
     def q2p(self, q):
         z = 1
-        temp = (z - q[2]) * np.tan(q[3])
+        temp = (z - q[2]) * np.tan(np.pi/2 - q[3])
 
         return np.stack([q[0] - temp * np.cos(q[4]), q[1] - temp * np.sin(q[4])])
 
@@ -149,7 +149,7 @@ class CentralXYZTheta(CentralXTheta):
 
 class CentralXYZThetaCompress(CentralXYZTheta):
     def __init__(self):
-        super(CentralXYZTheta, self).__init__()
+        super(CentralXYZThetaCompress, self).__init__()
         self.compress2drone_only_first()
         self._rviz2max1_val = 1 / np.amax(self._drone_field.getPhi())
         self.previousInfoUpdateTime = rospy.Time.now().to_sec()
@@ -162,7 +162,7 @@ class CentralXYZThetaCompress(CentralXYZTheta):
         rospy.loginfo("compress finish")
 
     def init(self):
-        super(CentralXYZTheta, self).init()
+        super(CentralXYZThetaCompress, self).init()
 
     def compress2drone(self):
 
@@ -262,6 +262,11 @@ class CentralXYZThetaShowTheta(CentralXYZThetaCompress):
             "/theta_phi", Float32MultiArray, queue_size=1
         )
 
+        grid = self._show_theta_field.getGrid()
+        q = [0, 0, 0] + grid
+        p = self.q2p(q)
+        rospy.loginfo(p)
+
     def updatePhi(self):
         super(CentralXYZThetaShowTheta, self).updatePhi()
         # information reliability update
@@ -319,6 +324,6 @@ class CentralXYZThetaShowTheta(CentralXYZThetaCompress):
 
 
 if __name__ == "__main__":
-    central = CentralXYZThetaShowTheta()
+    central = CentralXYZThetaCompress()
     central.init()
     rospy.spin()
