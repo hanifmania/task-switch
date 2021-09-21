@@ -123,9 +123,9 @@ class RigidBodyMotion(object):
         if self.previousInfoUpdateTime is None:
             self.previousInfoUpdateTime = currentTime
         dt = currentTime - self.previousInfoUpdateTime
-        rospy.loginfo(dt)
+        # rospy.loginfo(dt)
         self.previousInfoUpdateTime = currentTime
-        dt = self.dt
+        # dt = self.dt
         self.g = self.g + (self.g_dot + self.g_dot_old) * dt / 2.0
         self.g_dot_old = self.g_dot
 

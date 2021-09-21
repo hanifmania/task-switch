@@ -283,9 +283,9 @@ class coverageControllerSantos2019(coverageController):
 
         u, opt_status, task = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
 
-        alpha = 1.0
+        alpha = 1.0 #0.9
         low_pass_u = self._old_u * (1-alpha) + u * alpha
-        self._old_u = u
+        self._old_u = low_pass_u
         # print("{}:{:.3f},{:.3f},diff: {:.3f}, {:.3f} dJdp: {:.3f},{:.3f}, dJdt:{:.3f}".format(self.agentID, u[0][0], u[1][0], (cent-pos)[0], (cent-pos)[1],dJdp2d[0], dJdp2d[1], xi[0]) )
         u = low_pass_u
         return u[0], u[1], opt_status, task

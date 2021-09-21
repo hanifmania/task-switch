@@ -29,14 +29,6 @@
       <node pkg="task_switch" name="virtualenergy" type="virtual_energy.py">
       </node>
 
-      <!-- <node pkg="task_switch" name="controller" type="agent_manager_dan_santos_r_limited.py" output='screen'>
-        <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
-        <remap from="posestamped" to="virtualdrone/posestamped"/>
-        <remap from="energy" to="virtualenergy/energy"/>
-        <remap from="drainRate" to="virtualenergy/drainRate"/>
-
-        <param name="clock" value="20"/>
-      </node> -->
 
       <node pkg="task_switch" name="controller" type="agent_manager_dan_santos_r_limited.py" output='screen' >
         <!-- <node pkg="task_switch" name="controller" type="agent_manager_dan_grad.py" output='screen'> -->

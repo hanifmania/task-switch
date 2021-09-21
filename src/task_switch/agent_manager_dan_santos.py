@@ -148,6 +148,7 @@ class coverageControllerSantos2019(coverageController):
         super(coverageControllerSantos2019, self).__init__()
         self.voronoi = VoronoiCalcSantos2019(self.field)
 
+        self._old_u = u_nom = np.array( [ [0.], [0.], [0.], [0.], [0.], [0.] ]  )
     ###################################################################
     ### velocity command calculation function 
     ###################################################################
@@ -185,6 +186,12 @@ class coverageControllerSantos2019(coverageController):
 
         u, opt_status, task = self.optimizer.optimize(u_nom, AgentPos, currentEnergy, dJdp, xi,neighborPosOnly,self.collisionR)
         # print("{}:{:.3f},{:.3f}".format(self.agentID, u[0][0], u[1][0]))
+
+        alpha = 1.0
+        low_pass_u = self._old_u * (1-alpha) + u * alpha
+        self._old_u = low_pass_u
+        # print("{}:{:.3f},{:.3f},diff: {:.3f}, {:.3f} dJdp: {:.3f},{:.3f}, dJdt:{:.3f}".format(self.agentID, u[0][0], u[1][0], (cent-pos)[0], (cent-pos)[1],dJdp2d[0], dJdp2d[1], xi[0]) )
+        u = low_pass_u
         return u[0], u[1], opt_status, task
         # return u_nom2d[0], u_nom2d[1], None, None
 
