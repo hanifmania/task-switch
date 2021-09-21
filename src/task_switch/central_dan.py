@@ -23,6 +23,8 @@ import dynamic_reconfigure.client
 import numpy as np
 import cv2 as cv
 import os
+import datetime
+import pandas as pd
 
 
 class Field(Field):
@@ -273,6 +275,8 @@ class central:
         dt = currentTime - self.previousInfoUpdateTime
         self.previousInfoUpdateTime = currentTime
 
+        if dt > 1.5 / self.clock:
+            rospy.logerr("dt {}".format(dt))
         Z = Z - self.delta_decrease * dt * region
         Z = np.where(Z < 0.01, 0.01, Z)
         Z = Z + self.delta_increase * (1 - Z) * dt * ~region
@@ -285,7 +289,7 @@ class central:
 
         self.pcc_set_config_params()
         self.cbf_set_config_params()
-
+        self._log = []
         while not rospy.is_shutdown():
             JintSPlusb_all = 0.0
             ready = True
@@ -314,7 +318,7 @@ class central:
             # if any collector does not get region message from agent,
             # do not update field density
             if ready:
-
+                self._log.append([J])
                 
                 # update information density phi according to region
                 phi = self.infoUpdate(phi,region)
@@ -325,7 +329,26 @@ class central:
                 self.publishInfo(self.field.getPhi())
 
             self.rate.sleep()
+        self.savelog("_dan_rate{}".format(self.clock))
 
+    def savelog(self, other_str):
+        CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+        data_dir = CURRENT_DIR + "/../../data/"
+        now = datetime.datetime.now()
+        filename = data_dir + now.strftime("%Y%m%d_%H%M%S") + other_str
+        # df = pd.DataFrame(
+        #     data={
+        #         "u": self.u_log,
+        #         "J~": self.J_tilde_log,
+        #     },
+        #     columns=["u", "J~"],
+        # )
+        df = pd.DataFrame(
+            data=self._log,
+            columns=["J"],
+        )
+        df.to_csv(filename + ".csv", index=True)
+        rospy.loginfo("save " + filename)
 
 if __name__ == "__main__":
     try:

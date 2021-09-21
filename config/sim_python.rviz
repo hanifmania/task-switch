@@ -6,10 +6,14 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Grid1
         - /PointCloud21
         - /Marker3
+        - /Range4
+        - /Range5
         - /PointCloud22
         - /PointCloud23
+        - /PointCloud24
       Splitter Ratio: 0.461095095
     Tree Height: 747
   - Class: rviz/Selection
@@ -37,7 +41,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 1
+      Cell Size: 0.5
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: false
@@ -178,11 +182,11 @@ Visualization Manager:
       width: 128
     - Buffer length: 100
       Class: jsk_rviz_plugin/Plotter2D
-      Enabled: true
+      Enabled: false
       Name: Plotter2D
       Show Value: true
       Topic: /targetJ
-      Value: true
+      Value: false
       auto color change: false
       auto scale: true
       background color: 0; 0; 0
@@ -360,6 +364,16 @@ Visualization Manager:
       Topic: /bebop104/range
       Unreliable: false
       Value: true
+    - Alpha: 0.300000012
+      Buffer Length: 1
+      Class: rviz/Range
+      Color: 255; 0; 0
+      Enabled: true
+      Name: Range
+      Queue Size: 100
+      Topic: /bebop105/range
+      Unreliable: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -420,6 +434,36 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGBF32
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.00999999978
+      Style: Points
+      Topic: /theta3/pointcloud_theta
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 95; 95; 95
@@ -445,7 +489,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.59670544
+      Distance: 5.60397339
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -460,10 +504,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.56979632
+      Pitch: 0.914796233
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.71356583
+      Yaw: 4.70856476
     Saved: ~
 Window Geometry:
   Displays:

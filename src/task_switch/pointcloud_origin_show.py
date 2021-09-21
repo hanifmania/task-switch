@@ -30,7 +30,7 @@ class PointCloudOriginShow(object):
         z = 1
         # temp = (z - 0) * np.tan(np.pi/2 - q[0])
 
-        temp = - q[0] * 0.3
+        temp = - (q[0] - 1)
         return 0 - temp * np.cos(q[1]), 0 - temp * np.sin(q[1])
 
     def __init__(self, Hz=100):

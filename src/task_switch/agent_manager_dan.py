@@ -184,7 +184,7 @@ class CBFOptimizerROS(CBFOptimizer):
 
 
 
-class coverageController():
+class coverageController(object):
 
     def __init__(self):
         # ROS Initialize
@@ -277,7 +277,7 @@ class coverageController():
         self.charging = False
 
         # ref for altitude
-        self.zRef = 1.0
+        self.zRef = 1.2
         # Threshold for altitude control
         self.zThreshold = 0.35
         

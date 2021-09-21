@@ -25,9 +25,10 @@ class RigidBodyMotion(object):
         # getROSparam
 
         self.tf_prefix = rospy.get_param("tf_prefix", "")
-        clock = rospy.get_param("clock", 100)
-        for i in range(10):
-            print ("clock: {}".format(clock))
+        clock = rospy.get_param("~clock", 20)
+        rospy.loginfo("clock {}".format(clock))
+        # for i in range(10):
+        #     print ("clock: {}".format(clock))
         self.dt = 1.0 / clock
         # pose_topic = rospy.get_param("~pose_topic","rigid_body_motion/pose")
         # self.my_frame = rospy.get_param("~my_frame","/rigid_body_motion")
@@ -72,14 +73,20 @@ class RigidBodyMotion(object):
 
         self.velocity = Twist()
 
-        print "initial pose :"
-        print self.g
+        # print "initial pose :"
+        # print self.g
 
+        self.previousInfoUpdateTime = None
         # def config_callback(self,config):
         #   self.rate = rospy.Rate(config.sampling_clock)
         #   self.dt = 1.0/config.sampling_clock
         #   rospy.loginfo("Dynamic Reconfigure Prams Update")
         #   return 0
+
+        # self._field_x_min = rospy.get_param("/x_min")
+        # self._field_x_max = rospy.get_param("/x_max")
+        # self._field_y_min = rospy.get_param("/y_min")
+        # self._field_y_max = rospy.get_param("/y_max")
 
     def twist_callback(self, msg_data):
         twist_vec = np.c_[
@@ -100,19 +107,37 @@ class RigidBodyMotion(object):
         # self.g_dot = Vb.dot(self.g)
         self.g_dot = self.g.dot(Vb)
         self.integrate_g()
-        rospy.loginfo("Velocity is commanded")
+        # rospy.loginfo("Velocity is commanded")
 
         return 0
 
     def pose_callback(self, msg_data):
         self.g = self.pose_to_g(msg_data)
-        rospy.loginfo("Pose is commanded")
+        # rospy.loginfo("Pose is commanded")
         return 0
 
     def integrate_g(self):
         # tagged integrator(台形積分)
-        self.g = self.g + (self.g_dot + self.g_dot_old) * self.dt / 2.0
+        
+        currentTime = rospy.Time.now().to_sec()
+        if self.previousInfoUpdateTime is None:
+            self.previousInfoUpdateTime = currentTime
+        dt = currentTime - self.previousInfoUpdateTime
+        rospy.loginfo(dt)
+        self.previousInfoUpdateTime = currentTime
+        dt = self.dt
+        self.g = self.g + (self.g_dot + self.g_dot_old) * dt / 2.0
         self.g_dot_old = self.g_dot
+
+        # if pub_msg.pose.position.x > self._field_x_max:
+        #     pub_msg.pose.position.x = self._field_x_max
+        # if pub_msg.pose.position.x < self._field_x_min:
+        #     pub_msg.pose.position.x = self._field_x_min
+        # if pub_msg.pose.position.y > self._field_y_max:
+        #     pub_msg.pose.position.y = self._field_y_max
+        # if pub_msg.pose.position.y < self._field_y_min:
+        #     pub_msg.pose.position.y = self._field_y_min
+
         return self.g
 
     def publish_pose(self):

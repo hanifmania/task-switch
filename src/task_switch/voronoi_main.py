@@ -78,7 +78,18 @@ class Voronoi(object):
         expandX = vectorX[vectorNorm>0]/vectorNorm[vectorNorm>0]*onEdgePhi[vectorNorm>0]
         expandY = vectorY[vectorNorm>0]/vectorNorm[vectorNorm>0]*onEdgePhi[vectorNorm>0]
         self.expand = (self.R**2+self.b)*np.array([expandX.sum(), expandY.sum()])*self.pointDense
-    
+
+
+        self._onEdgeX = self.X*arc
+        self._onEdgeY = self.Y*arc
+        self._onEdgePhi = self.phi*arc
+
+        self._expandX = expandX
+        self._expandY = expandY
+
+        self._arc = arc
+
+
     def setPos(self,pos):
         self.Pos = pos
 

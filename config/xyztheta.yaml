@@ -20,7 +20,8 @@ bebop104:
     y: -0.5
     z: 1
 observe_field:
-  mesh_acc: [100,100,5, 10,10] #x,y,z, yaw, pitch
+  # mesh_acc: [100,100,5, 10,10] #x,y,z, yaw, pitch
+  mesh_acc: [100,100,5, 5, 60] #x,y,z, yaw, pitch
   limit: [[-1.0, 1.0],[-1.0,1.0],[0.0,0.5],[0.78, 1.5707963], [-3.14159265358979,3.14159265358979]] #[x[min,max], theta[min,max], z[min,max]] 
 drone_field:
   mesh_acc: [101, 101] #x (should contain 0 in linspace for compress)
@@ -31,7 +32,7 @@ rviz_field:
 
 theta_field:
   mesh_acc: [100, 100] #x (should contain 0 in linspace for compress)
-  limit: [[0.78, 1.5707963], [-3.14,3.14]] #[x[min,max]] 
+  limit: [[1.0471975511966, 1.5707963], [-3.14,3.14]] #[x[min,max]] 
   # theta_target:
   #   - target:
   #       x: 0

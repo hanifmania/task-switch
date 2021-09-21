@@ -1,33 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
     <rosparam command="load" file="$(find task_switch)/config/xyztheta.yaml" />
-    <group ns="theta1">
-      <node pkg="task_switch" name="show_origin" type="central_origin_show.py" output="screen">
-        <param name ="target/x" value="0"/>
-        <param name ="target/y" value="0"/>
-        <param name ="target/z" value="0"/>
-        
-        <param name="clock" value="20" />
-      </node>
-      <node pkg="task_switch" name="visualize_theta" type="pointcloud_origin_show.py" output="screen">
-        <param name="center_x" value="0"/>
-        <param name="center_y" value="2.5"/>
-      </node>
-    </group>
+    
+  <group ns="theta1">
+    <node pkg="task_switch" name="show_origin" type="central_origin_show.py" output="screen">
+      <param name ="target/x" value="0"/>
+      <param name ="target/y" value="0"/>
+      <param name ="target/z" value="0"/>
+      
+      <param name="clock" value="20" />
+    </node>
+    <node pkg="task_switch" name="visualize_theta" type="pointcloud_origin_show.py" output="screen">
+      <param name="center_x" value="-2.8"/>
+      <param name="center_y" value="2.5"/>
+    </node>
+  </group>
 
-    <group ns="theta2">
-      <node pkg="task_switch" name="show_origin" type="central_origin_show.py" output="screen">
-        <param name ="target/x" value="-1.0"/>
-        <param name ="target/y" value="1.0"/>
-        <param name ="target/z" value="0"/>
-        
-        <param name="clock" value="20" />
-      </node>
-      <node pkg="task_switch" name="visualize_theta" type="pointcloud_origin_show.py" output="screen">
-        <param name="center_x" value="-1.0"/>
-        <param name="center_y" value="2.5"/>
-      </node>
-    </group>
+  <group ns="theta2">
+    <node pkg="task_switch" name="show_origin" type="central_origin_show.py" output="screen">
+      <param name ="target/x" value="0.7"/>
+      <param name ="target/y" value="0.7"/>
+      <param name ="target/z" value="0"/>
+      
+      <param name="clock" value="20" />
+    </node>
+    <node pkg="task_switch" name="visualize_theta" type="pointcloud_origin_show.py" output="screen">
+      <param name="center_x" value="-1.4"/>
+      <param name="center_y" value="2.5"/>
+    </node>
+  </group>
+
+  <group ns="theta3">
+    <node pkg="task_switch" name="show_origin" type="central_origin_show.py" output="screen">
+      <param name ="target/x" value="-0.5"/>
+      <param name ="target/y" value="-0.2"/>
+      <param name ="target/z" value="0"/>
+      
+      <param name="clock" value="20" />
+    </node>
+    <node pkg="task_switch" name="visualize_theta" type="pointcloud_origin_show.py" output="screen">
+      <param name="center_x" value="0"/>
+      <param name="center_y" value="2.5"/>
+    </node>
+  </group>
 
 
       <param name="/agentNum" value="3"/>
