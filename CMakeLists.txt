@@ -56,6 +56,8 @@ catkin_python_setup()
    FILES
    Cameraparam.msg
    PlotData.msg
+   MRTAProblem.msg
+   PMRTAResult.msg
  )
 
 ## Generate services in the 'srv' folder

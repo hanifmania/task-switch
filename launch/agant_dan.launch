@@ -30,8 +30,8 @@
       </node>
 
 
-      <node pkg="task_switch" name="controller" type="agent_manager_dan_santos_r_limited.py" output='screen' >
-        <!-- <node pkg="task_switch" name="controller" type="agent_manager_dan_grad.py" output='screen'> -->
+      <!-- <node pkg="task_switch" name="controller" type="agent_manager_dan_santos_r_limited.py" output='screen' > -->
+        <node pkg="task_switch" name="controller" type="agent_manager_dan_santos.py" output='screen'>
         <!-- for specify /bebop10*/virtualdrone/command/cmd_vel-->
         <remap from="cmd_input" to="virtualdrone/command/cmd_vel"/>
         <remap from="posestamped" to="virtualdrone/posestamped"/>

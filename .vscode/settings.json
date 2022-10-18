@@ -5,5 +5,11 @@
         "/home/shanghai/TAKUMI_SHIMIZU/catchrobo_ws/devel/lib/python2.7/dist-packages",
         "/home/shanghai/catkin_ws/devel/lib/python2.7/dist-packages",
         "/opt/ros/kinetic/lib/python2.7/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/shanghai/TAKUMI_SHIMIZU/shimizu_ws/devel/lib/python2.7/dist-packages",
+        "/home/shanghai/TAKUMI_SHIMIZU/catchrobo_ws/devel/lib/python2.7/dist-packages",
+        "/home/shanghai/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/kinetic/lib/python2.7/dist-packages"
     ]
 }
